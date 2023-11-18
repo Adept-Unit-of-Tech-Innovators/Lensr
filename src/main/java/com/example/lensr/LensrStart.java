@@ -11,23 +11,42 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.example.lensr.Intersections.*;
 
 public class LensrStart extends Application {
+    public static Pane root = new Pane();
     public static final int SIZE = 1000;
+    public static List<Object> mirrors = new ArrayList<>();
+    public static List<Line> rayReflections = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
-        Pane pane = new Pane();
-        Scene scene = new Scene(pane, SIZE, SIZE);
+        Scene scene = new Scene(root, SIZE, SIZE);
 
         // Crate line (laser)
         Line[] ray = {new Line(0, 0, 0,0)};
         ray[0].setStroke(Color.RED);
-        ray[0].setStrokeWidth(2);
+        ray[0].setStrokeWidth(1);
 
-        // Create a circle (mirror)
-        Circle circle = new Circle(500, 320, 100);
+
+        // Create a circle mirror
+        Circle circleMirror = new Circle(500, 320, 100);
+
+        circleMirror.setFill(Color.WHITE);
+        circleMirror.setStroke(Color.BLACK);
+        circleMirror.setStrokeWidth(1);
+        mirrors.add(circleMirror);
+
+
+        // Create a line mirror
+        Line lineMirror = new Line(300, 700, 700, 500);
+
+        lineMirror.setStrokeWidth(1);
+        mirrors.add(lineMirror);
+
 
         Line[] reflectedRay = {new Line(0, 0, 0, 0)};
 
@@ -46,40 +65,106 @@ public class LensrStart extends Application {
             ray[0].setEndX(endX);
             ray[0].setEndY(endY);
 
-            Point2D intersectionPoint = getCircleIntersectionPoint(ray[0], circle);
-            if (intersectionPoint != null) {
-                ray[0].setEndX(intersectionPoint.getX());
-                ray[0].setEndY(intersectionPoint.getY());
-
-                double reflectionAngle = getCircleReflectionAngle(ray[0], intersectionPoint, circle);
-
-                // Calculate the end point of the reflected ray
-                double reflectedX = intersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
-                double reflectedY = intersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
-
-                reflectedRay[0].setStartX(intersectionPoint.getX());
-                reflectedRay[0].setStartY(intersectionPoint.getY());
-                reflectedRay[0].setEndX(reflectedX);
-                reflectedRay[0].setEndY(reflectedY);
-
-                reflectedRay[0].setStroke(Color.GREEN);
-                reflectedRay[0].setStrokeWidth(2);
-                reflectedRay[0].setVisible(true);
-            } else {
-                reflectedRay[0].setVisible(false);
-            }
-
-            reflectedRay[0].toFront();
-            ray[0].toFront();
+            root.getChildren().removeAll(rayReflections);
+            drawRaysRecursively(ray[0], null);
         });
 
-        pane.getChildren().addAll(reflectedRay[0], circle, ray[0]);
+        root.getChildren().addAll(reflectedRay[0], circleMirror, lineMirror, ray[0]);
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
+    public static void drawRaysRecursively(Line currentRay, Object previousMirror) {
+        // Get first mirror the object will intersect with
+        double shortestIntersectionDistance = Double.MAX_VALUE;
+        Object closestIntersectionMirror = null;
+
+        for (Object mirror : mirrors) {
+            // The ray cannot reflect of the same mirror twice in a row
+            if (mirror == previousMirror) continue;
+
+            if (mirror instanceof Line currentMirror) {
+                Point2D intersectionPoint = getLineIntersectionPoint(currentRay, currentMirror);
+
+                if (intersectionPoint != null) {
+                    double intersectionDistance = Math.sqrt(
+                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
+                    );
+
+                    if (intersectionDistance < shortestIntersectionDistance) {
+                        shortestIntersectionDistance = intersectionDistance;
+                        closestIntersectionMirror = currentMirror;
+                    }
+                }
+            }
+
+            else if (mirror instanceof Circle currentMirror) {
+                Point2D intersectionPoint = getCircleIntersectionPoint(currentRay, currentMirror);
+
+                if (intersectionPoint != null) {
+                    double intersectionDistance = Math.sqrt(
+                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
+                    );
+
+                    if (intersectionDistance < shortestIntersectionDistance) {
+                        shortestIntersectionDistance = intersectionDistance;
+                        closestIntersectionMirror = currentMirror;
+                    }
+                }
+            }
+        }
+
+        if (closestIntersectionMirror == null) return;
+
+        Line nextRay = new Line(0, 0, 0, 0);
+        nextRay.setVisible(false);
+        nextRay.setStroke(Color.RED);
+        nextRay.setStrokeWidth(1);
+
+        if (closestIntersectionMirror instanceof Line mirror) {
+            Point2D intersectionPoint = getLineIntersectionPoint(currentRay, mirror);
+
+            currentRay.setEndX(intersectionPoint.getX());
+            currentRay.setEndY(intersectionPoint.getY());
+
+            // Calculate the angle of incidence
+            double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
+
+            // Calculate the reflected ray's endpoint based on the reflection angle
+            double reflectedX = intersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+            double reflectedY = intersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+
+            nextRay.setStartX(intersectionPoint.getX());
+            nextRay.setStartY(intersectionPoint.getY());
+            nextRay.setEndX(reflectedX);
+            nextRay.setEndY(reflectedY);
+        }
+        else if (closestIntersectionMirror instanceof Circle mirror) {
+            Point2D intersectionPoint = getCircleIntersectionPoint(currentRay, mirror);
+
+            currentRay.setEndX(intersectionPoint.getX());
+            currentRay.setEndY(intersectionPoint.getY());
+
+            double reflectionAngle = getCircleReflectionAngle(currentRay, intersectionPoint, mirror);
+
+            // Calculate the end point of the reflected ray
+            double reflectedX = intersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
+            double reflectedY = intersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
+
+            nextRay.setStartX(intersectionPoint.getX());
+            nextRay.setStartY(intersectionPoint.getY());
+            nextRay.setEndX(reflectedX);
+            nextRay.setEndY(reflectedY);
+        }
+        nextRay.setVisible(true);
+        rayReflections.add(nextRay);
+        root.getChildren().add(nextRay);
+        drawRaysRecursively(nextRay, closestIntersectionMirror);
+    }
 
     public static void main(String[] args) {
         launch();
