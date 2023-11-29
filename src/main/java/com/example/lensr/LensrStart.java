@@ -25,7 +25,8 @@ public class LensrStart extends Application {
     public static List<Line> rayReflections = new ArrayList<>();
     public double mouseX;
     public double mouseY;
-    public boolean Xpressed = false;
+    public boolean xPressed = false;
+    public boolean zPressed = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -65,23 +66,33 @@ public class LensrStart extends Application {
         });
 
         scene.setOnKeyPressed(keyEvent -> {
-            if (Xpressed) {
+            if (xPressed || zPressed) {
                 return;
             }
             if (keyEvent.getCode().toString().equals("X")) {
-                Xpressed = true;
+                xPressed = true;
                 Circle newMirror = new CircleMirror(this.mouseX, this.mouseY, 1).createCircle();
                 mirrors.add(newMirror);
                 root.getChildren().add(newMirror);
                 scaleCircle(newMirror);
                 updateRay(ray);
-                System.out.println("added mirror");
+            }
+            if (keyEvent.getCode().toString().equals("Z")) {
+                zPressed = true;
+                Line newMirror = new LineMirror(this.mouseX, this.mouseY).createLine();
+                mirrors.add(newMirror);
+                root.getChildren().add(newMirror);
+                scaleLine(newMirror);
+                updateRay(ray);
             }
         });
 
         scene.setOnKeyReleased(keyEvent -> {
             if (keyEvent.getCode().toString().equals("X")) {
-                Xpressed = false;
+                xPressed = false;
+            }
+            if (keyEvent.getCode().toString().equals("Z")) {
+                zPressed = false;
             }
         });
 
@@ -202,9 +213,32 @@ public class LensrStart extends Application {
 
     public void scaleCircle(Circle circle) {
         new Thread(() -> {
-            while (Xpressed) {
+            while (xPressed) {
                 double radius = Math.sqrt(Math.pow(mouseX - circle.getCenterX(), 2) + Math.pow(mouseY - circle.getCenterY(), 2));
                 circle.setRadius(radius);
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    // Update UI components or perform other UI-related tasks
+                    // Example: circle.setRadius(radius);
+                });
+
+                try {
+                    Thread.sleep(10); // Adjust the sleep time as needed
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    public void scaleLine(Line line) {
+        new Thread(() -> {
+            while (zPressed) {
+                double endX = mouseX;
+                double endY = mouseY;
+                line.setEndX(endX);
+                line.setEndY(endY);
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
