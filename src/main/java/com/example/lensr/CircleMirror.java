@@ -17,7 +17,7 @@ public class CircleMirror {
     public Circle createCircle() {
         Circle circleMirror = new Circle(centreX, centreY, radius);
         circleMirror.setFill(Color.WHITE);
-        circleMirror.setStroke(Color.BLACK);
+        circleMirror.setStroke(Color.LIGHTGREEN);
         circleMirror.setStrokeWidth(1);
 
         return circleMirror;

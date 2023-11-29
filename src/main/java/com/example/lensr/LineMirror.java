@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 public class LineMirror {
     double startX;
@@ -17,6 +18,7 @@ public class LineMirror {
     public Line createLine() {
         Line lineMirror = new Line(startX, startY, endX, endY);
         lineMirror.setStrokeWidth(1);
+        lineMirror.setStroke(Color.LIGHTGREEN);
 
         return lineMirror;
     }

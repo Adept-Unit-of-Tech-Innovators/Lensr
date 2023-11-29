@@ -11,6 +11,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -90,16 +91,20 @@ public class LensrStart extends Application {
         scene.setOnKeyReleased(keyEvent -> {
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = false;
+                removeMirrorIfOverlaps();
             }
             if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = false;
+                removeMirrorIfOverlaps();
             }
         });
 
         scene.setOnMouseMoved(mouseEvent -> {
             this.mouseX = mouseEvent.getX();
             this.mouseY = mouseEvent.getY();
-            updateRay(ray);
+            if (!xPressed && !zPressed) {
+                updateRay(ray);
+            }
         });
 
         root.getChildren().addAll(reflectedRay[0], ray[0], lineMirror, circleMirror);
@@ -253,6 +258,19 @@ public class LensrStart extends Application {
                 }
             }
         }).start();
+    }
+
+    public void removeMirrorIfOverlaps() {
+        for (Object mirror : mirrors) {
+            if (mirror.equals(mirrors.get(mirrors.size()-1))) break;
+            if ((mirror instanceof Shape mirrorShape) && (mirrors.get(mirrors.size()-1) instanceof Shape newMirror)) {
+                if (Shape.intersect(newMirror, mirrorShape).getBoundsInLocal().getWidth() >= 0) {
+                    root.getChildren().remove(newMirror);
+                    mirrors.remove(newMirror);
+                    break;
+                }
+            }
+        }
     }
 
 
