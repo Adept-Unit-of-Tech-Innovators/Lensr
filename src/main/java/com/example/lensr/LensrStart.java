@@ -1,8 +1,10 @@
 package com.example.lensr;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -21,6 +23,9 @@ public class LensrStart extends Application {
     public static final int SIZE = 1000;
     public static List<Object> mirrors = new ArrayList<>();
     public static List<Line> rayReflections = new ArrayList<>();
+    public double mouseX;
+    public double mouseY;
+    public boolean Xpressed = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -59,17 +64,34 @@ public class LensrStart extends Application {
             mouseMoved.handle(mouseEvent);
         });
 
-        scene.setOnMouseMoved(mouseEvent -> {
-            double endX = (mouseEvent.getX() - ray[0].getStartX()) * SIZE;
-            double endY = (mouseEvent.getY() - ray[0].getStartY()) * SIZE;
-            ray[0].setEndX(endX);
-            ray[0].setEndY(endY);
-
-            root.getChildren().removeAll(rayReflections);
-            drawRaysRecursively(ray[0], null);
+        scene.setOnKeyPressed(keyEvent -> {
+            if (Xpressed) {
+                return;
+            }
+            if (keyEvent.getCode().toString().equals("X")) {
+                Xpressed = true;
+                Circle newMirror = new CircleMirror(this.mouseX, this.mouseY, 1).createCircle();
+                mirrors.add(newMirror);
+                root.getChildren().add(newMirror);
+                scaleCircle(newMirror);
+                updateRay(ray);
+                System.out.println("added mirror");
+            }
         });
 
-        root.getChildren().addAll(reflectedRay[0], circleMirror, lineMirror, ray[0]);
+        scene.setOnKeyReleased(keyEvent -> {
+            if (keyEvent.getCode().toString().equals("X")) {
+                Xpressed = false;
+            }
+        });
+
+        scene.setOnMouseMoved(mouseEvent -> {
+            this.mouseX = mouseEvent.getX();
+            this.mouseY = mouseEvent.getY();
+            updateRay(ray);
+        });
+
+        root.getChildren().addAll(reflectedRay[0], ray[0], lineMirror, circleMirror);
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
@@ -165,6 +187,38 @@ public class LensrStart extends Application {
         root.getChildren().add(nextRay);
         drawRaysRecursively(nextRay, closestIntersectionMirror);
     }
+
+    public void updateRay(Line[] ray) {
+        double endX = (mouseX - ray[0].getStartX()) * SIZE;
+        double endY = (mouseY - ray[0].getStartY()) * SIZE;
+        ray[0].setEndX(endX);
+        ray[0].setEndY(endY);
+
+        root.getChildren().removeAll(rayReflections);
+        drawRaysRecursively(ray[0], null);
+    }
+
+    public void scaleCircle(Circle circle) {
+        new Thread(() -> {
+            while (Xpressed) {
+                double radius = Math.sqrt(Math.pow(mouseX - circle.getCenterX(), 2) + Math.pow(mouseY - circle.getCenterY(), 2));
+                circle.setRadius(radius);
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    // Update UI components or perform other UI-related tasks
+                    // Example: circle.setRadius(radius);
+                });
+
+                try {
+                    Thread.sleep(10); // Adjust the sleep time as needed
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
 
     public static void main(String[] args) {
         launch();
