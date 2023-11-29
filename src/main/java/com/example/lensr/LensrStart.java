@@ -105,10 +105,11 @@ public class LensrStart extends Application {
 
         for (Object mirror : mirrors) {
             // The ray cannot reflect of the same mirror twice in a row
+            // TODO: It actually can, pls fix
             if (mirror == previousMirror) continue;
 
             if (mirror instanceof Line currentMirror) {
-                Point2D intersectionPoint = getLineIntersectionPoint(currentRay, currentMirror);
+                Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
 
                 if (intersectionPoint != null) {
                     double intersectionDistance = Math.sqrt(
@@ -124,7 +125,7 @@ public class LensrStart extends Application {
             }
 
             else if (mirror instanceof Circle currentMirror) {
-                Point2D intersectionPoint = getCircleIntersectionPoint(currentRay, currentMirror);
+                Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
 
                 if (intersectionPoint != null) {
                     double intersectionDistance = Math.sqrt(
@@ -148,7 +149,8 @@ public class LensrStart extends Application {
         nextRay.setStrokeWidth(1);
 
         if (closestIntersectionMirror instanceof Line mirror) {
-            Point2D intersectionPoint = getLineIntersectionPoint(currentRay, mirror);
+            Point2D intersectionPoint = getRayIntersectionPoint(currentRay, mirror);
+
 
             currentRay.setEndX(intersectionPoint.getX());
             currentRay.setEndY(intersectionPoint.getY());
@@ -166,7 +168,7 @@ public class LensrStart extends Application {
             nextRay.setEndY(reflectedY);
         }
         else if (closestIntersectionMirror instanceof Circle mirror) {
-            Point2D intersectionPoint = getCircleIntersectionPoint(currentRay, mirror);
+            Point2D intersectionPoint = getRayIntersectionPoint(currentRay, mirror);
 
             currentRay.setEndX(intersectionPoint.getX());
             currentRay.setEndY(intersectionPoint.getY());
