@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -23,20 +22,21 @@ public class LensrStart extends Application {
     public static Pane root = new Pane();
     public static final int SIZE = 1000;
     public static List<Object> mirrors = new ArrayList<>();
-    public static List<Line> rayReflections = new ArrayList<>();
+    public static List<Ray> rayReflections = new ArrayList<>();
     public double mouseX;
     public double mouseY;
     public boolean xPressed = false;
     public boolean zPressed = false;
+    public final Object lock = new Object();
 
     @Override
     public void start(Stage primaryStage) {
         Scene scene = new Scene(root, SIZE, SIZE);
 
         // Crate line (laser)
-        Line[] ray = {new Line(0, 0, 0,0)};
-        ray[0].setStroke(Color.RED);
-        ray[0].setStrokeWidth(1);
+        Ray ray = new Ray(0, 0, 0, 0);
+        ray.setStroke(Color.RED);
+        ray.setStrokeWidth(0.5);
 
 
         // Create a circle mirror
@@ -44,27 +44,25 @@ public class LensrStart extends Application {
 
         circleMirror.setFill(Color.WHITE);
         circleMirror.setStroke(Color.BLACK);
-        circleMirror.setStrokeWidth(1);
+        circleMirror.setStrokeWidth(0.5);
         mirrors.add(circleMirror);
 
 
         // Create a line mirror
-        Line lineMirror = new Line(300, 700, 700, 500);
+        Line lineMirror = new Line(300, 300, 700, 500);
 
-        lineMirror.setStrokeWidth(1);
+        lineMirror.setStrokeWidth(0.5);
         mirrors.add(lineMirror);
 
-
-        Line[] reflectedRay = {new Line(0, 0, 0, 0)};
-
         scene.setOnMouseClicked(mouseEvent -> {
-            ray[0].setStartX(mouseEvent.getSceneX());
-            ray[0].setStartY(mouseEvent.getSceneY());
+            ray.setStartX(mouseEvent.getSceneX());
+            ray.setStartY(mouseEvent.getSceneY());
 
             // Recalculate ray intersections after it position changed
             EventHandler<? super MouseEvent> mouseMoved = scene.getOnMouseMoved();
             mouseMoved.handle(mouseEvent);
         });
+
 
         scene.setOnKeyPressed(keyEvent -> {
             if (xPressed || zPressed) {
@@ -107,14 +105,17 @@ public class LensrStart extends Application {
             }
         });
 
-        root.getChildren().addAll(reflectedRay[0], ray[0], lineMirror, circleMirror);
+        root.getChildren().addAll(lineMirror, circleMirror);
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    public static void drawRaysRecursively(Line currentRay, Object previousMirror) {
+    public static void drawRaysRecursively(Ray currentRay, Object previousMirror, int recursiveDepth) {
+        // Limit recursive depth
+        if (recursiveDepth > 500) return;
+
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
@@ -159,14 +160,13 @@ public class LensrStart extends Application {
 
         if (closestIntersectionMirror == null) return;
 
-        Line nextRay = new Line(0, 0, 0, 0);
+        Ray nextRay = new Ray(0, 0, 0, 0);
         nextRay.setVisible(false);
         nextRay.setStroke(Color.RED);
         nextRay.setStrokeWidth(1);
 
         if (closestIntersectionMirror instanceof Line mirror) {
             Point2D intersectionPoint = getRayIntersectionPoint(currentRay, mirror);
-
 
             currentRay.setEndX(intersectionPoint.getX());
             currentRay.setEndY(intersectionPoint.getY());
@@ -202,18 +202,18 @@ public class LensrStart extends Application {
         }
         nextRay.setVisible(true);
         rayReflections.add(nextRay);
-        root.getChildren().add(nextRay);
-        drawRaysRecursively(nextRay, closestIntersectionMirror);
+        drawRaysRecursively(nextRay, closestIntersectionMirror, recursiveDepth + 1);
     }
 
-    public void updateRay(Line[] ray) {
-        double endX = (mouseX - ray[0].getStartX()) * SIZE;
-        double endY = (mouseY - ray[0].getStartY()) * SIZE;
-        ray[0].setEndX(endX);
-        ray[0].setEndY(endY);
+    public void updateRay(Ray ray) {
+        double endX = (mouseX - ray.getStartX()) * SIZE;
+        double endY = (mouseY - ray.getStartY()) * SIZE;
+        ray.setEndX(endX);
+        ray.setEndY(endY);
 
         root.getChildren().removeAll(rayReflections);
-        drawRaysRecursively(ray[0], null);
+
+        drawRaysRecursively(ray, null, 0);
     }
 
     public void scaleCircle(Circle circle) {
@@ -228,10 +228,12 @@ public class LensrStart extends Application {
                     // Example: circle.setRadius(radius);
                 });
 
-                try {
-                    Thread.sleep(10); // Adjust the sleep time as needed
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the wait time as needed
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }).start();
@@ -250,11 +252,12 @@ public class LensrStart extends Application {
                     // Update UI components or perform other UI-related tasks
                     // Example: circle.setRadius(radius);
                 });
-
-                try {
-                    Thread.sleep(10); // Adjust the sleep time as needed
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }).start();

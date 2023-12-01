@@ -13,7 +13,7 @@ public class Intersections {
 
         ray.setStrokeWidth(0.1);
         Shape intersectionShape = Shape.intersect(ray, object);
-        ray.setStrokeWidth(2);
+        ray.setStrokeWidth(0.5);
 
         if (intersectionShape.getLayoutBounds().getHeight() < 0) return null;
 

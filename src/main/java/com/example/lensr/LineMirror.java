@@ -17,7 +17,7 @@ public class LineMirror {
 
     public Line createLine() {
         Line lineMirror = new Line(startX, startY, endX, endY);
-        lineMirror.setStrokeWidth(1);
+        lineMirror.setStrokeWidth(0.5);
         lineMirror.setStroke(Color.LIGHTGREEN);
 
         return lineMirror;
