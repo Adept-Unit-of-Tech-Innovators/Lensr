@@ -3,6 +3,7 @@ package com.example.lensr;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
@@ -119,6 +120,7 @@ public class LensrStart extends Application {
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
+        Point2D closestIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
 
         for (Object mirror : mirrors) {
             // The ray cannot reflect of the same mirror twice in a row
@@ -126,6 +128,12 @@ public class LensrStart extends Application {
             if (mirror == previousMirror) continue;
 
             if (mirror instanceof Line currentMirror) {
+                // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
+                double minimalPossibleDistance = getMinimalDistanceToBounds(currentRay, currentMirror.getLayoutBounds());
+                if (minimalPossibleDistance > shortestIntersectionDistance) {
+                    continue;
+                }
+
                 Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
 
                 if (intersectionPoint != null) {
@@ -135,6 +143,7 @@ public class LensrStart extends Application {
                     );
 
                     if (intersectionDistance < shortestIntersectionDistance) {
+                        closestIntersectionPoint = intersectionPoint;
                         shortestIntersectionDistance = intersectionDistance;
                         closestIntersectionMirror = currentMirror;
                     }
@@ -142,6 +151,10 @@ public class LensrStart extends Application {
             }
 
             else if (mirror instanceof Circle currentMirror) {
+                // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
+                double minimalPossibleDistance = getMinimalDistanceToBounds(currentRay, currentMirror.getLayoutBounds());
+                if (minimalPossibleDistance > shortestIntersectionDistance) continue;
+
                 Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
 
                 if (intersectionPoint != null) {
@@ -151,6 +164,7 @@ public class LensrStart extends Application {
                     );
 
                     if (intersectionDistance < shortestIntersectionDistance) {
+                        closestIntersectionPoint = intersectionPoint;
                         shortestIntersectionDistance = intersectionDistance;
                         closestIntersectionMirror = currentMirror;
                     }
@@ -166,37 +180,33 @@ public class LensrStart extends Application {
         nextRay.setStrokeWidth(1);
 
         if (closestIntersectionMirror instanceof Line mirror) {
-            Point2D intersectionPoint = getRayIntersectionPoint(currentRay, mirror);
-
-            currentRay.setEndX(intersectionPoint.getX());
-            currentRay.setEndY(intersectionPoint.getY());
+            currentRay.setEndX(closestIntersectionPoint.getX());
+            currentRay.setEndY(closestIntersectionPoint.getY());
 
             // Calculate the angle of incidence
             double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
 
             // Calculate the reflected ray's endpoint based on the reflection angle
-            double reflectedX = intersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-            double reflectedY = intersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+            double reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+            double reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
-            nextRay.setStartX(intersectionPoint.getX());
-            nextRay.setStartY(intersectionPoint.getY());
+            nextRay.setStartX(closestIntersectionPoint.getX());
+            nextRay.setStartY(closestIntersectionPoint.getY());
             nextRay.setEndX(reflectedX);
             nextRay.setEndY(reflectedY);
         }
         else if (closestIntersectionMirror instanceof Circle mirror) {
-            Point2D intersectionPoint = getRayIntersectionPoint(currentRay, mirror);
+            currentRay.setEndX(closestIntersectionPoint.getX());
+            currentRay.setEndY(closestIntersectionPoint.getY());
 
-            currentRay.setEndX(intersectionPoint.getX());
-            currentRay.setEndY(intersectionPoint.getY());
-
-            double reflectionAngle = getCircleReflectionAngle(currentRay, intersectionPoint, mirror);
+            double reflectionAngle = getCircleReflectionAngle(currentRay, closestIntersectionPoint, mirror);
 
             // Calculate the end point of the reflected ray
-            double reflectedX = intersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
-            double reflectedY = intersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
+            double reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
+            double reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
 
-            nextRay.setStartX(intersectionPoint.getX());
-            nextRay.setStartY(intersectionPoint.getY());
+            nextRay.setStartX(closestIntersectionPoint.getX());
+            nextRay.setStartY(closestIntersectionPoint.getY());
             nextRay.setEndX(reflectedX);
             nextRay.setEndY(reflectedY);
         }
@@ -262,6 +272,37 @@ public class LensrStart extends Application {
             }
         }).start();
     }
+
+
+    public static double getMinimalDistanceToBounds(Ray ray, Bounds bounds) {
+        // Get the start position of the ray
+        double startX = ray.getStartX();
+        double startY = ray.getStartY();
+
+        // Calculate the minimal distance from the start position of the ray to the given bounds
+        double distanceX;
+        double distanceY;
+
+        if (startX < bounds.getMinX()) {
+            distanceX = bounds.getMinX() - startX;
+        } else if (startX > bounds.getMaxX()) {
+            distanceX = startX - bounds.getMaxX();
+        } else {
+            distanceX = 0; // Start X is within the bounds
+        }
+
+        if (startY < bounds.getMinY()) {
+            distanceY = bounds.getMinY() - startY;
+        } else if (startY > bounds.getMaxY()) {
+            distanceY = startY - bounds.getMaxY();
+        } else {
+            distanceY = 0; // Start Y is within the bounds
+        }
+
+        // Calculate the Euclidean distance from the start position to the bounds
+        return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+    }
+
 
     public void removeMirrorIfOverlaps() {
         for (Object mirror : mirrors) {
