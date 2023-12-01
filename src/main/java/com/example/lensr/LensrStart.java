@@ -9,15 +9,14 @@ import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.Intersections.*;
+import static com.example.lensr.CircleMirror.*;
+import static com.example.lensr.LineMirror.*;
 
 public class LensrStart extends Application {
     public static Pane root = new Pane();
@@ -34,26 +33,10 @@ public class LensrStart extends Application {
     public void start(Stage primaryStage) {
         Scene scene = new Scene(root, SIZE, SIZE);
 
-        // Crate line (laser)
+        // Crate a ray
         Ray ray = new Ray(0, 0, 0, 0);
         ray.setStroke(Color.RED);
         ray.setStrokeWidth(0.5);
-
-
-        // Create a circle mirror
-        Circle circleMirror = new Circle(500, 320, 100);
-
-        circleMirror.setFill(Color.WHITE);
-        circleMirror.setStroke(Color.BLACK);
-        circleMirror.setStrokeWidth(0.5);
-        mirrors.add(circleMirror);
-
-
-        // Create a line mirror
-        Line lineMirror = new Line(300, 300, 700, 500);
-
-        lineMirror.setStrokeWidth(0.5);
-        mirrors.add(lineMirror);
 
         scene.setOnMouseClicked(mouseEvent -> {
             ray.setStartX(mouseEvent.getSceneX());
@@ -71,17 +54,15 @@ public class LensrStart extends Application {
             }
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = true;
-                Circle newMirror = new CircleMirror(this.mouseX, this.mouseY, 1).createCircle();
+                CircleMirror newMirror = new CircleMirror(this.mouseX, this.mouseY, 1);
                 mirrors.add(newMirror);
-                root.getChildren().add(newMirror);
                 scaleCircle(newMirror);
                 updateRay(ray);
             }
             if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = true;
-                Line newMirror = new LineMirror(this.mouseX, this.mouseY).createLine();
+                LineMirror newMirror = new LineMirror(this.mouseX, this.mouseY);
                 mirrors.add(newMirror);
-                root.getChildren().add(newMirror);
                 scaleLine(newMirror);
                 updateRay(ray);
             }
@@ -90,11 +71,11 @@ public class LensrStart extends Application {
         scene.setOnKeyReleased(keyEvent -> {
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = false;
-                removeMirrorIfOverlaps();
+                removeCircleMirrorIfOverlaps();
             }
             if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = false;
-                removeMirrorIfOverlaps();
+                removeLineMirrorIfOverlaps();
             }
         });
 
@@ -105,8 +86,6 @@ public class LensrStart extends Application {
                 updateRay(ray);
             }
         });
-
-        root.getChildren().addAll(lineMirror, circleMirror);
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
@@ -127,7 +106,7 @@ public class LensrStart extends Application {
             // TODO: It actually can, pls fix
             if (mirror == previousMirror) continue;
 
-            if (mirror instanceof Line currentMirror) {
+            if (mirror instanceof LineMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentRay, currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) {
@@ -150,7 +129,7 @@ public class LensrStart extends Application {
                 }
             }
 
-            else if (mirror instanceof Circle currentMirror) {
+            else if (mirror instanceof CircleMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentRay, currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
@@ -175,11 +154,10 @@ public class LensrStart extends Application {
         if (closestIntersectionMirror == null) return;
 
         Ray nextRay = new Ray(0, 0, 0, 0);
-        nextRay.setVisible(false);
         nextRay.setStroke(Color.RED);
-        nextRay.setStrokeWidth(1);
+        nextRay.setStrokeWidth(0.5);
 
-        if (closestIntersectionMirror instanceof Line mirror) {
+        if (closestIntersectionMirror instanceof LineMirror mirror) {
             currentRay.setEndX(closestIntersectionPoint.getX());
             currentRay.setEndY(closestIntersectionPoint.getY());
 
@@ -195,7 +173,7 @@ public class LensrStart extends Application {
             nextRay.setEndX(reflectedX);
             nextRay.setEndY(reflectedY);
         }
-        else if (closestIntersectionMirror instanceof Circle mirror) {
+        else if (closestIntersectionMirror instanceof CircleMirror mirror) {
             currentRay.setEndX(closestIntersectionPoint.getX());
             currentRay.setEndY(closestIntersectionPoint.getY());
 
@@ -210,7 +188,6 @@ public class LensrStart extends Application {
             nextRay.setEndX(reflectedX);
             nextRay.setEndY(reflectedY);
         }
-        nextRay.setVisible(true);
         rayReflections.add(nextRay);
         drawRaysRecursively(nextRay, closestIntersectionMirror, recursiveDepth + 1);
     }
@@ -226,11 +203,11 @@ public class LensrStart extends Application {
         drawRaysRecursively(ray, null, 0);
     }
 
-    public void scaleCircle(Circle circle) {
+    public void scaleCircle(CircleMirror circleMirror) {
         new Thread(() -> {
             while (xPressed) {
-                double radius = Math.sqrt(Math.pow(mouseX - circle.getCenterX(), 2) + Math.pow(mouseY - circle.getCenterY(), 2));
-                circle.setRadius(radius);
+                double radius = Math.sqrt(Math.pow(mouseX - circleMirror.getCenterX(), 2) + Math.pow(mouseY - circleMirror.getCenterY(), 2));
+                circleMirror.setRadius(radius);
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
@@ -249,13 +226,13 @@ public class LensrStart extends Application {
         }).start();
     }
 
-    public void scaleLine(Line line) {
+    public void scaleLine(LineMirror lineMirror) {
         new Thread(() -> {
             while (zPressed) {
                 double endX = mouseX;
                 double endY = mouseY;
-                line.setEndX(endX);
-                line.setEndY(endY);
+                lineMirror.setEndX(endX);
+                lineMirror.setEndY(endY);
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
@@ -301,20 +278,6 @@ public class LensrStart extends Application {
 
         // Calculate the Euclidean distance from the start position to the bounds
         return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-    }
-
-
-    public void removeMirrorIfOverlaps() {
-        for (Object mirror : mirrors) {
-            if (mirror.equals(mirrors.get(mirrors.size()-1))) break;
-            if ((mirror instanceof Shape mirrorShape) && (mirrors.get(mirrors.size()-1) instanceof Shape newMirror)) {
-                if (Shape.intersect(newMirror, mirrorShape).getBoundsInLocal().getWidth() >= 0) {
-                    root.getChildren().remove(newMirror);
-                    mirrors.remove(newMirror);
-                    break;
-                }
-            }
-        }
     }
 
 
