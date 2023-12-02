@@ -45,11 +45,6 @@ public class LensrStart extends Application {
 
 
     public static void drawRaysRecursively(Ray currentRay, Object previousMirror, int recursiveDepth) {
-        // Limit recursive depth
-        if (recursiveDepth >= 500) return;
-
-        // If the ray is so dim, its basically invisible
-        if (currentRay.getBrightness() < 0.001) return;
 
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
@@ -110,6 +105,12 @@ public class LensrStart extends Application {
 
         currentRay.setEndX(closestIntersectionPoint.getX());
         currentRay.setEndY(closestIntersectionPoint.getY());
+
+        // Limit recursive depth
+        if (recursiveDepth >= 500) return;
+
+        // If the ray is so dim, its basically invisible
+        if (currentRay.getBrightness() < 0.001) return;
 
         Ray nextRay = new Ray(0, 0, 0, 0);
         nextRay.setStroke(currentRay.getStroke());
