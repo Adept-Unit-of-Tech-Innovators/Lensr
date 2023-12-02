@@ -33,6 +33,7 @@ public class Intersections {
         return new Point2D(intersectionX, intersectionY);
     }
 
+
     public static double getLineReflectionAngle(Line ray, Line mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
@@ -43,11 +44,11 @@ public class Intersections {
     }
 
 
-    public static double getCircleReflectionAngle(Line ray, Point2D intersectionPoint, Circle circle) {
+    public static double getCircleReflectionAngle(Line ray, Circle circle) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the normal vector at the intersection point
-        double normalAngle = Math.atan2(intersectionPoint.getY() - circle.getCenterY(), intersectionPoint.getX() - circle.getCenterX());
+        double normalAngle = Math.atan2(ray.getEndY() - circle.getCenterY(), ray.getEndX() - circle.getCenterX());
 
         return 2 * normalAngle - angleOfIncidence;
     }
