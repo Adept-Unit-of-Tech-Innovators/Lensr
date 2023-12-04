@@ -1,7 +1,6 @@
 package com.example.lensr;
 
 import javafx.geometry.Point2D;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 
@@ -44,11 +43,27 @@ public class Intersections {
     }
 
 
-    public static double getCircleReflectionAngle(Line ray, Circle circle) {
+    public static double getEllipseReflectionAngle(Line ray, EllipseMirror ellipseMirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the normal vector at the intersection point
-        double normalAngle = Math.atan2(ray.getEndY() - circle.getCenterY(), ray.getEndX() - circle.getCenterX());
+        double x = ray.getEndX();
+        double y = ray.getEndY();
+        double centerX = ellipseMirror.getCenterX();
+        double centerY = ellipseMirror.getCenterY();
+        double semiMajorAxis = ellipseMirror.getRadiusX();
+        double semiMinorAxis = ellipseMirror.getRadiusY();
+
+        // Equation of an ellipse: (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
+        // Derivative of the ellipse equation: f'(x) = -((x - h) / a^2) / ((y - k) / b^2)
+        // Normal vector: (-f'(x), 1)
+        // according to chatgpt at least
+        double normalAngle = Math.atan2(((y - centerY) * semiMajorAxis * semiMajorAxis), ((x - centerX) * semiMinorAxis * semiMinorAxis));
+
+        // Adjust the normal angle based on the quadrant of the point
+        if (x > centerX) {
+            normalAngle += Math.PI;
+        }
 
         return 2 * normalAngle - angleOfIncidence;
     }

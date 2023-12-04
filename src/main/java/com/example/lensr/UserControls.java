@@ -4,15 +4,16 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.CircleMirror.*;
+import static com.example.lensr.EllipseMirror.*;
 import static com.example.lensr.LineMirror.*;
+
 public class UserControls {
     // ok this type of commenting is super cool please use it (If you're seeing "/**" click those 3 lines "Toggle rendered view" on the left side)
     // They only work in IntelliJ tho :(
     /**
      * Mouse click - Set ray origin <br>
      * Mouse move - Set ray direction <br>
-     * X - Spawn a new Circle <br>
+     * X - Spawn a new Ellipse <br>
      * Z - Spawn a new Line <br>
      */
 
@@ -30,14 +31,20 @@ public class UserControls {
             if (xPressed || zPressed) {
                 return;
             }
-            if (keyEvent.getCode().toString().equals("X")) {
+            if (keyEvent.getCode().toString().equals("SHIFT")) {
+                shiftPressed = true;
+            }
+
+            if (xPressed || zPressed) return;
+
+            else if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = true;
-                CircleMirror newMirror = new CircleMirror(mouseX, mouseY, 1);
+                EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
                 mirrors.add(newMirror);
-                scaleCircle(newMirror);
+                newMirror.scaleEllipse();
                 updateRay(rays.get(0));
             }
-            if (keyEvent.getCode().toString().equals("Z")) {
+            else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = true;
                 LineMirror newMirror = new LineMirror(mouseX, mouseY);
                 mirrors.add(newMirror);
@@ -47,11 +54,15 @@ public class UserControls {
         });
 
         scene.setOnKeyReleased(keyEvent -> {
+            if (keyEvent.getCode().toString().equals("SHIFT")) {
+                shiftPressed = false;
+            }
+
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = false;
-                removeCircleMirrorIfOverlaps();
+                removeEllipseMirrorIfOverlaps();
             }
-            if (keyEvent.getCode().toString().equals("Z")) {
+            else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = false;
                 removeLineMirrorIfOverlaps();
             }
@@ -60,6 +71,7 @@ public class UserControls {
         scene.setOnMouseMoved(mouseEvent -> {
             mouseX = mouseEvent.getX();
             mouseY = mouseEvent.getY();
+
             if (!xPressed && !zPressed) {
                 updateRay(rays.get(0));
             }

@@ -78,7 +78,7 @@ public class LensrStart extends Application {
                     }
                 }
             }
-            else if (mirror instanceof CircleMirror currentMirror) {
+            else if (mirror instanceof EllipseMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
@@ -132,9 +132,9 @@ public class LensrStart extends Application {
 
             nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
         }
-        else if (closestIntersectionMirror instanceof CircleMirror mirror) {
+        else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
             // Calculate the angle of incidence
-            double reflectionAngle = getCircleReflectionAngle(currentRay, mirror);
+            double reflectionAngle = getEllipseReflectionAngle(currentRay, mirror);
 
             // Calculate the end point of the reflected ray
             reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
