@@ -1,9 +1,15 @@
 package com.example.lensr;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 
@@ -13,7 +19,9 @@ public class EllipseMirror extends Ellipse {
     // How much light is scattered instead of reflected, 0 - all light is scattered, 1 - all light is perfectly reflected
     // Not sure if we should implement this as the lower the specular, the less the object behaves like a mirror. Mirrors always have high specular.
     double specular;
-
+    List<Rectangle> editPoints = new ArrayList<>();
+    boolean isEdited;
+    boolean isEditPointClicked;
 
     public EllipseMirror(double mouseX, double mouseY, int radiusX, int radiusY) {
         setCenterX(mouseX);
@@ -23,9 +31,65 @@ public class EllipseMirror extends Ellipse {
 
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
-        setStrokeWidth(globalStrokeWidth);
+        setStrokeWidth(1);
+
+        setOnMouseClicked(mouseEvent -> {
+            if (isEditMode && !isEdited) openObjectEdit();
+        });
 
         root.getChildren().add(this);
+    }
+
+    private void openObjectEdit() {
+        for (Object mirror : mirrors) {
+            if (mirror instanceof EllipseMirror ellipseMirror) {
+                if (ellipseMirror.isEdited) {
+                    ellipseMirror.isEditPointClicked = false;
+                    ellipseMirror.closeObjectEdit();
+                }
+            }
+        }
+        isEdited = true;
+
+        // Place edit points
+        Bounds mirrorBounds = getLayoutBounds();
+        editPoints.add(new Rectangle(mirrorBounds.getMinX() - 4, mirrorBounds.getMinY() - 4, 8, 8));
+        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - 4, mirrorBounds.getMinY() - 4, 8, 8));
+        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - 4, mirrorBounds.getMaxY() - 4, 8, 8));
+        editPoints.add(new Rectangle(mirrorBounds.getMinX() - 4, mirrorBounds.getMaxY() - 4, 8, 8));
+
+        for (Rectangle editPoint : editPoints) {
+            editPoint.setFill(Color.RED);
+            editPoint.setStrokeWidth(0);
+            editPoint.setOnMousePressed(this::handleEditPointPressed);
+            editPoint.setOnMouseReleased(this::handleEditPointReleased);
+        }
+
+        root.getChildren().addAll(editPoints);
+    }
+
+
+    private void handleEditPointPressed(MouseEvent event) {
+        isEditPointClicked = true;
+
+        // Scale the mirror with the opposite edit point as an anchor
+        int editPointIndex = editPoints.indexOf(event.getSource());
+        scaleEllipse(editPoints.get( (editPointIndex + 2) % 4).getX() + 4, editPoints.get( (editPointIndex + 2) % 4).getY() + 4);
+    }
+
+
+    private void handleEditPointReleased(MouseEvent event) {
+        isEditPointClicked = false;
+        closeObjectEdit();
+        event.consume();
+    }
+
+
+    public void closeObjectEdit() {
+        isEdited = false;
+        removeEllipseMirrorIfOverlaps();
+        root.getChildren().removeAll(editPoints);
+        editPoints.clear();
     }
 
 
@@ -39,26 +103,22 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public static void removeEllipseMirrorIfOverlaps() {
+    public void removeEllipseMirrorIfOverlaps() {
         // Remove the mirror if its size is 0
-        if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror &&
-                ellipseMirror.getRadiusX() == 0 &&
-                ellipseMirror.getRadiusY() == 0
-        ) {
-            root.getChildren().remove(ellipseMirror);
-            mirrors.remove(ellipseMirror);
+        if (this.getRadiusX() == 0 && this.getRadiusY() == 0) {
+            root.getChildren().remove(this);
+            mirrors.remove(this);
             return;
         }
 
         for (Object mirror : mirrors) {
-            if (mirror.equals(mirrors.get(mirrors.size() - 1))) break;
+            if (mirror.equals(this)) continue;
 
-            if (mirror instanceof Shape mirrorShape && mirrors.get(mirrors.size() - 1) instanceof Shape newMirror) {
-
+            if (mirror instanceof Shape mirrorShape) {
                 // If the mirror overlaps with another object, remove it
-                if (Shape.intersect(newMirror, mirrorShape).getLayoutBounds().getWidth() >= 0) {
-                    root.getChildren().remove(newMirror);
-                    mirrors.remove(newMirror);
+                if (Shape.intersect(this , mirrorShape).getLayoutBounds().getWidth() >= 0) {
+                    root.getChildren().remove(this);
+                    mirrors.remove(this);
                     return;
                 }
             }
@@ -66,17 +126,16 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void scaleEllipse(double startMouseX, double startMouseY) {
+    public void scaleEllipse(double anchorX, double anchorY) {
         new Thread(() -> {
-            while (xPressed) {
-
+            while (xPressed || isEditPointClicked) {
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed) {
-                    setCenterX(startMouseX);
-                    setCenterY(startMouseY);
+                    setCenterX(anchorX);
+                    setCenterY(anchorY);
 
                     if (shiftPressed) {
-                        double radius = Math.min( Math.abs(startMouseX - mouseX), Math.abs(startMouseY - mouseY) );
+                        double radius = Math.min( Math.abs(anchorX - mouseX), Math.abs(anchorY - mouseY) );
                         setRadiusX(radius);
                         setRadiusY(radius);
                     } else {
@@ -88,22 +147,36 @@ public class EllipseMirror extends Ellipse {
                 }
                 else {
                     if (shiftPressed) {
-                        double minDistance = Math.min( Math.abs(startMouseX - mouseX), Math.abs(startMouseY - mouseY) ) / 2;
-                        setCenterX(startMouseX + (mouseX > startMouseX ? minDistance : -minDistance));
-                        setCenterY(startMouseY + (mouseY > startMouseY ? minDistance : -minDistance));
+                        double minDistance = Math.min( Math.abs(anchorX - mouseX), Math.abs(anchorY - mouseY) ) / 2;
+                        setCenterX(anchorX + (mouseX > anchorX ? minDistance : -minDistance));
+                        setCenterY(anchorY + (mouseY > anchorY ? minDistance : -minDistance));
 
                         double radius = Math.min( Math.abs(getCenterX() - mouseX), Math.abs(getCenterY() - mouseY) );
                         setRadiusX(radius);
                         setRadiusY(radius);
                     }
                     else {
-                        setCenterX(startMouseX + ( (mouseX - startMouseX) / 2) );
-                        setCenterY(startMouseY + ( (mouseY - startMouseY) / 2) );
+                        setCenterX(anchorX + ( (mouseX - anchorX) / 2) );
+                        setCenterY(anchorY + ( (mouseY - anchorY) / 2) );
 
                         double radiusX = Math.abs(mouseX - getCenterX());
                         double radiusY = Math.abs(mouseY - getCenterY());
                         setRadiusX(radiusX);
                         setRadiusY(radiusY);
+                    }
+                }
+
+                // Update editPoints location
+                if (isEditPointClicked) {
+                    Bounds mirrorBounds = getLayoutBounds();
+                    int offset = -4;
+
+                    for (int i = 0; i < editPoints.size(); i++) {
+                        double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                        editPoints.get(i).setX(x + offset);
+                        editPoints.get(i).setY(y + offset);
                     }
                 }
 

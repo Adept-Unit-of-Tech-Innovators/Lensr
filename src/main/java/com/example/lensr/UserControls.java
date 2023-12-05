@@ -4,7 +4,6 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.EllipseMirror.*;
 import static com.example.lensr.LineMirror.*;
 
 public class UserControls {
@@ -34,7 +33,9 @@ public class UserControls {
                 // If mode was switched during an edit, finish the edit
                 if (xPressed) {
                     xPressed = false;
-                    removeEllipseMirrorIfOverlaps();
+                    if (mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
+                        ellipseMirror.removeEllipseMirrorIfOverlaps();
+                    }
                 }
                 else if (zPressed) {
                     zPressed = false;
@@ -85,7 +86,9 @@ public class UserControls {
 
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = false;
-                removeEllipseMirrorIfOverlaps();
+                if (mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
+                    ellipseMirror.removeEllipseMirrorIfOverlaps();
+                }
             }
             else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = false;
@@ -102,6 +105,10 @@ public class UserControls {
             if (!xPressed && !zPressed) {
                 updateRay(rays.get(0));
             }
+        });
+        scene.setOnMouseDragged(mouseEvent -> {
+            mouseX = mouseEvent.getX();
+            mouseY = mouseEvent.getY();
         });
     }
 }
