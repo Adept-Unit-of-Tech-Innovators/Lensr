@@ -19,6 +19,8 @@ public class UserControls {
 
     public static void setUserControls() {
         scene.setOnMouseClicked(mouseEvent -> {
+            if (!isEditMode) return;
+
             rays.get(0).setStartX(mouseEvent.getSceneX());
             rays.get(0).setStartY(mouseEvent.getSceneY());
 
@@ -28,20 +30,38 @@ public class UserControls {
         });
 
         scene.setOnKeyPressed(keyEvent -> {
-            if (xPressed || zPressed) {
-                return;
+            if (keyEvent.getCode().toString().equals("E")) {
+                // If mode was switched during an edit, finish the edit
+                if (xPressed) {
+                    xPressed = false;
+                    removeEllipseMirrorIfOverlaps();
+                }
+                else if (zPressed) {
+                    zPressed = false;
+                    removeLineMirrorIfOverlaps();
+                }
+
+                isEditMode = !isEditMode;
             }
+
             if (keyEvent.getCode().toString().equals("SHIFT")) {
                 shiftPressed = true;
             }
+            if (keyEvent.getCode().toString().equals("ALT")) {
+                altPressed = true;
+            }
 
-            if (xPressed || zPressed) return;
+            if (xPressed || zPressed || !isEditMode) return;
 
-            else if (keyEvent.getCode().toString().equals("X")) {
+            if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = true;
+
+                double startMouseX = mouseX;
+                double startMouseY = mouseY;
+
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
                 mirrors.add(newMirror);
-                newMirror.scaleEllipse();
+                newMirror.scaleEllipse(startMouseX, startMouseY);
                 updateRay(rays.get(0));
             }
             else if (keyEvent.getCode().toString().equals("Z")) {
@@ -57,6 +77,11 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("SHIFT")) {
                 shiftPressed = false;
             }
+            if (keyEvent.getCode().toString().equals("ALT")) {
+                altPressed = false;
+            }
+
+            if (!isEditMode || (!xPressed && !zPressed) ) return;
 
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = false;
@@ -69,6 +94,8 @@ public class UserControls {
         });
 
         scene.setOnMouseMoved(mouseEvent -> {
+            if (!isEditMode) return;
+
             mouseX = mouseEvent.getX();
             mouseY = mouseEvent.getY();
 
@@ -76,6 +103,5 @@ public class UserControls {
                 updateRay(rays.get(0));
             }
         });
-
     }
 }

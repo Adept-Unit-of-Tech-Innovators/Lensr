@@ -66,19 +66,45 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void scaleEllipse() {
+    public void scaleEllipse(double startMouseX, double startMouseY) {
         new Thread(() -> {
             while (xPressed) {
 
-                if (shiftPressed) {
-                    double radius = Math.sqrt(Math.pow(mouseX - getCenterX(), 2) + Math.pow(mouseY - getCenterY(), 2));
-                    setRadiusX(radius);
-                    setRadiusY(radius);
-                } else {
-                    double radiusX = Math.abs(mouseX - getCenterX());
-                    double radiusY = Math.abs(mouseY - getCenterY());
-                    setRadiusX(radiusX);
-                    setRadiusY(radiusY);
+                // Resizing standard based on Photoshop and MS Paint :)
+                if (altPressed) {
+                    setCenterX(startMouseX);
+                    setCenterY(startMouseY);
+
+                    if (shiftPressed) {
+                        double radius = Math.min( Math.abs(startMouseX - mouseX), Math.abs(startMouseY - mouseY) );
+                        setRadiusX(radius);
+                        setRadiusY(radius);
+                    } else {
+                        double radiusX = Math.abs(mouseX - getCenterX());
+                        double radiusY = Math.abs(mouseY - getCenterY());
+                        setRadiusX(radiusX);
+                        setRadiusY(radiusY);
+                    }
+                }
+                else {
+                    if (shiftPressed) {
+                        double minDistance = Math.min( Math.abs(startMouseX - mouseX), Math.abs(startMouseY - mouseY) ) / 2;
+                        setCenterX(startMouseX + (mouseX > startMouseX ? minDistance : -minDistance));
+                        setCenterY(startMouseY + (mouseY > startMouseY ? minDistance : -minDistance));
+
+                        double radius = Math.min( Math.abs(getCenterX() - mouseX), Math.abs(getCenterY() - mouseY) );
+                        setRadiusX(radius);
+                        setRadiusY(radius);
+                    }
+                    else {
+                        setCenterX(startMouseX + ( (mouseX - startMouseX) / 2) );
+                        setCenterY(startMouseY + ( (mouseY - startMouseY) / 2) );
+
+                        double radiusX = Math.abs(mouseX - getCenterX());
+                        double radiusY = Math.abs(mouseY - getCenterY());
+                        setRadiusX(radiusX);
+                        setRadiusY(radiusY);
+                    }
                 }
 
                 // Update the UI on the JavaFX application thread

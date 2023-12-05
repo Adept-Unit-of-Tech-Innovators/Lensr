@@ -26,6 +26,9 @@ public class LensrStart extends Application {
     public static double mouseY;
     public static boolean xPressed = false;
     public static boolean zPressed = false;
+    public static boolean shiftPressed = false;
+    public static boolean altPressed = false;
+    public static boolean isEditMode = false;
 
     @Override
     public void start(Stage primaryStage) {
