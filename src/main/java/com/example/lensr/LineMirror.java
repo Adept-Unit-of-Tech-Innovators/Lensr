@@ -9,7 +9,7 @@ import static com.example.lensr.LensrStart.*;
 
 public class LineMirror extends Line{
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.8;
+    double reflectivity = 1;
     // How much light is scattered instead of reflected, 0 - all light is scattered, 1 - all light is perfectly reflected
     // Not sure if we should implement this as the lower the specular, the less the object behaves like a mirror. Mirrors always have high specular.
     double specular;
@@ -20,7 +20,10 @@ public class LineMirror extends Line{
         setStartY(mouseY);
         setEndX(mouseX);
         setEndY(mouseY);
+    }
 
+
+    public void createMirror() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);

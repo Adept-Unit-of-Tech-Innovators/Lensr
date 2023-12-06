@@ -3,6 +3,7 @@ package com.example.lensr;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -32,9 +33,9 @@ public class LensrStart extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
         // Create a ray
         Ray ray = new Ray(0, 0, 0, 0);
+        ray.createRay();
         rays.add(ray);
 
         UserControls.setUserControls();
@@ -43,6 +44,7 @@ public class LensrStart extends Application {
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
+
         primaryStage.show();
     }
 
@@ -116,6 +118,7 @@ public class LensrStart extends Application {
         if (currentRay.getBrightness() < 0.001) return;
 
         Ray nextRay = new Ray(0, 0, 0, 0);
+        nextRay.createRay();
         nextRay.setStroke(currentRay.getStroke());
         nextRay.setStrokeWidth(globalStrokeWidth);
 

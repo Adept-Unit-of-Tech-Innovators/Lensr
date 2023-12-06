@@ -10,10 +10,12 @@ public class Intersections {
         // holy fucking shit we actually did it
         double intersectionX, intersectionY;
 
+        // Temporarily set stroke width to a low number for intersection calculation
         ray.setStrokeWidth(0.1);
         Shape intersectionShape = Shape.intersect(ray, object);
         ray.setStrokeWidth(0.5);
 
+        // If intersection shape has negative dimensions there is no intersection
         if (intersectionShape.getLayoutBounds().getHeight() < 0) return null;
 
         double maxX = intersectionShape.getLayoutBounds().getMaxX();
@@ -21,6 +23,7 @@ public class Intersections {
         double minX = intersectionShape.getLayoutBounds().getMinX();
         double minY = intersectionShape.getLayoutBounds().getMinY();
 
+        // Set intersection X and Y to the closest point from ray origin to intersection shape
         if (Math.abs(ray.getStartX() - minX) > Math.abs(ray.getStartX() - maxX)) {
             intersectionX = maxX;
         } else intersectionX = minX;

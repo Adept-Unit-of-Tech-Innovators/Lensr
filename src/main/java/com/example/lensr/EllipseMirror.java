@@ -23,12 +23,16 @@ public class EllipseMirror extends Ellipse {
     boolean isEdited;
     boolean isEditPointClicked;
 
-    public EllipseMirror(double mouseX, double mouseY, int radiusX, int radiusY) {
+
+    public EllipseMirror(double mouseX, double mouseY, double radiusX, double radiusY) {
         setCenterX(mouseX);
         setCenterY(mouseY);
         setRadiusX(radiusX);
         setRadiusY(radiusY);
+    }
 
+
+    public void createMirror() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
         setStrokeWidth(1);
@@ -39,6 +43,7 @@ public class EllipseMirror extends Ellipse {
 
         root.getChildren().add(this);
     }
+
 
     private void openObjectEdit() {
         for (Object mirror : mirrors) {
@@ -73,6 +78,7 @@ public class EllipseMirror extends Ellipse {
         isEditPointClicked = true;
 
         // Scale the mirror with the opposite edit point as an anchor
+        // sus
         int editPointIndex = editPoints.indexOf(event.getSource());
         scaleEllipse(editPoints.get( (editPointIndex + 2) % 4).getX() + 4, editPoints.get( (editPointIndex + 2) % 4).getY() + 4);
     }
@@ -128,42 +134,73 @@ public class EllipseMirror extends Ellipse {
 
     public void scaleEllipse(double anchorX, double anchorY) {
         new Thread(() -> {
+            double centerX, centerY, radiusX, radiusY;
+
             while (xPressed || isEditPointClicked) {
+                boolean intersects = false;
+
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed) {
-                    setCenterX(anchorX);
-                    setCenterY(anchorY);
+                    centerX = anchorX;
+                    centerY = anchorY ;
 
                     if (shiftPressed) {
-                        double radius = Math.min( Math.abs(anchorX - mouseX), Math.abs(anchorY - mouseY) );
-                        setRadiusX(radius);
-                        setRadiusY(radius);
+                        radiusX = Math.min( Math.abs(anchorX - mouseX), Math.abs(anchorY - mouseY) );
+                        //noinspection SuspiciousNameCombination
+                        radiusY = radiusX;
                     } else {
-                        double radiusX = Math.abs(mouseX - getCenterX());
-                        double radiusY = Math.abs(mouseY - getCenterY());
-                        setRadiusX(radiusX);
-                        setRadiusY(radiusY);
+                        radiusX = Math.abs(mouseX - centerX);
+                        radiusY = Math.abs(mouseY - centerY);
                     }
                 }
                 else {
                     if (shiftPressed) {
                         double minDistance = Math.min( Math.abs(anchorX - mouseX), Math.abs(anchorY - mouseY) ) / 2;
-                        setCenterX(anchorX + (mouseX > anchorX ? minDistance : -minDistance));
-                        setCenterY(anchorY + (mouseY > anchorY ? minDistance : -minDistance));
+                        centerX = (anchorX + (mouseX > anchorX ? minDistance : -minDistance));
+                        centerY = (anchorY + (mouseY > anchorY ? minDistance : -minDistance));
 
-                        double radius = Math.min( Math.abs(getCenterX() - mouseX), Math.abs(getCenterY() - mouseY) );
-                        setRadiusX(radius);
-                        setRadiusY(radius);
+                        radiusX = Math.min( Math.abs(centerX - mouseX), Math.abs(centerY - mouseY) );
+                        //noinspection SuspiciousNameCombination
+                        radiusY = radiusX;
                     }
                     else {
-                        setCenterX(anchorX + ( (mouseX - anchorX) / 2) );
-                        setCenterY(anchorY + ( (mouseY - anchorY) / 2) );
+                        centerX = (anchorX + ( (mouseX - anchorX) / 2) );
+                        centerY = (anchorY + ( (mouseY - anchorY) / 2) );
 
-                        double radiusX = Math.abs(mouseX - getCenterX());
-                        double radiusY = Math.abs(mouseY - getCenterY());
-                        setRadiusX(radiusX);
-                        setRadiusY(radiusY);
+                        radiusX = Math.abs(mouseX - centerX);
+                        radiusY = Math.abs(mouseY - centerY);
                     }
+                }
+
+                Ellipse intersectionChecker = new Ellipse(centerX, centerY, radiusX, radiusY);
+
+                for (Object mirror : mirrors) {
+                    if (mirror.equals(this)) continue;
+
+                    if (mirror instanceof Shape mirrorShape) {
+                        // If the mirror overlaps with another object, remove it
+                        if (Shape.intersect(intersectionChecker , mirrorShape).getLayoutBounds().getWidth() >= 0) {
+                            intersects = true;
+                            break;
+                        }
+                    }
+                }
+                double prevCenterX = getCenterX();
+                double prevCenterY = getCenterY();
+                double prevRadiusX = getRadiusX();
+                double prevRadiusY = getRadiusY();
+
+                if (intersects) {
+                    setCenterX(prevCenterX);
+                    setCenterY(prevCenterY);
+                    setRadiusX(prevRadiusX);
+                    setRadiusY(prevRadiusY);
+                }
+                else {
+                    setCenterX(centerX);
+                    setCenterY(centerY);
+                    setRadiusX(radiusX);
+                    setRadiusY(radiusY);
                 }
 
                 // Update editPoints location

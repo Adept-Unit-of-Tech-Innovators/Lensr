@@ -15,7 +15,9 @@ public class Ray extends Line {
         setStartY(startY);
         setEndX(endX);
         setEndY(endY);
+    }
 
+    public void createRay() {
         setStroke(Color.RED);
         setStrokeWidth(globalStrokeWidth);
 

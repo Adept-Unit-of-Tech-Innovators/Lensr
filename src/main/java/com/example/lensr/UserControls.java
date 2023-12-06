@@ -42,6 +42,14 @@ public class UserControls {
                     removeLineMirrorIfOverlaps();
                 }
 
+                if (isEditMode) {
+                    for (Object mirror : mirrors) {
+                        if (mirror instanceof EllipseMirror ellipseMirror) {
+                            ellipseMirror.closeObjectEdit();
+                        }
+                    }
+                }
+
                 isEditMode = !isEditMode;
             }
 
@@ -61,13 +69,16 @@ public class UserControls {
                 double startMouseY = mouseY;
 
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
+                newMirror.createMirror();
                 mirrors.add(newMirror);
                 newMirror.scaleEllipse(startMouseX, startMouseY);
                 updateRay(rays.get(0));
             }
             else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = true;
+
                 LineMirror newMirror = new LineMirror(mouseX, mouseY);
+                newMirror.createMirror();
                 mirrors.add(newMirror);
                 scaleLine(newMirror);
                 updateRay(rays.get(0));
