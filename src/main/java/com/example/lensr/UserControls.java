@@ -23,9 +23,15 @@ public class UserControls {
             mouseY = mouseEvent.getY();
             if (xPressed) {
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
+                newMirror.create();
+                mirrors.add(newMirror);
+                newMirror.scale(mouseX, mouseY);
+            }
+            if (zPressed) {
+                LineMirror newMirror = new LineMirror(mouseX, mouseY);
                 newMirror.createMirror();
                 mirrors.add(newMirror);
-                newMirror.scaleEllipse(mouseX, mouseY);
+                newMirror.scale();
             }
         });
 
@@ -38,9 +44,15 @@ public class UserControls {
             isMousePressed = false;
             if (xPressed) {
                 if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror) {
-                    ellipseMirror.removeEllipseMirrorIfOverlaps();
+                    ellipseMirror.removeIfOverlaps();
                 }
-                updateRay(rays.get(0));
+                rays.get(0).update();
+            }
+            if (zPressed) {
+                if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
+                    lineMirror.removeIfOverlaps();
+                }
+                rays.get(0).update();
             }
         });
 
@@ -50,12 +62,14 @@ public class UserControls {
                 if (xPressed) {
                     xPressed = false;
                     if (mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
-                        ellipseMirror.removeEllipseMirrorIfOverlaps();
+                        ellipseMirror.removeIfOverlaps();
                     }
                 }
                 else if (zPressed) {
                     zPressed = false;
-                    removeLineMirrorIfOverlaps();
+                    if (mirrors.get(0) instanceof LineMirror lineMirror) {
+                        lineMirror.removeIfOverlaps();
+                    }
                 }
 
                 if (isEditMode) {
@@ -75,20 +89,13 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("ALT")) {
                 altPressed = true;
             }
-
-            if (xPressed || zPressed || !isEditMode) return;
-
             if (keyEvent.getCode().toString().equals("X")) {
                 xPressed = !xPressed;
+                zPressed = false;
             }
             else if (keyEvent.getCode().toString().equals("Z")) {
-                zPressed = true;
-
-                LineMirror newMirror = new LineMirror(mouseX, mouseY);
-                newMirror.createMirror();
-                mirrors.add(newMirror);
-                scaleLine(newMirror);
-                updateRay(rays.get(0));
+                zPressed = !zPressed;
+                xPressed = false;
             }
             else if (keyEvent.getCode().toString().equals("C")) {
             if (!isEditMode) return;
@@ -98,7 +105,7 @@ public class UserControls {
 
             // Recalculate ray intersections after it position changed
             EventHandler<? super MouseEvent> mouseMoved = scene.getOnMouseMoved();
-                    updateRay(rays.get(0));
+                    rays.get(0).update();
 
             }
         });
@@ -112,10 +119,6 @@ public class UserControls {
             }
 
 //            if (!isEditMode || (!xPressed && !zPressed) ) return;
-            else if (keyEvent.getCode().toString().equals("Z")) {
-                zPressed = false;
-                removeLineMirrorIfOverlaps();
-            }
         });
 
         scene.setOnMouseMoved(mouseEvent -> {
@@ -125,7 +128,7 @@ public class UserControls {
             mouseY = mouseEvent.getY();
 
             if (!xPressed && !zPressed) {
-                updateRay(rays.get(0));
+                rays.get(0).update();
             }
         });
     }

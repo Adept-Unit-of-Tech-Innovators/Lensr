@@ -17,11 +17,22 @@ public class Ray extends Line {
         setEndY(endY);
     }
 
-    public void createRay() {
+    public void create() {
         setStroke(Color.RED);
         setStrokeWidth(globalStrokeWidth);
 
         root.getChildren().add(this);
+    }
+
+    public void update() {
+        double endX = (mouseX - this.getStartX()) * SIZE;
+        double endY = (mouseY - this.getStartY()) * SIZE;
+        this.setEndX(endX);
+        this.setEndY(endY);
+
+        root.getChildren().removeAll(rayReflections);
+
+        drawRaysRecursively(this, null, 0);
     }
 
 

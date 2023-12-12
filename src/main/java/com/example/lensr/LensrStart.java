@@ -3,7 +3,6 @@ package com.example.lensr;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -36,7 +35,7 @@ public class LensrStart extends Application {
     public void start(Stage primaryStage) {
         // Create a ray
         Ray ray = new Ray(0, 0, 0, 0);
-        ray.createRay();
+        ray.create();
         rays.add(ray);
 
         UserControls.setUserControls();
@@ -119,7 +118,7 @@ public class LensrStart extends Application {
         if (currentRay.getBrightness() < 0.001) return;
 
         Ray nextRay = new Ray(0, 0, 0, 0);
-        nextRay.createRay();
+        nextRay.create();
         nextRay.setStroke(currentRay.getStroke());
         nextRay.setStrokeWidth(globalStrokeWidth);
 
@@ -156,18 +155,6 @@ public class LensrStart extends Application {
         rayReflections.add(nextRay);
         drawRaysRecursively(nextRay, closestIntersectionMirror, recursiveDepth + 1);
     }
-
-    public static void updateRay(Ray ray) {
-        double endX = (mouseX - ray.getStartX()) * SIZE;
-        double endY = (mouseY - ray.getStartY()) * SIZE;
-        ray.setEndX(endX);
-        ray.setEndY(endY);
-
-        root.getChildren().removeAll(rayReflections);
-
-        drawRaysRecursively(ray, null, 0);
-    }
-
 
     public static void main(String[] args) {
         launch();

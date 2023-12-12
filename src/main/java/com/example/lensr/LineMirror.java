@@ -51,37 +51,35 @@ public class LineMirror extends Line{
 
 
 
-    public static void removeLineMirrorIfOverlaps() {
+    public void removeIfOverlaps() {
         // Remove the mirror if its size is 0
-        if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror && lineMirror.getLength() == 0) {
-            root.getChildren().remove(lineMirror);
-            mirrors.remove(lineMirror);
+        if (this.getLength() == 0) {
+            root.getChildren().remove(this);
+            mirrors.remove(this);
             return;
         }
 
         for (Object mirror : mirrors) {
-            if (mirror.equals(mirrors.get(mirrors.size() - 1))) break;
+            if (mirror.equals(this)) continue;
 
-            if ((mirror instanceof Shape mirrorShape) && (mirrors.get(mirrors.size()-1) instanceof Shape newMirror)) {
-
+            if (mirror instanceof Shape mirrorShape) {
                 // If the mirror overlaps with another object, remove it
-                if (Shape.intersect(newMirror, mirrorShape).getBoundsInLocal().getWidth() >= 0) {
-                    root.getChildren().remove(newMirror);
-                    mirrors.remove(newMirror);
+                if (Shape.intersect(this , mirrorShape).getLayoutBounds().getWidth() >= 0) {
+                    root.getChildren().remove(this);
+                    mirrors.remove(this);
                     return;
                 }
             }
         }
     }
 
-
-    public static void scaleLine(LineMirror lineMirror) {
+    public void scale() {
         new Thread(() -> {
-            while (zPressed) {
+            while (isMousePressed) {
                 double endX = mouseX;
                 double endY = mouseY;
-                lineMirror.setEndX(endX);
-                lineMirror.setEndY(endY);
+                this.setEndX(endX);
+                this.setEndY(endY);
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {

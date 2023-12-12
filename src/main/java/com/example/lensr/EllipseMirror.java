@@ -32,7 +32,7 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void createMirror() {
+    public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
         setStrokeWidth(1);
@@ -80,7 +80,7 @@ public class EllipseMirror extends Ellipse {
         // Scale the mirror with the opposite edit point as an anchor
         // sus
         int editPointIndex = editPoints.indexOf(event.getSource());
-        scaleEllipse(editPoints.get( (editPointIndex + 2) % 4).getX() + 4, editPoints.get( (editPointIndex + 2) % 4).getY() + 4);
+        scale(editPoints.get( (editPointIndex + 2) % 4).getX() + 4, editPoints.get( (editPointIndex + 2) % 4).getY() + 4);
     }
 
 
@@ -93,7 +93,7 @@ public class EllipseMirror extends Ellipse {
 
     public void closeObjectEdit() {
         isEdited = false;
-        removeEllipseMirrorIfOverlaps();
+        removeIfOverlaps();
         root.getChildren().removeAll(editPoints);
         editPoints.clear();
     }
@@ -109,7 +109,7 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void removeEllipseMirrorIfOverlaps() {
+    public void removeIfOverlaps() {
         // Remove the mirror if its size is 0
         if (this.getRadiusX() == 0 && this.getRadiusY() == 0) {
             root.getChildren().remove(this);
@@ -132,7 +132,7 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void scaleEllipse(double anchorX, double anchorY) {
+    public void scale(double anchorX, double anchorY) {
         new Thread(() -> {
             double centerX, centerY, radiusX, radiusY;
 
