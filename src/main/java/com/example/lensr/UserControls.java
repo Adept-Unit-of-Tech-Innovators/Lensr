@@ -17,15 +17,31 @@ public class UserControls {
      */
 
     public static void setUserControls() {
-        scene.setOnMouseClicked(mouseEvent -> {
-            if (!isEditMode) return;
+        scene.setOnMousePressed(mouseEvent -> {
+            isMousePressed = true;
+            mouseX = mouseEvent.getX();
+            mouseY = mouseEvent.getY();
+            if (xPressed) {
+                EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
+                newMirror.createMirror();
+                mirrors.add(newMirror);
+                newMirror.scaleEllipse(mouseX, mouseY);
+            }
+        });
 
-            rays.get(0).setStartX(mouseEvent.getSceneX());
-            rays.get(0).setStartY(mouseEvent.getSceneY());
+        scene.setOnMouseDragged(mouseEvent -> {
+            mouseX = mouseEvent.getX();
+            mouseY = mouseEvent.getY();
+        });
 
-            // Recalculate ray intersections after it position changed
-            EventHandler<? super MouseEvent> mouseMoved = scene.getOnMouseMoved();
-            mouseMoved.handle(mouseEvent);
+        scene.setOnMouseReleased(mouseEvent -> {
+            isMousePressed = false;
+            if (xPressed) {
+                if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror) {
+                    ellipseMirror.removeEllipseMirrorIfOverlaps();
+                }
+                updateRay(rays.get(0));
+            }
         });
 
         scene.setOnKeyPressed(keyEvent -> {
@@ -63,16 +79,7 @@ public class UserControls {
             if (xPressed || zPressed || !isEditMode) return;
 
             if (keyEvent.getCode().toString().equals("X")) {
-                xPressed = true;
-
-                double startMouseX = mouseX;
-                double startMouseY = mouseY;
-
-                EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
-                newMirror.createMirror();
-                mirrors.add(newMirror);
-                newMirror.scaleEllipse(startMouseX, startMouseY);
-                updateRay(rays.get(0));
+                xPressed = !xPressed;
             }
             else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = true;
@@ -82,6 +89,17 @@ public class UserControls {
                 mirrors.add(newMirror);
                 scaleLine(newMirror);
                 updateRay(rays.get(0));
+            }
+            else if (keyEvent.getCode().toString().equals("C")) {
+            if (!isEditMode) return;
+
+            rays.get(0).setStartX(mouseX);
+            rays.get(0).setStartY(mouseY);
+
+            // Recalculate ray intersections after it position changed
+            EventHandler<? super MouseEvent> mouseMoved = scene.getOnMouseMoved();
+                    updateRay(rays.get(0));
+
             }
         });
 
@@ -93,14 +111,7 @@ public class UserControls {
                 altPressed = false;
             }
 
-            if (!isEditMode || (!xPressed && !zPressed) ) return;
-
-            if (keyEvent.getCode().toString().equals("X")) {
-                xPressed = false;
-                if (mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
-                    ellipseMirror.removeEllipseMirrorIfOverlaps();
-                }
-            }
+//            if (!isEditMode || (!xPressed && !zPressed) ) return;
             else if (keyEvent.getCode().toString().equals("Z")) {
                 zPressed = false;
                 removeLineMirrorIfOverlaps();
@@ -116,10 +127,6 @@ public class UserControls {
             if (!xPressed && !zPressed) {
                 updateRay(rays.get(0));
             }
-        });
-        scene.setOnMouseDragged(mouseEvent -> {
-            mouseX = mouseEvent.getX();
-            mouseY = mouseEvent.getY();
         });
     }
 }

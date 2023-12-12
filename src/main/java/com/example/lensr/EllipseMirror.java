@@ -136,7 +136,7 @@ public class EllipseMirror extends Ellipse {
         new Thread(() -> {
             double centerX, centerY, radiusX, radiusY;
 
-            while (xPressed || isEditPointClicked) {
+            while ((isMousePressed) || isEditPointClicked) {
                 boolean intersects = false;
 
                 // Resizing standard based on Photoshop and MS Paint :)
@@ -185,22 +185,16 @@ public class EllipseMirror extends Ellipse {
                         }
                     }
                 }
-                double prevCenterX = getCenterX();
-                double prevCenterY = getCenterY();
-                double prevRadiusX = getRadiusX();
-                double prevRadiusY = getRadiusY();
+                double prevCenterX = getCenterX(), prevCenterY = getCenterY();
+                double prevRadiusX = getRadiusX(), prevRadiusY = getRadiusY();
 
                 if (intersects) {
-                    setCenterX(prevCenterX);
-                    setCenterY(prevCenterY);
-                    setRadiusX(prevRadiusX);
-                    setRadiusY(prevRadiusY);
+                    setCenterX(prevCenterX); setCenterY(prevCenterY);
+                    setRadiusX(prevRadiusX); setRadiusY(prevRadiusY);
                 }
                 else {
-                    setCenterX(centerX);
-                    setCenterY(centerY);
-                    setRadiusX(radiusX);
-                    setRadiusY(radiusY);
+                    setCenterX(centerX); setCenterY(centerY);
+                    setRadiusX(radiusX); setRadiusY(radiusY);
                 }
 
                 // Update editPoints location
