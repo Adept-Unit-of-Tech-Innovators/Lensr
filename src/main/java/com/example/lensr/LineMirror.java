@@ -76,10 +76,47 @@ public class LineMirror extends Line{
     public void scale() {
         new Thread(() -> {
             while (isMousePressed) {
-                double endX = mouseX;
-                double endY = mouseY;
-                this.setEndX(endX);
-                this.setEndY(endY);
+                if (altPressed && shiftPressed) {
+                    // Shift-mode calculations for actually half the mirror
+                    double middleX = (this.getStartX() + this.getEndX()) / 2, middleY = (this.getStartY() + this.getEndY()) / 2;
+                    double deltaX = mouseX - middleX;
+                    double deltaY = mouseY - middleY;
+                    double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                    double angle = Math.atan2(deltaY, deltaX);
+                    double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
+                    double snappedX = middleX + distance * Math.cos(shiftedAngle);
+                    double snappedY = middleY + distance * Math.sin(shiftedAngle);
+                    // Alt-mode calculations to determine the "other half of the mirror"
+                    double startX = middleX-(snappedX-middleX), startY = middleY-(snappedY-middleY), endX = snappedX, endY = snappedY;
+                    // Apply all at once to avoid delays
+                    this.setStartX(startX);
+                    this.setStartY(startY);
+                    this.setEndX(endX);
+                    this.setEndY(endY);
+                }
+                else if (altPressed) {
+                    // Calculate first because funny java threading
+                    double middleX = (this.getStartX() + this.getEndX()) / 2, middleY = (this.getStartY() + this.getEndY()) / 2;
+                    double startX = middleX-(mouseX-middleX), startY = middleY-(mouseY-middleY), endX = mouseX, endY = mouseY;
+                    // Apply all at once to avoid delays
+                    this.setStartX(startX);
+                    this.setStartY(startY);
+                    this.setEndX(endX);
+                    this.setEndY(endY);
+                }
+                else if (shiftPressed) {
+                    double deltaX = mouseX - this.getStartX();
+                    double deltaY = mouseY - this.getStartY();
+                    double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                    double angle = Math.atan2(deltaY, deltaX);
+                    double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
+                    this.setEndX(this.getStartX() + distance * Math.cos(shiftedAngle));
+                    this.setEndY(this.getStartY() + distance * Math.sin(shiftedAngle));
+                }
+                else {
+                    this.setEndX(mouseX);
+                    this.setEndY(mouseY);
+                }
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
@@ -96,6 +133,7 @@ public class LineMirror extends Line{
             }
         }).start();
     }
+
 }
 
 
