@@ -38,9 +38,12 @@ public class LensrStart extends Application {
         ray.create();
         rays.add(ray);
 
-        UserControls.setUserControls();
+        // Set background color
+        root.setStyle("-fx-background-color: rgb(50, 50, 50);");
 
-        scene.setFill(Color.rgb(30, 30, 30));
+        WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
+
+        UserControls.setUserControls();
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
@@ -124,6 +127,7 @@ public class LensrStart extends Application {
 
         nextRay.setStartX(closestIntersectionPoint.getX());
         nextRay.setStartY(closestIntersectionPoint.getY());
+
 
         double reflectedX = 0;
         double reflectedY = 0;
