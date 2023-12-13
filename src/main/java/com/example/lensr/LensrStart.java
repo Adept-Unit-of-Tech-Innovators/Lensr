@@ -30,6 +30,7 @@ public class LensrStart extends Application {
     public static boolean altPressed = false;
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
+    public static Object editedShape;
 
     @Override
     public void start(Stage primaryStage) {

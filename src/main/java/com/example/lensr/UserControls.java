@@ -1,6 +1,8 @@
 package com.example.lensr;
 
 import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 
 import static com.example.lensr.LensrStart.*;
@@ -21,6 +23,14 @@ public class UserControls {
             isMousePressed = true;
             mouseX = mouseEvent.getX();
             mouseY = mouseEvent.getY();
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
+                    && !group.getLayoutBounds().contains(new Point2D(mouseX, mouseY)))
+            {
+                    mirror.closeObjectEdit();
+                    mirror.isEditPointClicked = false;
+                    editedShape = null;
+                    return;
+            }
             if (xPressed) {
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
                 newMirror.create();
@@ -89,17 +99,15 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("ALT")) {
                 altPressed = true;
             }
-            if (keyEvent.getCode().toString().equals("X")) {
+            if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 xPressed = !xPressed;
                 zPressed = false;
             }
-            else if (keyEvent.getCode().toString().equals("Z")) {
+            else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
                 zPressed = !zPressed;
                 xPressed = false;
             }
-            else if (keyEvent.getCode().toString().equals("C")) {
-            if (!isEditMode) return;
-
+            else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
             rays.get(0).setStartX(mouseX);
             rays.get(0).setStartY(mouseY);
 

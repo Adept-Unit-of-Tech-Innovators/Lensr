@@ -2,6 +2,9 @@ package com.example.lensr;
 
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
@@ -46,11 +49,14 @@ public class EllipseMirror extends Ellipse {
 
 
     private void openObjectEdit() {
+        xPressed = false;
+        zPressed = false;
         for (Object mirror : mirrors) {
             if (mirror instanceof EllipseMirror ellipseMirror) {
                 if (ellipseMirror.isEdited) {
                     ellipseMirror.isEditPointClicked = false;
                     ellipseMirror.closeObjectEdit();
+
                 }
             }
         }
@@ -69,13 +75,19 @@ public class EllipseMirror extends Ellipse {
             editPoint.setOnMousePressed(this::handleEditPointPressed);
             editPoint.setOnMouseReleased(this::handleEditPointReleased);
         }
-
-        root.getChildren().addAll(editPoints);
+        root.getChildren().remove(this);
+        Group group = new Group();
+        group.getChildren().add(this);
+        group.getChildren().addAll(editPoints);
+        editedShape = group;
+        root.getChildren().add(group);
     }
 
 
     private void handleEditPointPressed(MouseEvent event) {
+        isMousePressed = true;
         isEditPointClicked = true;
+        scene.setCursor(Cursor.HAND);
 
         // Scale the mirror with the opposite edit point as an anchor
         // sus
@@ -85,8 +97,9 @@ public class EllipseMirror extends Ellipse {
 
 
     private void handleEditPointReleased(MouseEvent event) {
+        isMousePressed = false;
         isEditPointClicked = false;
-        closeObjectEdit();
+        scene.setCursor(Cursor.DEFAULT);
         event.consume();
     }
 
@@ -94,8 +107,10 @@ public class EllipseMirror extends Ellipse {
     public void closeObjectEdit() {
         isEdited = false;
         removeIfOverlaps();
-        root.getChildren().removeAll(editPoints);
-        editPoints.clear();
+        if (editPoints != null && editedShape instanceof Group group) {
+            group.getChildren().removeAll(editPoints);
+            editPoints.clear();
+        }
     }
 
 
@@ -136,7 +151,7 @@ public class EllipseMirror extends Ellipse {
         new Thread(() -> {
             double centerX, centerY, radiusX, radiusY;
 
-            while ((isMousePressed) || isEditPointClicked) {
+            while (isMousePressed || isEditPointClicked) {
                 boolean intersects = false;
 
                 // Resizing standard based on Photoshop and MS Paint :)
