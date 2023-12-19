@@ -9,6 +9,7 @@ import static com.example.lensr.LensrStart.*;
 public class Ray extends Line {
     double brightness = 1.0;
     int wavelength;
+    boolean isInsideLens;
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);

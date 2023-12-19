@@ -22,6 +22,7 @@ public class LensrStart extends Application {
     public static List<Ray> rays = new ArrayList<>();
     public static List<Ray> rayReflections = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
+    public static List<Object> lenses = new ArrayList<>();
     public static double mouseX;
     public static double mouseY;
     public static boolean xPressed = false;
@@ -106,6 +107,14 @@ public class LensrStart extends Application {
                         closestIntersectionMirror = currentMirror;
                     }
                 }
+            }
+        }
+
+        for(Object lens : lenses)
+        {
+            if(lens instanceof SphericalLens)
+            {
+
             }
         }
 
