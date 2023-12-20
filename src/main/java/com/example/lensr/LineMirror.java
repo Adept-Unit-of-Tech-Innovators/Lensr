@@ -1,13 +1,19 @@
 package com.example.lensr;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 
@@ -19,12 +25,12 @@ public class LineMirror extends Line{
     double specular;
     Point2D anchor;
     Group group = new Group();
-
     Rectangle hitbox = new Rectangle();
-    // 0 - right
     double rotation = 0;
     Rotate rotate = new Rotate();
-
+    List<Rectangle> editPoints = new ArrayList<>();
+    boolean isEdited;
+    boolean isEditPointClicked;
 
     public LineMirror(double mouseX, double mouseY) {
         anchor = new Point2D(mouseX, mouseY);
@@ -36,13 +42,13 @@ public class LineMirror extends Line{
     }
 
 
-    public void createMirror() {
+    public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
 
         setOnMouseClicked(mouseEvent -> {
-            if (isEditMode) {
+            if (isEditMode && !isEdited) {
                 openObjectEdit();
             }
         });
@@ -53,7 +59,69 @@ public class LineMirror extends Line{
     }
 
     private void openObjectEdit() {
-        System.out.println("click");
+        xPressed = false;
+        zPressed = false;
+
+        for (Object mirror : mirrors) {
+            if (mirror instanceof EllipseMirror ellipseMirror) {
+                if (ellipseMirror.isEdited) {
+                    ellipseMirror.isEditPointClicked = false;
+                    ellipseMirror.closeObjectEdit();
+
+                }
+            }
+            else {
+                if (mirror instanceof LineMirror lineMirror) {
+                    if (lineMirror.isEdited) {
+                        lineMirror.isEditPointClicked = false;
+                        lineMirror.closeObjectEdit();
+                    }
+                }
+            }
+        }
+        isEdited = true;
+
+        Bounds mirrorBounds = getLayoutBounds();
+        editPoints.add(new Rectangle(getStartX(), getStartY(), 8, 8));
+        editPoints.add(new Rectangle(getEndX(), getEndY(), 8, 8));
+
+        for (Rectangle editPoint : editPoints) {
+            editPoint.setFill(Color.RED);
+            editPoint.setStrokeWidth(0);
+            editPoint.setOnMousePressed(this::handleEditPointPressed);
+            editPoint.setOnMouseReleased(this::handleEditPointReleased);
+        }
+        group.getChildren().addAll(editPoints);
+        editedShape = group;
+    }
+
+    private void handleEditPointPressed(MouseEvent event) {
+        isMousePressed = true;
+        isEditPointClicked = true;
+        scene.setCursor(Cursor.HAND);
+
+        // Scale the mirror with the opposite edit point as an anchor
+        // sussy
+        int editPointIndex = editPoints.indexOf(event.getSource());
+        anchor = new Point2D(editPoints.get(1 - editPointIndex).getX(), editPoints.get(1 - editPointIndex).getY());
+        scale();
+    }
+
+
+    private void handleEditPointReleased(MouseEvent event) {
+        isMousePressed = false;
+        isEditPointClicked = false;
+        scene.setCursor(Cursor.DEFAULT);
+        event.consume();
+    }
+
+    public void closeObjectEdit() {
+        isEdited = false;
+        removeIfOverlaps();
+        if (editPoints != null && editedShape instanceof Group group) {
+            group.getChildren().removeAll(editPoints);
+            editPoints.clear();
+        }
     }
 
 
@@ -126,10 +194,9 @@ public class LineMirror extends Line{
 
     public void scale() {
         new Thread(() -> {
-            double anchorX = getStartX(), anchorY = getStartY();
             while (isMousePressed) {
                 boolean intersects = false;
-                double startX = getStartX(), startY = getStartY(), endX = getEndX(), endY = getEndY();
+                double startX = getStartX(), startY = getStartY(), endX, endY;
 
                 if (!altPressed) {
                     startX = (anchor.getX());
@@ -194,6 +261,13 @@ public class LineMirror extends Line{
                     this.setEndY(endY);
                 }
 
+                // Update editPoints location
+                if (isEditPointClicked) {
+                    editPoints.get(0).setX(getStartX());
+                    editPoints.get(0).setY(getStartY());
+                    editPoints.get(1).setX(getEndX());
+                    editPoints.get(1).setY(getEndY());
+                }
 
                 updateHitbox();
 

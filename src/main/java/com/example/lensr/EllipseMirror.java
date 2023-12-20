@@ -23,6 +23,7 @@ public class EllipseMirror extends Ellipse {
     // Not sure if we should implement this as the lower the specular, the less the object behaves like a mirror. Mirrors always have high specular.
     double specular;
     List<Rectangle> editPoints = new ArrayList<>();
+    Group group = new Group();
     boolean isEdited;
     boolean isEditPointClicked;
 
@@ -44,7 +45,8 @@ public class EllipseMirror extends Ellipse {
             if (isEditMode && !isEdited) openObjectEdit();
         });
 
-        root.getChildren().add(this);
+        group.getChildren().add(this);
+        root.getChildren().add(group);
     }
 
 
@@ -57,6 +59,14 @@ public class EllipseMirror extends Ellipse {
                     ellipseMirror.isEditPointClicked = false;
                     ellipseMirror.closeObjectEdit();
 
+                }
+            }
+            else {
+                if (mirror instanceof LineMirror lineMirror) {
+                    if (lineMirror.isEdited) {
+                        lineMirror.isEditPointClicked = false;
+                        lineMirror.closeObjectEdit();
+                    }
                 }
             }
         }
@@ -75,12 +85,8 @@ public class EllipseMirror extends Ellipse {
             editPoint.setOnMousePressed(this::handleEditPointPressed);
             editPoint.setOnMouseReleased(this::handleEditPointReleased);
         }
-        root.getChildren().remove(this);
-        Group group = new Group();
-        group.getChildren().add(this);
         group.getChildren().addAll(editPoints);
         editedShape = group;
-        root.getChildren().add(group);
     }
 
 

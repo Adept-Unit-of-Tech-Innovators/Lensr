@@ -6,7 +6,6 @@ import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.LineMirror.*;
 
 public class UserControls {
     // ok this type of commenting is super cool please use it (If you're seeing "/**" click those 3 lines "Toggle rendered view" on the left side)
@@ -39,7 +38,7 @@ public class UserControls {
             }
             if (zPressed) {
                 LineMirror newMirror = new LineMirror(mouseX, mouseY);
-                newMirror.createMirror();
+                newMirror.create();
                 mirrors.add(newMirror);
                 newMirror.scale();
             }
