@@ -38,12 +38,13 @@ public class UserControls {
                     && !mirror.hitbox.contains(new Point2D(mouseX, mouseY)) && mirror.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(new Point2D(mouseX, mouseY))))
             {
-                System.out.println("should close");
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked = false;
                 editedShape = null;
                 return;
             }
+
+            // Place mirrors
             if (xPressed) {
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
                 newMirror.create();
