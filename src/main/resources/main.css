@@ -1,0 +1,36 @@
+.root {
+    -fx-background-color: rgb(50, 50, 50);
+}
+
+/* Styling the slider track */
+.jfx-slider > .track {
+    -fx-background-color: #656565;
+    -fx-pref-height: 350%;
+}
+
+/* Styling the slider thumb */
+.jfx-slider > .thumb {
+    -fx-background-color: #9cd77e;
+}
+
+/* Styling the filled track */
+.jfx-slider > .colored-track {
+    -fx-background-color: #9cd77e;
+}
+
+/* Styling the animated thumb */
+.jfx-slider > .animated-thumb {
+    -fx-background-color: #656565;
+}
+
+/* Styling the slider value text inside animated thumb */
+.jfx-slider .slider-value {
+    -fx-opacity: 0;
+    /*-fx-fill: #ffffff;*/
+    /*-fx-stroke: #ffffff;*/
+    /*-fx-stroke-width: 0.5;*/
+}
+
+.jfx-slider {
+    -fx-show-tick-marks: false;
+}

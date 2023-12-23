@@ -39,8 +39,7 @@ public class LensrStart extends Application {
         ray.create();
         rays.add(ray);
 
-        // Set background color
-        root.setStyle("-fx-background-color: rgb(50, 50, 50);");
+        scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
 
         WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
 

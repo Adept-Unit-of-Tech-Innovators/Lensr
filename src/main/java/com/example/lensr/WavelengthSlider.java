@@ -1,40 +1,28 @@
 package com.example.lensr;
 
+import com.jfoenix.controls.JFXSlider;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 import java.util.List;
 
-public class WavelengthSlider extends Slider {
+public class WavelengthSlider extends JFXSlider {
 
-    public static Slider slider = new Slider(380, 780, 400);
+    public static JFXSlider slider = new JFXSlider(380, 780, 400);
 
     public WavelengthSlider(List<Ray> rays, List<Ray> rayReflections) {
-        Label label = new Label("nm");
-        label.setLabelFor(slider);
-
-        Rectangle rectangle = new Rectangle(100, 100, Color.RED);
-        rectangle.setX(800);
-        rectangle.setY(100);
-
-        label.setLayoutX(800);
-        label.setLayoutY(80);
 
         slider.setLayoutX(800);
         slider.setLayoutY(50);
         slider.setPrefHeight(40);
         slider.setPrefWidth(150);
 
-        slider.setMajorTickUnit(400);
-        slider.setShowTickMarks(true);
         slider.setMin(380);
         slider.setMax(780);
         slider.setValue(400);
-
-        // synchronizuje tekst z wartoscia slidera
-        label.textProperty().bindBidirectional(slider.valueProperty(), java.text.NumberFormat.getNumberInstance());
 
         final double[] colourSliderValue = {0.0};
 
@@ -44,7 +32,9 @@ public class WavelengthSlider extends Slider {
 
             Color color = getColorFromWavelength(colourSliderValue[0]);
 
-            rectangle.setFill(color);
+            StackPane colorPreview = (StackPane) slider.lookup(".animated-thumb");
+            colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color) + "");
+            System.out.println(getHexFromColor(color));
 
             // TODO: This will need to be changed once we add multiple rays
             for (Ray ray : rays) {
@@ -127,6 +117,10 @@ public class WavelengthSlider extends Slider {
         }
 
         return Color.rgb((int) red, (int) green, (int) blue);
+    }
+
+    public static String getHexFromColor (Color color) {
+        return "#" + Integer.toHexString(color.hashCode());
     }
 
 }
