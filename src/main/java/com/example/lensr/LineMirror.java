@@ -53,8 +53,8 @@ public class LineMirror extends Line{
             }
         });
 
-        createRectangleHitbox();
         group.getChildren().add(this);
+        createRectangleHitbox();
         root.getChildren().add(group);
     }
 

@@ -22,6 +22,8 @@ public class UserControls {
             isMousePressed = true;
             mouseX = mouseEvent.getX();
             mouseY = mouseEvent.getY();
+
+            // Close ellipse mirror edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
                     && !group.getLayoutBounds().contains(new Point2D(mouseX, mouseY)))
             {
@@ -29,6 +31,18 @@ public class UserControls {
                     mirror.isEditPointClicked = false;
                     editedShape = null;
                     return;
+            }
+
+            // Close line mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
+                    && !mirror.hitbox.contains(new Point2D(mouseX, mouseY)) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(new Point2D(mouseX, mouseY))))
+            {
+                System.out.println("should close");
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked = false;
+                editedShape = null;
+                return;
             }
             if (xPressed) {
                 EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
