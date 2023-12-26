@@ -1,7 +1,6 @@
 package com.example.lensr;
 
 import javafx.application.Platform;
-import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
@@ -81,9 +80,8 @@ public class LineMirror extends Line{
         }
         isEdited = true;
 
-        Bounds mirrorBounds = getLayoutBounds();
-        editPoints.add(new Rectangle(getStartX(), getStartY(), 8, 8));
-        editPoints.add(new Rectangle(getEndX(), getEndY(), 8, 8));
+        editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
+        editPoints.add(new Rectangle(getEndX() - editPointSize / 2, getEndY() - editPointSize / 2, editPointSize, editPointSize));
 
         for (Rectangle editPoint : editPoints) {
             editPoint.setFill(Color.RED);
@@ -103,7 +101,7 @@ public class LineMirror extends Line{
         // Scale the mirror with the opposite edit point as an anchor
         // sussy
         int editPointIndex = editPoints.indexOf(event.getSource());
-        anchor = new Point2D(editPoints.get(1 - editPointIndex).getX(), editPoints.get(1 - editPointIndex).getY());
+        anchor = new Point2D(editPoints.get(1 - editPointIndex).getX() + editPointSize / 2, editPoints.get(1 - editPointIndex).getY() + editPointSize / 2);
         scale();
     }
 
@@ -263,10 +261,10 @@ public class LineMirror extends Line{
 
                 // Update editPoints location
                 if (isEditPointClicked) {
-                    editPoints.get(0).setX(getStartX());
-                    editPoints.get(0).setY(getStartY());
-                    editPoints.get(1).setX(getEndX());
-                    editPoints.get(1).setY(getEndY());
+                    editPoints.get(0).setX(getStartX() - editPointSize / 2);
+                    editPoints.get(0).setY(getStartY() - editPointSize / 2);
+                    editPoints.get(1).setX(getEndX() - editPointSize / 2);
+                    editPoints.get(1).setY(getEndY() - editPointSize / 2);
                 }
 
                 updateHitbox();

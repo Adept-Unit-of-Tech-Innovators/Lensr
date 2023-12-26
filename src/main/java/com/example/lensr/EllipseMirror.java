@@ -81,10 +81,10 @@ public class EllipseMirror extends Ellipse {
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - 4, mirrorBounds.getMinY() - 4, 8, 8));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - 4, mirrorBounds.getMinY() - 4, 8, 8));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - 4, mirrorBounds.getMaxY() - 4, 8, 8));
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - 4, mirrorBounds.getMaxY() - 4, 8, 8));
+        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
+        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
+        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
+        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
 
         for (Rectangle editPoint : editPoints) {
             editPoint.setFill(Color.RED);
