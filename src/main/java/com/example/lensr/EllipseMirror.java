@@ -2,7 +2,6 @@ package com.example.lensr;
 
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
@@ -10,15 +9,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeType;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 
 public class EllipseMirror extends Ellipse {
+    public Shape outline = getObjectOutline(this);
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.8;
+    double reflectivity = 0.99;
     // How much light is scattered instead of reflected, 0 - all light is scattered, 1 - all light is perfectly reflected
     // Not sure if we should implement this as the lower the specular, the less the object behaves like a mirror. Mirrors always have high specular.
     double specular;
@@ -26,6 +28,7 @@ public class EllipseMirror extends Ellipse {
     Group group = new Group();
     boolean isEdited;
     boolean isEditPointClicked;
+
 
 
     public EllipseMirror(double mouseX, double mouseY, double radiusX, double radiusY) {
@@ -39,7 +42,8 @@ public class EllipseMirror extends Ellipse {
     public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
-        setStrokeWidth(1);
+        setStrokeWidth(globalStrokeWidth);
+        setStrokeType(StrokeType.OUTSIDE);
 
         setOnMouseClicked(mouseEvent -> {
             if (isEditMode && !isEdited) openObjectEdit();
@@ -47,6 +51,9 @@ public class EllipseMirror extends Ellipse {
 
         group.getChildren().add(this);
         root.getChildren().add(group);
+
+        outline.setStroke(Color.BLACK);
+        root.getChildren().add(outline);
     }
 
 
@@ -232,6 +239,14 @@ public class EllipseMirror extends Ellipse {
                     }
                 }
 
+                // Update shape outline
+                Ellipse ellipse = new Ellipse(this.getCenterX(), this.getCenterY(), this.getRadiusX(), this.getRadiusY());
+                ellipse.setFill(Color.TRANSPARENT);
+                ellipse.setStroke(Color.BLACK);
+                outline = getObjectOutline(ellipse);
+                outline.setStrokeWidth(1);
+
+
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     // Update UI components or perform other UI-related tasks
@@ -245,6 +260,7 @@ public class EllipseMirror extends Ellipse {
                     }
                 }
             }
+
         }).start();
     }
 }

@@ -1,11 +1,8 @@
 package com.example.lensr;
 
 import com.jfoenix.controls.JFXSlider;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 import java.util.List;
 
@@ -33,7 +30,7 @@ public class WavelengthSlider extends JFXSlider {
             Color color = getColorFromWavelength(colourSliderValue[0]);
 
             StackPane colorPreview = (StackPane) slider.lookup(".animated-thumb");
-            colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color) + "");
+            colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color));
             System.out.println(getHexFromColor(color));
 
             // TODO: This will need to be changed once we add multiple rays

@@ -32,7 +32,7 @@ public class Ray extends Line {
 
         root.getChildren().removeAll(rayReflections);
 
-        drawRaysRecursively(this, null, 0);
+        drawRaysRecursively(this, 0);
     }
 
 

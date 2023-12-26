@@ -3,15 +3,16 @@ package com.example.lensr;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeType;
 
 public class Intersections {
 
-    public static Point2D getRayIntersectionPoint(Line ray, Shape object) {
+    public static Point2D getRayIntersectionPoint(Line ray, Shape object, Point2D previousIntersectionPoint) {
         // holy fucking shit we actually did it
         double intersectionX, intersectionY;
 
         // Temporarily set stroke width to a low number for intersection calculation
-        ray.setStrokeWidth(0.1);
+        ray.setStrokeWidth(0.01);
         Shape intersectionShape = Shape.intersect(ray, object);
         ray.setStrokeWidth(0.5);
 
@@ -32,7 +33,39 @@ public class Intersections {
             intersectionY = maxY;
         } else intersectionY = minY;
 
+        Point2D roundedIntersectionPoint = new Point2D(
+                Math.round(intersectionX * 10.0) / 10.0,
+                Math.round(intersectionY * 10.0) / 10.0
+        );
+
+        // TODO: THIS IS MOST LIKELY THE CAUSE OF THE BUG WHERE RAY PASSES THROUGH THE MIRROR
+        // TODO: IDK HOW TO FIX IT THO
+        // The thought process behind this is that if the intersection point is the same as the previous intersection point,
+        // Set the intersection point to the second intersection point
+        // Unclear? Explanation here: https://imgur.com/a/YYqg9KU
+        if (roundedIntersectionPoint.equals(previousIntersectionPoint)) {
+            if (intersectionX == maxX) intersectionX = minX;
+            else intersectionX = maxX;
+
+            if (intersectionY == maxY) intersectionY = minY;
+            else intersectionY = maxY;
+        }
+
         return new Point2D(intersectionX, intersectionY);
+    }
+
+
+    // Get the outline of a shape for ray intersection
+    // This is the object ray will intersect with (ray should not intersect with the object fill)
+    public static Shape getObjectOutline(Shape shape) {
+        // Copying shape in a cursed way
+        Shape copy = Shape.union(shape, shape);
+        copy.setStrokeWidth(1);
+        shape.setStrokeWidth(1);
+        shape.setStrokeType(StrokeType.OUTSIDE);
+        copy.setStrokeType(StrokeType.INSIDE);
+
+        return Shape.subtract(shape, copy);
     }
 
 

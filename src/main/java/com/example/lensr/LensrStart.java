@@ -15,7 +15,7 @@ import static com.example.lensr.Intersections.*;
 public class LensrStart extends Application {
     public static final Object lock = new Object();
     public static final Color mirrorColor = Color.WHITE;
-    public static final double globalStrokeWidth = 1;
+    public static final double globalStrokeWidth = 0.5;
     public static final int SIZE = 1000;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
@@ -52,7 +52,7 @@ public class LensrStart extends Application {
     }
 
 
-    public static void drawRaysRecursively(Ray currentRay, Object previousMirror, int recursiveDepth) {
+    public static void drawRaysRecursively(Ray currentRay, int recursiveDepth) {
 
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
@@ -60,9 +60,7 @@ public class LensrStart extends Application {
         Point2D closestIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
 
         for (Object mirror : mirrors) {
-            // The ray cannot reflect of the same mirror twice in a row
-            // TODO: It actually can, pls fix
-            if (mirror == previousMirror) continue;
+            Point2D intersectionPoint = null;
 
             if (mirror instanceof LineMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
@@ -71,41 +69,39 @@ public class LensrStart extends Application {
                     continue;
                 }
 
-                Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
-
-                if (intersectionPoint != null) {
-                    double intersectionDistance = Math.sqrt(
-                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                    );
-
-                    if (intersectionDistance < shortestIntersectionDistance) {
-                        closestIntersectionPoint = intersectionPoint;
-                        shortestIntersectionDistance = intersectionDistance;
-                        closestIntersectionMirror = currentMirror;
-                    }
-                }
+                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror, new Point2D(currentRay.getStartX(), currentRay.getStartY()));
             }
             else if (mirror instanceof EllipseMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
-                Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
-
-                if (intersectionPoint != null) {
-                    double intersectionDistance = Math.sqrt(
-                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                    );
-
-                    if (intersectionDistance < shortestIntersectionDistance) {
-                        closestIntersectionPoint = intersectionPoint;
-                        shortestIntersectionDistance = intersectionDistance;
-                        closestIntersectionMirror = currentMirror;
-                    }
-                }
+                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror.outline, new Point2D(currentRay.getStartX(), currentRay.getStartY()));
             }
+            if (intersectionPoint == null) continue;
+
+            // Round the intersection point to 1 decimal place
+            intersectionPoint = new Point2D(
+                    Math.round(intersectionPoint.getX() * 10.0) / 10.0,
+                    Math.round(intersectionPoint.getY() * 10.0) / 10.0
+            );
+
+            // If the intersection point is the same as the previous intersection point, skip it
+            Point2D previousIntersectionPoint = new Point2D(currentRay.getStartX(), currentRay.getStartY());
+            if (previousIntersectionPoint.equals(intersectionPoint)) continue;
+
+            // If this is the closest intersection point so far, set it as the closest intersection point
+            double intersectionDistance = Math.sqrt(
+                    Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                            Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
+            );
+
+            if (intersectionDistance < shortestIntersectionDistance) {
+                closestIntersectionPoint = intersectionPoint;
+                shortestIntersectionDistance = intersectionDistance;
+                closestIntersectionMirror = mirror;
+            }
+
         }
 
         // If there's no intersection, return
@@ -157,7 +153,7 @@ public class LensrStart extends Application {
         nextRay.setEndY(reflectedY);
 
         rayReflections.add(nextRay);
-        drawRaysRecursively(nextRay, closestIntersectionMirror, recursiveDepth + 1);
+        drawRaysRecursively(nextRay, recursiveDepth + 1);
     }
 
     public static void main(String[] args) {
