@@ -18,6 +18,7 @@ import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 
 public class EllipseMirror extends Ellipse {
+    // The outline of the object for ray intersection
     public Shape outline = getObjectOutline(this);
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     double reflectivity = 0.99;
@@ -50,10 +51,8 @@ public class EllipseMirror extends Ellipse {
         });
 
         group.getChildren().add(this);
+        group.getChildren().add(outline);
         root.getChildren().add(group);
-
-        outline.setStroke(Color.BLACK);
-        root.getChildren().add(outline);
     }
 
 
@@ -245,7 +244,6 @@ public class EllipseMirror extends Ellipse {
                 ellipse.setStroke(Color.BLACK);
                 outline = getObjectOutline(ellipse);
                 outline.setStrokeWidth(1);
-
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {

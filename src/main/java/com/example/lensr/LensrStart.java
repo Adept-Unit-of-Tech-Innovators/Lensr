@@ -54,7 +54,6 @@ public class LensrStart extends Application {
 
 
     public static void drawRaysRecursively(Ray currentRay, int recursiveDepth) {
-
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
@@ -66,25 +65,23 @@ public class LensrStart extends Application {
             if (mirror instanceof LineMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
-                if (minimalPossibleDistance > shortestIntersectionDistance) {
-                    continue;
-                }
+                if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
-                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror, new Point2D(currentRay.getStartX(), currentRay.getStartY()));
+                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
             }
             else if (mirror instanceof EllipseMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
-                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror.outline, new Point2D(currentRay.getStartX(), currentRay.getStartY()));
+                intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror.outline);
             }
             if (intersectionPoint == null) continue;
 
-            // Round the intersection point to 1 decimal place
+            // Round the intersection point to 2 decimal places
             intersectionPoint = new Point2D(
-                    Math.round(intersectionPoint.getX() * 10.0) / 10.0,
-                    Math.round(intersectionPoint.getY() * 10.0) / 10.0
+                    Math.round(intersectionPoint.getX() * 100.0) / 100.0,
+                    Math.round(intersectionPoint.getY() * 100.0) / 100.0
             );
 
             // If the intersection point is the same as the previous intersection point, skip it
@@ -122,10 +119,6 @@ public class LensrStart extends Application {
         nextRay.setStroke(currentRay.getStroke());
         nextRay.setStrokeWidth(globalStrokeWidth);
 
-        nextRay.setStartX(closestIntersectionPoint.getX());
-        nextRay.setStartY(closestIntersectionPoint.getY());
-
-
         double reflectedX = 0;
         double reflectedY = 0;
 
@@ -137,6 +130,10 @@ public class LensrStart extends Application {
             reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
             reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
+            // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+            nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
+            nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+
             nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
         }
         else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
@@ -146,6 +143,10 @@ public class LensrStart extends Application {
             // Calculate the end point of the reflected ray
             reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
             reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
+
+            // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+            nextRay.setStartX(closestIntersectionPoint.getX() - Math.cos(reflectionAngle));
+            nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
 
             nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
         }

@@ -1,21 +1,11 @@
 package com.example.lensr;
 
-import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.input.MouseEvent;
 
 import static com.example.lensr.LensrStart.*;
 
 public class UserControls {
-    // ok this type of commenting is super cool please use it (If you're seeing "/**" click those 3 lines "Toggle rendered view" on the left side)
-    // They only work in IntelliJ tho :(
-    /**
-     * Mouse click - Set ray origin <br>
-     * Mouse move - Set ray direction <br>
-     * X - Spawn a new Ellipse <br>
-     * Z - Spawn a new Line <br>
-     */
 
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
@@ -122,13 +112,12 @@ public class UserControls {
                 xPressed = false;
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-            rays.get(0).setStartX(mouseX);
-            rays.get(0).setStartY(mouseY);
+                rays.get(0).setStartX(mouseX);
+                rays.get(0).setStartY(mouseY);
 
-            // Recalculate ray intersections after it position changed
-            EventHandler<? super MouseEvent> mouseMoved = scene.getOnMouseMoved();
-                    rays.get(0).update();
-
+                // Recalculate ray intersections after it position changed
+                scene.getOnMouseMoved();
+                rays.get(0).update();
             }
         });
 
