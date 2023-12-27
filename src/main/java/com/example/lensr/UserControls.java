@@ -16,7 +16,6 @@ public class UserControls {
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
                     && !group.getLayoutBounds().contains(mousePos))
             {
-                System.out.println("Close ellipse mirror edit");
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked = false;
                 editedShape = null;
@@ -25,10 +24,9 @@ public class UserControls {
 
             // Close line mirror edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
-                    && !mirror.hitbox.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    && !mirror.isMouseOnHitbox && mirror.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
             {
-                System.out.println("Close line mirror edit");
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked = false;
                 editedShape = null;
@@ -137,8 +135,6 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("ALT")) {
                 altPressed = false;
             }
-
-//            if (!isEditMode || (!xPressed && !zPressed) ) return;
         });
 
         scene.setOnMouseMoved(mouseEvent -> {

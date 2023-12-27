@@ -21,6 +21,7 @@ public class LineMirror extends Line{
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
     Rectangle hitbox;
+    boolean isMouseOnHitbox;
     List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     double reflectivity = 1;
@@ -146,6 +147,8 @@ public class LineMirror extends Line{
         hitbox.toBack();
         hitbox.getTransforms().add(rotate);
         hitbox.setOnMouseClicked(this.getOnMouseClicked());
+        hitbox.setOnMouseEntered(mouseEvent -> isMouseOnHitbox = true);
+        hitbox.setOnMouseExited(mouseEvent -> isMouseOnHitbox = false);
         updateHitbox();
         return hitbox;
     }
