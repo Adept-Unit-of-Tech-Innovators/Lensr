@@ -23,8 +23,8 @@ public class MutableValue {
         }
     }
 
-    public void setValue(boolean value, MutableValue opositeValue) {
+    public void setValue(boolean value, MutableValue oppositeValue) {
         this.value = value;
-        opositeValue.setValue(false);
+        oppositeValue.setValue(false);
     }
 }
