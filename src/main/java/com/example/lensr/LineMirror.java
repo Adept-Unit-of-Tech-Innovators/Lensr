@@ -17,27 +17,22 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 
 public class LineMirror extends Line{
+    Group group = new Group();
+    Rotate rotate = new Rotate();
+    // Extended hitbox for easier editing
+    Rectangle hitbox;
+    List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     double reflectivity = 1;
-    // How much light is scattered instead of reflected, 0 - all light is scattered, 1 - all light is perfectly reflected
-    // Not sure if we should implement this as the lower the specular, the less the object behaves like a mirror. Mirrors always have high specular.
-    double specular;
-    Point2D anchor;
-    Group group = new Group();
-    Rectangle hitbox = new Rectangle();
     double rotation = 0;
-    Rotate rotate = new Rotate();
-    List<Rectangle> editPoints = new ArrayList<>();
     boolean isEdited;
     boolean isEditPointClicked;
 
-    public LineMirror(double mouseX, double mouseY) {
-        anchor = new Point2D(mouseX, mouseY);
-        setStartX(mouseX);
-        setStartY(mouseY);
-        setEndX(mouseX);
-        setEndY(mouseY);
-
+    public LineMirror(double startX, double startY) {
+        setStartX(startX);
+        setStartY(startY);
+        setEndX(startX);
+        setEndY(startY);
     }
 
 
@@ -47,13 +42,13 @@ public class LineMirror extends Line{
         setStrokeWidth(globalStrokeWidth);
 
         setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) {
-                openObjectEdit();
-            }
+            if (isEditMode && !isEdited) openObjectEdit();
         });
 
+        hitbox = createRectangleHitbox();
+
         group.getChildren().add(this);
-        createRectangleHitbox();
+        group.getChildren().add(hitbox);
         root.getChildren().add(group);
     }
 
@@ -80,12 +75,23 @@ public class LineMirror extends Line{
         }
         isEdited = true;
 
+        // Place edit points
         editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
         editPoints.add(new Rectangle(getEndX() - editPointSize / 2, getEndY() - editPointSize / 2, editPointSize, editPointSize));
 
         for (Rectangle editPoint : editPoints) {
             editPoint.setFill(Color.RED);
             editPoint.setStrokeWidth(0);
+            editPoint.setOnMouseEntered(mouseEvent -> {
+                if (!isEditPointClicked) {
+                    scene.setCursor(Cursor.HAND);
+                }
+            });
+            editPoint.setOnMouseExited(mouseEvent -> {
+                if (!isEditPointClicked) {
+                    scene.setCursor(Cursor.DEFAULT);
+                }
+            });
             editPoint.setOnMousePressed(this::handleEditPointPressed);
             editPoint.setOnMouseReleased(this::handleEditPointReleased);
         }
@@ -93,37 +99,45 @@ public class LineMirror extends Line{
         editedShape = group;
     }
 
+
     private void handleEditPointPressed(MouseEvent event) {
         isMousePressed = true;
         isEditPointClicked = true;
-        scene.setCursor(Cursor.HAND);
+        scene.setCursor(Cursor.CLOSED_HAND);
 
         // Scale the mirror with the opposite edit point as an anchor
-        // sussy
-        int editPointIndex = editPoints.indexOf(event.getSource());
-        anchor = new Point2D(editPoints.get(1 - editPointIndex).getX() + editPointSize / 2, editPoints.get(1 - editPointIndex).getY() + editPointSize / 2);
-        scale();
+        //noinspection SuspiciousMethodCalls (it's very sussy)
+        Rectangle oppositeEditPoint = editPoints.get(1 - editPoints.indexOf(event.getSource()));
+        scale(new Point2D(oppositeEditPoint.getX() + editPointSize / 2, oppositeEditPoint.getY() + editPointSize / 2));
     }
 
 
     private void handleEditPointReleased(MouseEvent event) {
         isMousePressed = false;
         isEditPointClicked = false;
-        scene.setCursor(Cursor.DEFAULT);
+
+        for (Rectangle editPoint : editPoints) {
+            if (editPoint.contains(mousePos)) {
+                scene.setCursor(Cursor.HAND);
+                break;
+            }
+            else scene.setCursor(Cursor.DEFAULT);
+        }
+
         event.consume();
     }
 
     public void closeObjectEdit() {
         isEdited = false;
         removeIfOverlaps();
-        if (editPoints != null && editedShape instanceof Group group) {
-            group.getChildren().removeAll(editPoints);
+        if (editPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
     }
 
 
-    private void createRectangleHitbox() {
+    private Rectangle createRectangleHitbox() {
         hitbox = new Rectangle();
         hitbox.setHeight(30);
         hitbox.setFill(Color.TRANSPARENT);
@@ -131,11 +145,9 @@ public class LineMirror extends Line{
         hitbox.setStrokeWidth(0);
         hitbox.toBack();
         hitbox.getTransforms().add(rotate);
-
-        updateHitbox();
-
         hitbox.setOnMouseClicked(this.getOnMouseClicked());
-        group.getChildren().add(hitbox);
+        updateHitbox();
+        return hitbox;
     }
 
 
@@ -190,20 +202,18 @@ public class LineMirror extends Line{
     }
 
 
-    public void scale() {
+    public void scale(Point2D anchor) {
         new Thread(() -> {
+            double startX, startY, endX, endY;
+
             while (isMousePressed) {
                 boolean intersects = false;
-                double startX = getStartX(), startY = getStartY(), endX, endY;
 
-                if (!altPressed) {
-                    startX = (anchor.getX());
-                    startY = (anchor.getY());
-                }
+                // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
-                    double deltaX = mouseX - anchor.getX();
-                    double deltaY = mouseY - anchor.getY();
+                    double deltaX = mousePos.getX() - anchor.getX();
+                    double deltaY = mousePos.getY() - anchor.getY();
                     double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
                     double angle = Math.atan2(deltaY, deltaX);
                     double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
@@ -218,14 +228,16 @@ public class LineMirror extends Line{
                 }
                 else if (altPressed) {
                     // Calculate first because funny java threading
-                    startX = anchor.getX() - (mouseX - anchor.getX());
-                    startY = anchor.getY() - (mouseY - anchor.getY());
-                    endX = mouseX;
-                    endY = mouseY;
+                    startX = anchor.getX() - (mousePos.getX() - anchor.getX());
+                    startY = anchor.getY() - (mousePos.getY() - anchor.getY());
+                    endX = mousePos.getX();
+                    endY = mousePos.getY();
                 }
                 else if (shiftPressed) {
-                    double deltaX = mouseX - startX;
-                    double deltaY = mouseY - startY;
+                    startX = anchor.getX();
+                    startY = anchor.getY();
+                    double deltaX = mousePos.getX() - startX;
+                    double deltaY = mousePos.getY() - startY;
                     double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
                     double angle = Math.atan2(deltaY, deltaX);
                     double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
@@ -233,8 +245,10 @@ public class LineMirror extends Line{
                     endY = startY + distance * Math.sin(shiftedAngle);
                 }
                 else {
-                    endX = mouseX;
-                    endY = mouseY;
+                    startX = anchor.getX();
+                    startY = anchor.getY();
+                    endX = mousePos.getX();
+                    endY = mousePos.getY();
                 }
 
                 Line intersectionChecker = new Line(startX, startY, endX, endY);
@@ -252,7 +266,6 @@ public class LineMirror extends Line{
                 }
 
                 if (!intersects) {
-                    // Apply all at once to avoid delays
                     this.setStartX(startX);
                     this.setStartY(startY);
                     this.setEndX(endX);
@@ -272,8 +285,8 @@ public class LineMirror extends Line{
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     // Update UI components or perform other UI-related tasks
-                    // Example: circle.setRadius(radius);
                 });
+
                 synchronized (lock) {
                     try {
                         lock.wait(10); // Adjust the sleep time as needed
@@ -284,8 +297,4 @@ public class LineMirror extends Line{
             }
         }).start();
     }
-
 }
-
-
-

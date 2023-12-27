@@ -10,24 +10,25 @@ public class UserControls {
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
             isMousePressed = true;
-            mouseX = mouseEvent.getX();
-            mouseY = mouseEvent.getY();
+            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 
             // Close ellipse mirror edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
-                    && !group.getLayoutBounds().contains(new Point2D(mouseX, mouseY)))
+                    && !group.getLayoutBounds().contains(mousePos))
             {
-                    mirror.closeObjectEdit();
-                    mirror.isEditPointClicked = false;
-                    editedShape = null;
-                    return;
+                System.out.println("Close ellipse mirror edit");
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked = false;
+                editedShape = null;
+                return;
             }
 
             // Close line mirror edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
-                    && !mirror.hitbox.contains(new Point2D(mouseX, mouseY)) && mirror.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(new Point2D(mouseX, mouseY))))
+                    && !mirror.hitbox.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
             {
+                System.out.println("Close line mirror edit");
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked = false;
                 editedShape = null;
@@ -36,23 +37,20 @@ public class UserControls {
 
             // Place mirrors
             if (xPressed.getValue()) {
-                EllipseMirror newMirror = new EllipseMirror(mouseX, mouseY, 0, 0);
+                EllipseMirror newMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                 newMirror.create();
                 mirrors.add(newMirror);
-                newMirror.scale(mouseX, mouseY);
+                newMirror.scale(mousePos);
             }
             if (zPressed.getValue()) {
-                LineMirror newMirror = new LineMirror(mouseX, mouseY);
+                LineMirror newMirror = new LineMirror(mousePos.getX(), mousePos.getY());
                 newMirror.create();
                 mirrors.add(newMirror);
-                newMirror.scale();
+                newMirror.scale(mousePos);
             }
         });
 
-        scene.setOnMouseDragged(mouseEvent -> {
-            mouseX = mouseEvent.getX();
-            mouseY = mouseEvent.getY();
-        });
+        scene.setOnMouseDragged(mouseEvent -> mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY()));
 
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
@@ -120,8 +118,8 @@ public class UserControls {
                 xPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                rays.get(0).setStartX(mouseX);
-                rays.get(0).setStartY(mouseY);
+                rays.get(0).setStartX(mousePos.getX());
+                rays.get(0).setStartY(mousePos.getY());
 
                 // Recalculate ray intersections after it position changed
                 scene.getOnMouseMoved();
@@ -146,8 +144,7 @@ public class UserControls {
         scene.setOnMouseMoved(mouseEvent -> {
             if (!isEditMode) return;
 
-            mouseX = mouseEvent.getX();
-            mouseY = mouseEvent.getY();
+            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 
             if (!xPressed.getValue() && !zPressed.getValue()) {
                 rays.get(0).update();

@@ -25,8 +25,8 @@ public class Ray extends Line {
     }
 
     public void update() {
-        double endX = (mouseX - this.getStartX()) * SIZE;
-        double endY = (mouseY - this.getStartY()) * SIZE;
+        double endX = (mousePos.getX() - this.getStartX()) * SIZE;
+        double endY = (mousePos.getY() - this.getStartY()) * SIZE;
         this.setEndX(endX);
         this.setEndY(endY);
 

@@ -2,7 +2,6 @@ package com.example.lensr;
 
 import javafx.application.Application;
 import javafx.geometry.Point2D;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -24,8 +23,7 @@ public class LensrStart extends Application {
     public static List<Ray> rays = new ArrayList<>();
     public static List<Ray> rayReflections = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
-    public static double mouseX;
-    public static double mouseY;
+    public static Point2D mousePos;
     public static MutableValue xPressed = new MutableValue(false);
     public static MutableValue zPressed = new MutableValue(false);
     public static boolean shiftPressed = false;
