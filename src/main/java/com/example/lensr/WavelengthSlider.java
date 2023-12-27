@@ -31,7 +31,6 @@ public class WavelengthSlider extends JFXSlider {
 
             StackPane colorPreview = (StackPane) slider.lookup(".animated-thumb");
             colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color));
-            System.out.println(getHexFromColor(color));
 
             // TODO: This will need to be changed once we add multiple rays
             for (Ray ray : rays) {
