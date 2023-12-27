@@ -57,8 +57,8 @@ public class EllipseMirror extends Ellipse {
 
 
     private void openObjectEdit() {
-        xPressed = false;
-        zPressed = false;
+        xPressed.setValue(false);
+        zPressed.setValue(false);
         for (Object mirror : mirrors) {
             if (mirror instanceof EllipseMirror ellipseMirror) {
                 if (ellipseMirror.isEdited) {

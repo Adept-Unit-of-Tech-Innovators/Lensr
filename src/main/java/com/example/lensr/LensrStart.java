@@ -2,6 +2,7 @@ package com.example.lensr;
 
 import javafx.application.Application;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -25,13 +26,14 @@ public class LensrStart extends Application {
     public static List<Object> mirrors = new ArrayList<>();
     public static double mouseX;
     public static double mouseY;
-    public static boolean xPressed = false;
-    public static boolean zPressed = false;
+    public static MutableValue xPressed = new MutableValue(false);
+    public static MutableValue zPressed = new MutableValue(false);
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
     public static Object editedShape;
+    public static List<ToolbarButton> toolbar = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -43,6 +45,29 @@ public class LensrStart extends Application {
         scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
 
         WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
+
+        // Create toolbar buttons
+        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", zPressed, xPressed, 25, 25);
+        ToolbarButton elipseMirrorButton = new ToolbarButton("Elipse Mirror", xPressed, zPressed, 150, 25);
+        toolbar.add(lineMirrorButton);
+        toolbar.add(elipseMirrorButton);
+
+        lineMirrorButton.setOnAction(actionEvent -> {
+            lineMirrorButton.variableToChange.setValue(!lineMirrorButton.variableToChange.getValue(), lineMirrorButton.oppositeVariable);
+            lineMirrorButton.updateRender();
+            elipseMirrorButton.updateRender();
+
+        });
+
+        elipseMirrorButton.setOnAction(actionEvent -> {
+            elipseMirrorButton.variableToChange.setValue(!elipseMirrorButton.variableToChange.getValue(), elipseMirrorButton.oppositeVariable);
+            elipseMirrorButton.updateRender();
+            lineMirrorButton.updateRender();
+
+        });
+
+        lineMirrorButton.addToRoot();
+        elipseMirrorButton.addToRoot();
 
         UserControls.setUserControls();
 
