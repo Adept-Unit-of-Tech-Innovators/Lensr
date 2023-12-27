@@ -68,6 +68,9 @@ public class LensrStart extends Application {
 
         lineMirrorButton.addToRoot();
         elipseMirrorButton.addToRoot();
+        for (ToolbarButton button : toolbar) {
+            button.disableProperty().setValue(true);
+        }
 
         UserControls.setUserControls();
 

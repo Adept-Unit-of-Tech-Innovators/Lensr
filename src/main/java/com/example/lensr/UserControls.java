@@ -87,10 +87,18 @@ public class UserControls {
                 }
 
                 if (isEditMode) {
+                    for (ToolbarButton button : toolbar) {
+                        button.disableProperty().setValue(true);
+                    }
                     for (Object mirror : mirrors) {
                         if (mirror instanceof EllipseMirror ellipseMirror) {
                             ellipseMirror.closeObjectEdit();
                         }
+                    }
+                }
+                else {
+                    for (ToolbarButton button : toolbar) {
+                        button.disableProperty().setValue(false);
                     }
                 }
 
