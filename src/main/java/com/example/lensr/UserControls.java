@@ -55,14 +55,14 @@ public class UserControls {
             if (xPressed.getValue()) {
                 if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror) {
                     ellipseMirror.removeIfOverlaps();
+                    ellipseMirror.openObjectEdit();
                 }
-                rays.get(0).update();
             }
             if (zPressed.getValue()) {
                 if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
                     lineMirror.removeIfOverlaps();
+                    lineMirror.openObjectEdit();
                 }
-                rays.get(0).update();
             }
         });
 
@@ -142,7 +142,7 @@ public class UserControls {
 
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 
-            if (!xPressed.getValue() && !zPressed.getValue()) {
+            if (!xPressed.getValue() && !zPressed.getValue() && editedShape == null) {
                 rays.get(0).update();
             }
         });

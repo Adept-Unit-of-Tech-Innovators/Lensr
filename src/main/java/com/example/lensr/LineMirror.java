@@ -53,7 +53,7 @@ public class LineMirror extends Line{
         root.getChildren().add(group);
     }
 
-    private void openObjectEdit() {
+    public void openObjectEdit() {
         xPressed.setValue(false);
         zPressed.setValue(false);
 

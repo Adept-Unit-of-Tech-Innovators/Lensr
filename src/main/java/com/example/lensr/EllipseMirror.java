@@ -54,7 +54,7 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    private void openObjectEdit() {
+    public void openObjectEdit() {
         xPressed.setValue(false);
         zPressed.setValue(false);
 
