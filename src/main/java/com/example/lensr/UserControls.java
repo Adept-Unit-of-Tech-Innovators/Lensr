@@ -17,7 +17,7 @@ public class UserControls {
                     && !group.getLayoutBounds().contains(mousePos))
             {
                 mirror.closeObjectEdit();
-                mirror.isEditPointClicked = false;
+                mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
                 return;
             }
@@ -28,7 +28,7 @@ public class UserControls {
                     rectangle.contains(mousePos)))
             {
                 mirror.closeObjectEdit();
-                mirror.isEditPointClicked = false;
+                mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
                 return;
             }
@@ -70,13 +70,13 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("E")) {
                 // If mode was switched during an edit, finish the edit
                 if (xPressed.getValue()) {
-                    xPressed.setValue(false);
+                    xPressed.setValueAndCloseEdit(false);
                     if (!mirrors.isEmpty() && mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
                         ellipseMirror.removeIfOverlaps();
                     }
                 }
                 else if (zPressed.getValue()) {
-                    zPressed.setValue(false);
+                    zPressed.setValueAndCloseEdit(false);
                     if (!mirrors.isEmpty() && mirrors.get(0) instanceof LineMirror lineMirror) {
                         lineMirror.removeIfOverlaps();
                     }
@@ -108,12 +108,12 @@ public class UserControls {
                 altPressed = true;
             }
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
-                xPressed.setValue(!xPressed.getValue());
-                zPressed.setValue(false);
+                xPressed.setValueAndCloseEdit(!xPressed.getValue());
+                zPressed.setValueAndCloseEdit(false);
             }
             else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
-                zPressed.setValue(!zPressed.getValue());
-                xPressed.setValue(false);
+                zPressed.setValueAndCloseEdit(!zPressed.getValue());
+                xPressed.setValueAndCloseEdit(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 rays.get(0).setStartX(mousePos.getX());

@@ -51,14 +51,14 @@ public class LensrStart extends Application {
         toolbar.add(elipseMirrorButton);
 
         lineMirrorButton.setOnAction(actionEvent -> {
-            lineMirrorButton.variableToChange.setValue(!lineMirrorButton.variableToChange.getValue(), lineMirrorButton.oppositeVariable);
+            lineMirrorButton.variableToChange.setValueAndCloseEdit(!lineMirrorButton.variableToChange.getValue(), lineMirrorButton.oppositeVariable);
             lineMirrorButton.updateRender();
             elipseMirrorButton.updateRender();
 
         });
 
         elipseMirrorButton.setOnAction(actionEvent -> {
-            elipseMirrorButton.variableToChange.setValue(!elipseMirrorButton.variableToChange.getValue(), elipseMirrorButton.oppositeVariable);
+            elipseMirrorButton.variableToChange.setValueAndCloseEdit(!elipseMirrorButton.variableToChange.getValue(), elipseMirrorButton.oppositeVariable);
             elipseMirrorButton.updateRender();
             lineMirrorButton.updateRender();
 

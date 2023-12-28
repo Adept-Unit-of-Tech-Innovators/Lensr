@@ -13,6 +13,10 @@ public class MutableValue {
 
     public void setValue(boolean value) {
         this.value = value;
+    }
+
+    public void setValueAndCloseEdit(boolean value) {
+        this.value = value;
         for (Object mirror : LensrStart.mirrors) {
             if (mirror instanceof LineMirror lineMirror) {
                 lineMirror.closeObjectEdit();
@@ -23,8 +27,8 @@ public class MutableValue {
         }
     }
 
-    public void setValue(boolean value, MutableValue oppositeValue) {
+    public void setValueAndCloseEdit(boolean value, MutableValue oppositeValue) {
         this.value = value;
-        oppositeValue.setValue(false);
+        oppositeValue.setValueAndCloseEdit(false);
     }
 }

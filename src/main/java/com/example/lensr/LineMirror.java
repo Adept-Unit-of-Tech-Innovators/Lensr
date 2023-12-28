@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.MirrorMethods.*;
+
+import com.example.lensr.MirrorMethods.*;
 
 public class LineMirror extends Line{
     Group group = new Group();
@@ -27,7 +30,7 @@ public class LineMirror extends Line{
     double reflectivity = 1;
     double rotation = 0;
     boolean isEdited;
-    boolean isEditPointClicked;
+    MutableValue isEditPointClicked = new MutableValue(false);
 
     public LineMirror(double startX, double startY) {
         setStartX(startX);
@@ -54,47 +57,17 @@ public class LineMirror extends Line{
     }
 
     public void openObjectEdit() {
-        xPressed.setValue(false);
-        zPressed.setValue(false);
-
-        for (Object mirror : mirrors) {
-            if (mirror instanceof EllipseMirror ellipseMirror) {
-                if (ellipseMirror.isEdited) {
-                    ellipseMirror.isEditPointClicked = false;
-                    ellipseMirror.closeObjectEdit();
-
-                }
-            }
-            else {
-                if (mirror instanceof LineMirror lineMirror) {
-                    if (lineMirror.isEdited) {
-                        lineMirror.isEditPointClicked = false;
-                        lineMirror.closeObjectEdit();
-                    }
-                }
-            }
-        }
+        setupObjectEdit();
         isEdited = true;
 
         // Place edit points
         editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
         editPoints.add(new Rectangle(getEndX() - editPointSize / 2, getEndY() - editPointSize / 2, editPointSize, editPointSize));
 
+        setupEditPoints(editPoints, isEditPointClicked);
         for (Rectangle editPoint : editPoints) {
-            editPoint.setFill(Color.RED);
-            editPoint.setStrokeWidth(0);
-            editPoint.setOnMouseEntered(mouseEvent -> {
-                if (!isEditPointClicked) {
-                    scene.setCursor(Cursor.HAND);
-                }
-            });
-            editPoint.setOnMouseExited(mouseEvent -> {
-                if (!isEditPointClicked) {
-                    scene.setCursor(Cursor.DEFAULT);
-                }
-            });
             editPoint.setOnMousePressed(this::handleEditPointPressed);
-            editPoint.setOnMouseReleased(this::handleEditPointReleased);
+            editPoint.setOnMouseReleased(this::executeEditPointRelease);
         }
         group.getChildren().addAll(editPoints);
         editedShape = group;
@@ -103,7 +76,7 @@ public class LineMirror extends Line{
 
     private void handleEditPointPressed(MouseEvent event) {
         isMousePressed = true;
-        isEditPointClicked = true;
+        isEditPointClicked.setValue(true);
         scene.setCursor(Cursor.CLOSED_HAND);
 
         // Scale the mirror with the opposite edit point as an anchor
@@ -112,21 +85,12 @@ public class LineMirror extends Line{
         scale(new Point2D(oppositeEditPoint.getX() + editPointSize / 2, oppositeEditPoint.getY() + editPointSize / 2));
     }
 
-
-    private void handleEditPointReleased(MouseEvent event) {
-        isMousePressed = false;
-        isEditPointClicked = false;
-
-        for (Rectangle editPoint : editPoints) {
-            if (editPoint.contains(mousePos)) {
-                scene.setCursor(Cursor.HAND);
-                break;
-            }
-            else scene.setCursor(Cursor.DEFAULT);
-        }
-
-        event.consume();
+    private void executeEditPointRelease(MouseEvent event) {
+        handleEditPointReleased(event, isEditPointClicked, editPoints);
     }
+
+
+
 
     public void closeObjectEdit() {
         isEdited = false;
@@ -190,18 +154,7 @@ public class LineMirror extends Line{
             return;
         }
 
-        for (Object mirror : mirrors) {
-            if (mirror.equals(this)) continue;
-
-            if (mirror instanceof Shape mirrorShape) {
-                // If the mirror overlaps with another object, remove it
-                if (Shape.intersect(this , mirrorShape).getLayoutBounds().getWidth() >= 0) {
-                    root.getChildren().remove(group);
-                    mirrors.remove(this);
-                    return;
-                }
-            }
-        }
+        iterateOverlaps(this, group);
     }
 
 
@@ -276,7 +229,7 @@ public class LineMirror extends Line{
                 }
 
                 // Update editPoints location
-                if (isEditPointClicked) {
+                if (isEditPointClicked.getValue()) {
                     editPoints.get(0).setX(getStartX() - editPointSize / 2);
                     editPoints.get(0).setY(getStartY() - editPointSize / 2);
                     editPoints.get(1).setX(getEndX() - editPointSize / 2);

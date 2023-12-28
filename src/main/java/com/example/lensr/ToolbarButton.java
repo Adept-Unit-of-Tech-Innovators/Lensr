@@ -17,7 +17,7 @@ public class ToolbarButton extends JFXButton {
         setLayoutY(layoutY);
         getStyleClass().add("button");
         setOnAction(actionEvent -> {
-            variableToChange.setValue(!variableToChange.getValue(), oppositeVariable);
+            variableToChange.setValueAndCloseEdit(!variableToChange.getValue(), oppositeVariable);
             updateRender();
         });
     }
