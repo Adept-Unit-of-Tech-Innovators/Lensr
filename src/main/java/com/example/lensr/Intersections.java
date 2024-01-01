@@ -1,6 +1,7 @@
 package com.example.lensr;
 
 import javafx.geometry.Point2D;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 
@@ -69,6 +70,13 @@ public class Intersections {
         }
 
         return 2 * normalAngle - angleOfIncidence;
+    }
+
+    public static double getSphericalRefractionAngle(Line ray, Arc lensSide, double refractiveIndex)
+    {
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+
+        return Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
     }
 
 }

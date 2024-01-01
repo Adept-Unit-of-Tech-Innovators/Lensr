@@ -16,6 +16,7 @@ public class UserControls {
      * Mouse move - Set ray direction <br>
      * X - Spawn a new Ellipse <br>
      * Z - Spawn a new Line <br>
+     * S - Spawn a new SphericalLens <br>
      */
 
     public static void setUserControls() {
