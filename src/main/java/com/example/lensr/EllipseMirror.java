@@ -25,7 +25,7 @@ public class EllipseMirror extends Ellipse {
     public Shape outline = getObjectOutline(this);
     List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.99;
+    double reflectivity = 0.9;
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
 
@@ -95,7 +95,6 @@ public class EllipseMirror extends Ellipse {
 
     public void closeObjectEdit() {
         isEdited = false;
-        removeIfOverlaps();
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
@@ -122,25 +121,12 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    public void removeIfOverlaps() {
-        // Remove the mirror if its size is 0
-        if (this.getRadiusX() == 0 && this.getRadiusY() == 0) {
-            root.getChildren().remove(group);
-            mirrors.remove(this);
-            return;
-        }
-
-        iterateOverlaps(this, group);
-    }
-
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
             double centerX, centerY, radiusX, radiusY;
 
             while (isMousePressed) {
-                boolean intersects = false;
-
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed && shiftPressed) {
                     centerX = anchor.getX();
@@ -165,27 +151,11 @@ public class EllipseMirror extends Ellipse {
                     radiusX = Math.abs(mousePos.getX() - centerX);
                     radiusY = Math.abs(mousePos.getY() - centerY);
                 }
-                
-                Ellipse intersectionChecker = new Ellipse(centerX, centerY, radiusX, radiusY);
 
-                for (Object mirror : mirrors) {
-                    if (mirror.equals(this)) continue;
-
-                    if (mirror instanceof Shape mirrorShape) {
-                        // If the mirror overlaps with another object, remove it
-                        if (Shape.intersect(intersectionChecker , mirrorShape).getLayoutBounds().getWidth() >= 0) {
-                            intersects = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!intersects) {
-                    setCenterX(centerX);
-                    setCenterY(centerY);
-                    setRadiusX(radiusX);
-                    setRadiusY(radiusY);
-                }
+                setCenterX(centerX);
+                setCenterY(centerY);
+                setRadiusX(radiusX);
+                setRadiusY(radiusY);
 
                 // Update editPoints location
                 if (isEditPointClicked.getValue()) {

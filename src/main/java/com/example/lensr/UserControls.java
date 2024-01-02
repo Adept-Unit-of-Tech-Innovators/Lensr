@@ -54,13 +54,11 @@ public class UserControls {
             isMousePressed = false;
             if (xPressed.getValue()) {
                 if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror) {
-                    ellipseMirror.removeIfOverlaps();
                     ellipseMirror.openObjectEdit();
                 }
             }
             if (zPressed.getValue()) {
                 if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
-                    lineMirror.removeIfOverlaps();
                     lineMirror.openObjectEdit();
                 }
             }
@@ -71,15 +69,9 @@ public class UserControls {
                 // If mode was switched during an edit, finish the edit
                 if (xPressed.getValue()) {
                     xPressed.setValueAndCloseEdit(false);
-                    if (!mirrors.isEmpty() && mirrors.get(0) instanceof EllipseMirror ellipseMirror) {
-                        ellipseMirror.removeIfOverlaps();
-                    }
                 }
                 else if (zPressed.getValue()) {
                     zPressed.setValueAndCloseEdit(false);
-                    if (!mirrors.isEmpty() && mirrors.get(0) instanceof LineMirror lineMirror) {
-                        lineMirror.removeIfOverlaps();
-                    }
                 }
 
                 if (isEditMode) {

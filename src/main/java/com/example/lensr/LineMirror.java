@@ -8,7 +8,6 @@ import javafx.scene.paint.Color;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -16,8 +15,6 @@ import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
-
-import com.example.lensr.MirrorMethods.*;
 
 public class LineMirror extends Line{
     Group group = new Group();
@@ -27,7 +24,7 @@ public class LineMirror extends Line{
     boolean isMouseOnHitbox;
     List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 1;
+    double reflectivity = 0.9;
     double rotation = 0;
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
@@ -94,7 +91,6 @@ public class LineMirror extends Line{
 
     public void closeObjectEdit() {
         isEdited = false;
-        removeIfOverlaps();
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
@@ -146,25 +142,11 @@ public class LineMirror extends Line{
     }
 
 
-    public void removeIfOverlaps() {
-        // Remove the mirror if its size is 0
-        if (this.getLength() == 0) {
-            root.getChildren().remove(group);
-            mirrors.remove(this);
-            return;
-        }
-
-        iterateOverlaps(this, group);
-    }
-
-
     public void scale(Point2D anchor) {
         new Thread(() -> {
             double startX, startY, endX, endY;
 
             while (isMousePressed) {
-                boolean intersects = false;
-
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
@@ -207,26 +189,10 @@ public class LineMirror extends Line{
                     endY = mousePos.getY();
                 }
 
-                Line intersectionChecker = new Line(startX, startY, endX, endY);
-
-                for (Object mirror : mirrors) {
-                    if (mirror.equals(this)) continue;
-
-                    if (mirror instanceof Shape mirrorShape) {
-                        // If the mirror overlaps with another object, remove it
-                        if (Shape.intersect(intersectionChecker , mirrorShape).getLayoutBounds().getWidth() >= 0) {
-                            intersects = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!intersects) {
-                    this.setStartX(startX);
-                    this.setStartY(startY);
-                    this.setEndX(endX);
-                    this.setEndY(endY);
-                }
+                this.setStartX(startX);
+                this.setStartY(startY);
+                this.setEndX(endX);
+                this.setEndY(endY);
 
                 // Update editPoints location
                 if (isEditPointClicked.getValue()) {

@@ -1,11 +1,9 @@
 package com.example.lensr;
 
 import javafx.scene.Cursor;
-import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 
 import java.util.List;
 
@@ -67,19 +65,5 @@ public class MirrorMethods {
         event.consume();
     }
 
-    public static void iterateOverlaps(Shape currentMirror, Group group) {
-        for (Object mirror : mirrors) {
-            if (mirror.equals(currentMirror)) continue;
-
-            if (mirror instanceof Shape mirrorShape) {
-                // If the mirror overlaps with another object, remove it
-                if (Shape.intersect(currentMirror , mirrorShape).getLayoutBounds().getWidth() >= 0) {
-                    root.getChildren().remove(group);
-                    mirrors.remove(currentMirror);
-                    return;
-                }
-            }
-        }
-    }
 
 }
