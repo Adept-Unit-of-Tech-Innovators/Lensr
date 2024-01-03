@@ -48,7 +48,9 @@ public class Intersections {
         shape.setStrokeType(StrokeType.OUTSIDE);
         copy.setStrokeType(StrokeType.INSIDE);
 
-        return Shape.subtract(shape, copy);
+        Shape a = Shape.subtract(shape, copy);
+        System.out.println(a.toString());
+        return a;
     }
 
 

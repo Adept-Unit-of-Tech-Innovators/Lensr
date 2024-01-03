@@ -33,6 +33,19 @@ public class UserControls {
                 return;
             }
 
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray
+                    && !ray.laserPointer.contains(mousePos) && ray.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                ray.closeObjectEdit();
+                ray.isEditPointClicked.setValue(false);
+                ray.isEdited = false;
+                editedShape = null;
+                ray.update();
+                return;
+            }
+
+
             // Place mirrors
             if (xPressed.getValue()) {
                 EllipseMirror newMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
@@ -58,7 +71,7 @@ public class UserControls {
                 }
             }
             if (zPressed.getValue()) {
-                if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
+                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
                     lineMirror.openObjectEdit();
                 }
             }
@@ -133,10 +146,6 @@ public class UserControls {
             if (!isEditMode) return;
 
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-
-            if (!xPressed.getValue() && !zPressed.getValue() && editedShape == null) {
-                rays.get(0).update();
-            }
         });
     }
 }
