@@ -41,10 +41,15 @@ public class UserControls {
                 newMirror.scale(mousePos);
             }
             if (zPressed.getValue()) {
-                LineMirror newMirror = new LineMirror(mousePos.getX(), mousePos.getY());
+                LineMirror newMirror = new LineMirror(mousePos.getX(), mousePos.getY(),mousePos.getX(), mousePos.getY());
                 newMirror.create();
                 mirrors.add(newMirror);
                 newMirror.scale(mousePos);
+            }
+            if (vPressed.getValue()) {
+                FunnyMirror newMirror = new FunnyMirror();
+                newMirror.draw();
+                mirrors.add(newMirror);
             }
         });
 
@@ -101,11 +106,18 @@ public class UserControls {
             }
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 xPressed.setValueAndCloseEdit(!xPressed.getValue());
-                zPressed.setValueAndCloseEdit(false);
+                zPressed.setValue(false);
+                vPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
                 zPressed.setValueAndCloseEdit(!zPressed.getValue());
-                xPressed.setValueAndCloseEdit(false);
+                xPressed.setValue(false);
+                vPressed.setValue(false);
+            }
+            else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
+                vPressed.setValueAndCloseEdit(!vPressed.getValue());
+                zPressed.setValue(false);
+                xPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 rays.get(0).setStartX(mousePos.getX());

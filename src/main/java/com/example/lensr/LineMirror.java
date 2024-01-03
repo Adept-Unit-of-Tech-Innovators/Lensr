@@ -16,7 +16,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LineMirror extends Line{
+public class LineMirror extends Line {
     Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
@@ -29,11 +29,11 @@ public class LineMirror extends Line{
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
 
-    public LineMirror(double startX, double startY) {
+    public LineMirror(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
-        setEndX(startX);
-        setEndY(startY);
+        setEndX(endX);
+        setEndY(endY);
     }
 
 

@@ -24,6 +24,7 @@ public class LensrStart extends Application {
     public static Point2D mousePos;
     public static MutableValue xPressed = new MutableValue(false);
     public static MutableValue zPressed = new MutableValue(false);
+    public static MutableValue vPressed = new MutableValue(false);
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
     public static boolean isEditMode = false;

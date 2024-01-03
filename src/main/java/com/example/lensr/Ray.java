@@ -4,6 +4,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
@@ -47,19 +48,12 @@ public class Ray extends Line {
         for (Object mirror : mirrors) {
             Point2D intersectionPoint = null;
 
-            if (mirror instanceof LineMirror currentMirror) {
+            if (mirror instanceof Shape currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
                 intersectionPoint = getRayIntersectionPoint(this, currentMirror);
-            }
-            else if (mirror instanceof EllipseMirror currentMirror) {
-                // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
-                double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
-                if (minimalPossibleDistance > shortestIntersectionDistance) continue;
-
-                intersectionPoint = getRayIntersectionPoint(this, currentMirror.outline);
             }
             if (intersectionPoint == null) continue;
 
@@ -120,8 +114,7 @@ public class Ray extends Line {
             nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
 
             nextRay.setBrightness(this.getBrightness() * mirror.getReflectivity());
-        }
-        else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
+        } else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
             // Calculate the angle of incidence
             double reflectionAngle = getEllipseReflectionAngle(this, mirror);
 
@@ -134,6 +127,31 @@ public class Ray extends Line {
             nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
 
             nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
+        } else if (closestIntersectionMirror instanceof FunnyMirror mirror) {
+            Point2D bestPoint = null;
+            int bestPointXIndex = 0;
+            for (int i = 0; i < mirror.getPoints().size(); i = i + 2) {
+                if (bestPoint == null) {
+                    bestPoint = new Point2D(mirror.getPoints().get(i), mirror.getPoints().get(i + 1));
+                    bestPointXIndex = i;
+                }
+                if (Math.abs(getEndX() - mirror.getPoints().get(i)) < Math.abs(getEndX() - bestPoint.getX()) && Math.abs(getEndY() - mirror.getPoints().get(i + 1)) < Math.abs(getEndY() - bestPoint.getY())) {
+                    bestPoint = new Point2D(mirror.getPoints().get(i), mirror.getPoints().get(i + 1));
+                    bestPointXIndex = i;
+                }
+                if (mirror.getPoints().size() < bestPointXIndex+3 || bestPointXIndex < 2) continue;
+                LineMirror simplifiedSurface = new LineMirror(mirror.getPoints().get(bestPointXIndex-2), mirror.getPoints().get(bestPointXIndex-1), mirror.getPoints().get(bestPointXIndex+2), mirror.getPoints().get(bestPointXIndex+3));
+                double reflectionAngle = getLineReflectionAngle(this, simplifiedSurface);
+
+                // Calculate the reflected ray's endpoint based on the reflection angle
+                reflectedY = closestIntersectionPoint.getY() + SIZE * Math.cos(reflectionAngle);
+                reflectedX = closestIntersectionPoint.getX() - SIZE * Math.sin(reflectionAngle);
+
+                // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                nextRay.setStartY(closestIntersectionPoint.getY() + 15*Math.cos(reflectionAngle));
+                nextRay.setStartX(closestIntersectionPoint.getX() - 15*Math.sin(reflectionAngle));
+
+            }
         }
 
         nextRay.setEndX(reflectedX);
@@ -144,21 +162,20 @@ public class Ray extends Line {
     }
 
 
-
-    public void setWavelength(int wavelength) {
+    public void setWavelength ( int wavelength){
         this.wavelength = wavelength;
 
         // TODO: change rays color based on the wavelength
     }
 
 
-    public int getWavelength() {
+    public int getWavelength () {
         return wavelength;
     }
 
 
     // Brightness = Opacity
-    public void setBrightness(double brightness) {
+    public void setBrightness ( double brightness){
         this.brightness = brightness;
 
         Color strokeColor = (Color) this.getStroke();
@@ -172,12 +189,12 @@ public class Ray extends Line {
     }
 
 
-    public double getBrightness() {
+    public double getBrightness () {
         return brightness;
     }
 
 
-    public double getMinimalDistanceToBounds(Bounds bounds) {
+    public double getMinimalDistanceToBounds (Bounds bounds){
         // Get the start position of the ray
         double startX = getStartX();
         double startY = getStartY();
@@ -206,3 +223,4 @@ public class Ray extends Line {
         return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
     }
 }
+
