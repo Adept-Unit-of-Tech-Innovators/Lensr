@@ -6,7 +6,7 @@ import javafx.scene.shape.*;
 
 public class Intersections {
 
-    public static Point2D getRayIntersectionPoint(Line ray, Shape object) {
+    public static Point2D getRayIntersectionPoint(Ray ray, Shape object) {
         // holy fucking shit we actually did it
         double intersectionX, intersectionY;
 
@@ -54,7 +54,7 @@ public class Intersections {
     }
 
 
-    public static double getLineReflectionAngle(Line ray, Line mirror) {
+    public static double getLineReflectionAngle(Ray ray, LineMirror mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the mirror line
@@ -64,16 +64,16 @@ public class Intersections {
     }
 
 
-    public static double getEllipseReflectionAngle(Line ray, EllipseMirror ellipseMirror) {
+    public static double getEllipseReflectionAngle(Ray ray, EllipseMirror mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the normal vector at the intersection point
         double x = ray.getEndX();
         double y = ray.getEndY();
-        double centerX = ellipseMirror.getCenterX();
-        double centerY = ellipseMirror.getCenterY();
-        double semiMajorAxis = ellipseMirror.getRadiusX();
-        double semiMinorAxis = ellipseMirror.getRadiusY();
+        double centerX = mirror.getCenterX();
+        double centerY = mirror.getCenterY();
+        double semiMajorAxis = mirror.getRadiusX();
+        double semiMinorAxis = mirror.getRadiusY();
 
         // Equation of an ellipse: (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
         // Derivative of the ellipse equation: f'(x) = -((x - h) / a^2) / ((y - k) / b^2)
@@ -88,5 +88,4 @@ public class Intersections {
 
         return 2 * normalAngle - angleOfIncidence;
     }
-
 }
