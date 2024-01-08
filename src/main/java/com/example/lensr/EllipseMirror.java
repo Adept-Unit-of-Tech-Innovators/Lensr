@@ -25,7 +25,7 @@ public class EllipseMirror extends Ellipse {
     public Shape outline = getObjectOutline(this);
     List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.9;
+    double reflectivity = 1;
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
 

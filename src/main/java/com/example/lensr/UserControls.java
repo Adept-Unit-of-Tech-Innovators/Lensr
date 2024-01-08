@@ -19,6 +19,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
+                rays.forEach(Ray::update);
                 return;
             }
 
@@ -30,6 +31,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
+                rays.forEach(Ray::update);
                 return;
             }
 
@@ -133,12 +135,11 @@ public class UserControls {
                 xPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                rays.get(0).setStartX(mousePos.getX());
-                rays.get(0).setStartY(mousePos.getY());
+                Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
+                ray.create();
 
                 // Recalculate ray intersections after it position changed
                 scene.getOnMouseMoved();
-                rays.get(0).update();
             }
             for (ToolbarButton button : toolbar) {
                 button.updateRender();
@@ -155,8 +156,6 @@ public class UserControls {
         });
 
         scene.setOnMouseMoved(mouseEvent -> {
-            if (!isEditMode) return;
-
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
         });
     }
