@@ -46,7 +46,7 @@ public class LineMirror extends Line{
             if (isEditMode && !isEdited) openObjectEdit();
         });
 
-        hitbox = createRectangleHitbox();
+        createRectangleHitbox();
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
@@ -87,8 +87,6 @@ public class LineMirror extends Line{
     }
 
 
-
-
     public void closeObjectEdit() {
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
@@ -98,11 +96,11 @@ public class LineMirror extends Line{
     }
 
 
-    private Rectangle createRectangleHitbox() {
+    private void createRectangleHitbox() {
         hitbox = new Rectangle();
         hitbox.setHeight(30);
         hitbox.setFill(Color.TRANSPARENT);
-        hitbox.setStroke(Color.TRANSPARENT);
+        hitbox.setStroke(Color.BLACK);
         hitbox.setStrokeWidth(0);
         hitbox.toBack();
         hitbox.getTransforms().add(rotate);
@@ -110,7 +108,6 @@ public class LineMirror extends Line{
         hitbox.setOnMouseEntered(mouseEvent -> isMouseOnHitbox = true);
         hitbox.setOnMouseExited(mouseEvent -> isMouseOnHitbox = false);
         updateHitbox();
-        return hitbox;
     }
 
 

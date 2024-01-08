@@ -1,16 +1,31 @@
 package com.example.lensr;
 
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Rotate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
 
 public class Ray extends Line {
+    Rectangle laserPointer;
+    Rotate rotate = new Rotate();
+    double rotation;
+    List<Rectangle> editPoints = new ArrayList<>();
     double brightness = 1.0;
     int wavelength;
+    boolean isEdited;
+    Group group = new Group();
+    MutableValue isEditPointClicked = new MutableValue(false);
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -23,16 +38,22 @@ public class Ray extends Line {
         setStroke(Color.RED);
         setStrokeWidth(globalStrokeWidth);
 
-        root.getChildren().add(this);
+        createLaserPointer();
+
+        group.getChildren().add(this);
+        group.getChildren().add(laserPointer);
+        root.getChildren().add(group);
     }
 
     public void update() {
-        double endX = (mousePos.getX() - this.getStartX()) * SIZE;
-        double endY = (mousePos.getY() - this.getStartY()) * SIZE;
-        this.setEndX(endX);
-        this.setEndY(endY);
+        if (isEdited) return;
 
-        root.getChildren().removeAll(rayReflections);
+        updateLaserPointer();
+
+        for (Ray ray : rayReflections) {
+            root.getChildren().remove(ray.group);
+        }
+        rayReflections.clear();
 
         simulateRay(0);
     }
@@ -144,7 +165,6 @@ public class Ray extends Line {
     }
 
 
-
     public void setWavelength(int wavelength) {
         this.wavelength = wavelength;
 
@@ -174,6 +194,147 @@ public class Ray extends Line {
 
     public double getBrightness() {
         return brightness;
+    }
+
+
+    public void openObjectEdit() {
+        MirrorMethods.setupObjectEdit();
+        isEdited = true;
+
+        // Place edit points
+        editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
+        editPoints.add(new Rectangle(
+                getStartX() + Math.cos(Math.toRadians(rotation)) * 100 - editPointSize / 2,
+                getStartY() + Math.sin(Math.toRadians(rotation)) * 100 - editPointSize / 2,
+                editPointSize, editPointSize
+        ));
+
+        editPoints.get(0).setOnMousePressed(mouseEvent -> {
+            isMousePressed = true;
+            isEditPointClicked.setValue(true);
+            moveToMouse();
+        });
+        editPoints.get(1).setOnMousePressed(mouseEvent -> {
+            isMousePressed = true;
+            isEditPointClicked.setValue(true);
+            rotateToMouse();
+        });
+        editPoints.get(0).setOnMouseReleased(this::executeEditPointRelease);
+        editPoints.get(1).setOnMouseReleased(this::executeEditPointRelease);
+
+
+        MirrorMethods.setupEditPoints(editPoints, isEditPointClicked);
+        group.getChildren().addAll(editPoints);
+        editedShape = group;
+    }
+
+
+    private void moveToMouse() {
+        new Thread(() -> {
+            double rotationTemp = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
+            while (isMousePressed) {
+                double deltaX = mousePos.getX() - getStartX();
+                double deltaY = mousePos.getY() - getStartY();
+
+                setStartX(mousePos.getX());
+                setStartY(mousePos.getY());
+
+                setEndX(getStartX() + Math.cos(rotationTemp) * SIZE);
+                setEndY(getStartY() + Math.sin(rotationTemp) * SIZE);
+
+
+                editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
+                editPoints.get(0).setY(editPoints.get(0).getY() + deltaY);
+                editPoints.get(1).setX(editPoints.get(1).getX() + deltaX);
+                editPoints.get(1).setY(editPoints.get(1).getY() + deltaY);
+
+                updateLaserPointer();
+
+                Platform.runLater(() -> {
+                    for (Ray ray : rayReflections) {
+                        root.getChildren().remove(ray.group);
+                    }
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+
+    private void rotateToMouse() {
+        new Thread(() -> {
+            while (isMousePressed) {
+                double rot = (Math.atan2(mousePos.getY() - getStartY(), mousePos.getX() - getStartX()));
+
+                editPoints.get(1).setX(getStartX() + Math.cos(rot) * 100 - editPointSize / 2);
+                editPoints.get(1).setY(getStartY() + Math.sin(rot) * 100 - editPointSize / 2);
+
+                setEndX(getStartX() + Math.cos(rot) * SIZE);
+                setEndY(getStartY() + Math.sin(rot) * SIZE);
+
+                updateLaserPointer();
+
+                Platform.runLater(() -> {
+                    for (Ray ray : rayReflections) {
+                        root.getChildren().remove(ray.group);
+                    }
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+
+    private void executeEditPointRelease(MouseEvent event) {
+        MirrorMethods.handleEditPointReleased(event, isEditPointClicked, editPoints);
+    }
+
+
+    public void closeObjectEdit() {
+        isEdited = false;
+        if (editPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(editPoints);
+            editPoints.clear();
+        }
+    }
+
+
+    private void createLaserPointer() {
+        laserPointer = new Rectangle();
+        laserPointer.setWidth(100);
+        laserPointer.setHeight(50);
+        laserPointer.setFill(Color.GRAY);
+        laserPointer.getTransforms().add(rotate);
+        laserPointer.toFront();
+        laserPointer.setOnMouseClicked(mouseEvent -> {
+            if (isEditMode && !isEdited) openObjectEdit();
+        });
+        updateLaserPointer();
+    }
+
+
+    private void updateLaserPointer() {
+        laserPointer.setX(getStartX() - laserPointer.getWidth() / 2);
+        laserPointer.setY(getStartY() - laserPointer.getHeight() / 2);
+        rotate.setPivotX(getStartX());
+        rotate.setPivotY(getStartY());
+        rotation = Math.toDegrees(Math.atan2(getEndY() - getStartY(), getEndX() - getStartX()));
+        rotate.setAngle(rotation);
+        toBack();
     }
 
 
