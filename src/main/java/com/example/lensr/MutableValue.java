@@ -24,11 +24,16 @@ public class MutableValue {
             if (mirror instanceof EllipseMirror ellipseMirror) {
                 ellipseMirror.closeObjectEdit();
             }
+            if (mirror instanceof FunnyMirror funnyMirror) {
+                funnyMirror.closeObjectEdit();
+            }
         }
     }
 
-    public void setValueAndCloseEdit(boolean value, MutableValue oppositeValue) {
+    public void setValueAndCloseEdit(boolean value, MutableValue[] oppositeValues) {
         this.value = value;
-        oppositeValue.setValueAndCloseEdit(false);
+        for (MutableValue oppositeValue : oppositeValues) {
+            oppositeValue.setValueAndCloseEdit(false);
+        }
     }
 }

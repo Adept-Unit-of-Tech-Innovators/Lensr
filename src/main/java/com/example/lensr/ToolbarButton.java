@@ -4,20 +4,20 @@ import com.jfoenix.controls.JFXButton;
 
 public class ToolbarButton extends JFXButton {
     MutableValue variableToChange;
-    MutableValue oppositeVariable;
+    MutableValue[] oppositeVariables;
     String label;
 
-    public ToolbarButton(String label, MutableValue variableToChange, MutableValue oppositeVariable, int layoutX, int layoutY) {
+    public ToolbarButton(String label, MutableValue variableToChange, MutableValue[] oppositeVariables, int layoutX, int layoutY) {
         this.label = label;
         this.variableToChange = variableToChange;
-        this.oppositeVariable = oppositeVariable;
+        this.oppositeVariables = oppositeVariables;
 
         setText(label);
         setLayoutX(layoutX);
         setLayoutY(layoutY);
         getStyleClass().add("button");
         setOnAction(actionEvent -> {
-            variableToChange.setValueAndCloseEdit(!variableToChange.getValue(), oppositeVariable);
+            variableToChange.setValueAndCloseEdit(!variableToChange.getValue(), oppositeVariables);
             updateRender();
         });
     }

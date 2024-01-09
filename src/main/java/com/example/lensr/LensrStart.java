@@ -8,6 +8,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LensrStart extends Application {
@@ -39,27 +40,36 @@ public class LensrStart extends Application {
         // WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
 
         // Create toolbar buttons
-        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", zPressed, xPressed, 25, 25);
-        ToolbarButton elipseMirrorButton = new ToolbarButton("Elipse Mirror", xPressed, zPressed, 150, 25);
+        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", zPressed, new MutableValue[]{xPressed, vPressed}, 25, 25);
+        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", xPressed, new MutableValue[]{zPressed, vPressed}, 150, 25);
+        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", vPressed, new MutableValue[]{zPressed, xPressed}, 275, 25);
         toolbar.add(lineMirrorButton);
-        toolbar.add(elipseMirrorButton);
+        toolbar.add(ellipseMirrorButton);
+        toolbar.add(funnyMirrorButton);
 
         lineMirrorButton.setOnAction(actionEvent -> {
-            lineMirrorButton.variableToChange.setValueAndCloseEdit(!lineMirrorButton.variableToChange.getValue(), lineMirrorButton.oppositeVariable);
-            lineMirrorButton.updateRender();
-            elipseMirrorButton.updateRender();
+            lineMirrorButton.variableToChange.setValueAndCloseEdit(!lineMirrorButton.variableToChange.getValue());
+            Arrays.asList(lineMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
+            toolbar.forEach(ToolbarButton::updateRender);
 
         });
 
-        elipseMirrorButton.setOnAction(actionEvent -> {
-            elipseMirrorButton.variableToChange.setValueAndCloseEdit(!elipseMirrorButton.variableToChange.getValue(), elipseMirrorButton.oppositeVariable);
-            elipseMirrorButton.updateRender();
-            lineMirrorButton.updateRender();
+        ellipseMirrorButton.setOnAction(actionEvent -> {
+            ellipseMirrorButton.variableToChange.setValueAndCloseEdit(!ellipseMirrorButton.variableToChange.getValue());
+            Arrays.asList(ellipseMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
+            toolbar.forEach(ToolbarButton::updateRender);
 
+        });
+
+        funnyMirrorButton.setOnAction(actionEvent -> {
+            funnyMirrorButton.variableToChange.setValueAndCloseEdit(!funnyMirrorButton.variableToChange.getValue());
+            Arrays.asList(funnyMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
+            toolbar.forEach(ToolbarButton::updateRender);
         });
 
         lineMirrorButton.addToRoot();
-        elipseMirrorButton.addToRoot();
+        ellipseMirrorButton.addToRoot();
+        funnyMirrorButton.addToRoot();
         for (ToolbarButton button : toolbar) {
             button.disableProperty().setValue(true);
         }
