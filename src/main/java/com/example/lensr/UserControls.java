@@ -35,6 +35,20 @@ public class UserControls {
                 return;
             }
 
+            // Close funny mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror
+                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                rays.forEach(Ray::update);
+                vPressed.setValue(false);
+                return;
+            }
+
+            // Close ray edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray
                     && !ray.laserPointer.contains(mousePos) && ray.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
@@ -54,12 +68,14 @@ public class UserControls {
                 newMirror.create();
                 mirrors.add(newMirror);
                 newMirror.scale(mousePos);
+                return;
             }
             if (zPressed.getValue()) {
                 LineMirror newMirror = new LineMirror(mousePos.getX(), mousePos.getY(),mousePos.getX(), mousePos.getY());
                 newMirror.create();
                 mirrors.add(newMirror);
                 newMirror.scale(mousePos);
+                return;
             }
             if (vPressed.getValue()) {
                 FunnyMirror newMirror = new FunnyMirror();
@@ -73,13 +89,20 @@ public class UserControls {
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
             if (xPressed.getValue()) {
-                if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror ellipseMirror) {
-                    ellipseMirror.openObjectEdit();
+                if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
+                    mirror.openObjectEdit();
                 }
+                return;
             }
             if (zPressed.getValue()) {
-                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
-                    lineMirror.openObjectEdit();
+                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror) {
+                    mirror.openObjectEdit();
+                }
+                return;
+            }
+            if (vPressed.getValue()) {
+                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror) {
+                    mirror.openObjectEdit();
                 }
             }
         });
