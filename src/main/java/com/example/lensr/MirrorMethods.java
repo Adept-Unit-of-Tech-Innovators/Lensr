@@ -36,7 +36,8 @@ public class MirrorMethods {
     public static void setupEditPoints(List<Rectangle> editPoints, MutableValue isEditPointClicked) {
         for (Rectangle editPoint : editPoints) {
             editPoint.setFill(Color.RED);
-            editPoint.setStrokeWidth(0);
+            editPoint.setStroke(Color.BLACK);
+            editPoint.setStrokeWidth(1);
             editPoint.setOnMouseEntered(mouseEvent -> {
                 if (!isEditPointClicked.getValue()) {
                     scene.setCursor(Cursor.HAND);
