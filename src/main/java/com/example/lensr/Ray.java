@@ -26,6 +26,7 @@ public class Ray extends Line {
     boolean isEdited;
     Group group = new Group();
     MutableValue isEditPointClicked = new MutableValue(false);
+    List<Ray> rayReflections = new ArrayList<>();
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -55,11 +56,11 @@ public class Ray extends Line {
         }
         rayReflections.clear();
 
-        simulateRay(0);
+        simulateRay(this, 0);
     }
 
 
-    public void simulateRay(int recursiveDepth) {
+    public void simulateRay(Ray parentRay, int recursiveDepth) {
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
@@ -160,8 +161,8 @@ public class Ray extends Line {
         nextRay.setEndX(reflectedX);
         nextRay.setEndY(reflectedY);
 
-        rayReflections.add(nextRay);
-        nextRay.simulateRay(recursiveDepth + 1);
+        parentRay.rayReflections.add(nextRay);
+        nextRay.simulateRay(parentRay, + 1);
     }
 
 
@@ -222,6 +223,8 @@ public class Ray extends Line {
         editPoints.get(0).setOnMouseReleased(this::executeEditPointRelease);
         editPoints.get(1).setOnMouseReleased(this::executeEditPointRelease);
 
+        editPoints.get(0).toFront();
+        editPoints.get(1).toFront();
 
         MirrorMethods.setupEditPoints(editPoints, isEditPointClicked);
         group.getChildren().addAll(editPoints);

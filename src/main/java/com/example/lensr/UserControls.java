@@ -125,9 +125,14 @@ public class UserControls {
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
                 ray.create();
-
-                // Recalculate ray intersections after it position changed
-                scene.getOnMouseMoved();
+                rays.add(ray);
+                for (Ray ray1 : rays) {
+                    if (ray1.isEdited) {
+                        ray1.closeObjectEdit();
+                        ray1.simulateRay(ray1, 0);
+                    }
+                }
+                ray.openObjectEdit();
             }
             for (ToolbarButton button : toolbar) {
                 button.updateRender();
