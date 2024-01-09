@@ -93,6 +93,9 @@ public class UserControls {
                 else if (zPressed.getValue()) {
                     zPressed.setValueAndCloseEdit(false);
                 }
+                else if (vPressed.getValue()) {
+                    vPressed.setValueAndCloseEdit(false);
+                }
 
                 if (isEditMode) {
                     for (ToolbarButton button : toolbar) {
@@ -135,6 +138,9 @@ public class UserControls {
                 xPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
+                vPressed.setValueAndCloseEdit(false);
+                zPressed.setValue(false);
+                xPressed.setValue(false);
                 Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
                 ray.create();
                 rays.add(ray);
