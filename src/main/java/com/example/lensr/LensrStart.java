@@ -19,7 +19,6 @@ public class LensrStart extends Application {
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Ray> rays = new ArrayList<>();
-    public static List<Ray> rayReflections = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
     public static Point2D mousePos;
     public static MutableValue xPressed = new MutableValue(false);
@@ -34,14 +33,10 @@ public class LensrStart extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Create a ray
-        Ray ray = new Ray(0, 0, 0, 0);
-        ray.create();
-        rays.add(ray);
-
         scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
 
-        WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
+        // Commented out because it doesn't work properly yet as it works with the old ray system
+        // WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
 
         // Create toolbar buttons
         ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", zPressed, xPressed, 25, 25);

@@ -19,6 +19,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
+                rays.forEach(Ray::update);
                 return;
             }
 
@@ -30,8 +31,22 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
+                rays.forEach(Ray::update);
                 return;
             }
+
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray
+                    && !ray.laserPointer.contains(mousePos) && ray.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                ray.closeObjectEdit();
+                ray.isEditPointClicked.setValue(false);
+                ray.isEdited = false;
+                editedShape = null;
+                ray.update();
+                return;
+            }
+
 
             // Place mirrors
             if (xPressed.getValue()) {
@@ -63,7 +78,7 @@ public class UserControls {
                 }
             }
             if (zPressed.getValue()) {
-                if (mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
+                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror lineMirror) {
                     lineMirror.openObjectEdit();
                 }
             }
@@ -120,12 +135,16 @@ public class UserControls {
                 xPressed.setValue(false);
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                rays.get(0).setStartX(mousePos.getX());
-                rays.get(0).setStartY(mousePos.getY());
-
-                // Recalculate ray intersections after it position changed
-                scene.getOnMouseMoved();
-                rays.get(0).update();
+                Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
+                ray.create();
+                rays.add(ray);
+                for (Ray ray1 : rays) {
+                    if (ray1.isEdited) {
+                        ray1.closeObjectEdit();
+                        ray1.simulateRay(ray1, 0);
+                    }
+                }
+                ray.openObjectEdit();
             }
             for (ToolbarButton button : toolbar) {
                 button.updateRender();
@@ -142,13 +161,7 @@ public class UserControls {
         });
 
         scene.setOnMouseMoved(mouseEvent -> {
-            if (!isEditMode) return;
-
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-
-            if (!xPressed.getValue() && !zPressed.getValue() && editedShape == null) {
-                rays.get(0).update();
-            }
         });
     }
 }

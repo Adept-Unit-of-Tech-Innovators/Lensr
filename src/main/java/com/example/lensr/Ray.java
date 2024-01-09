@@ -1,17 +1,32 @@
 package com.example.lensr;
 
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Rotate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
 
 public class Ray extends Line {
+    Rectangle laserPointer;
+    Rotate rotate = new Rotate();
+    double rotation;
+    List<Rectangle> editPoints = new ArrayList<>();
     double brightness = 1.0;
     int wavelength;
+    boolean isEdited;
+    Group group = new Group();
+    MutableValue isEditPointClicked = new MutableValue(false);
+    List<Ray> rayReflections = new ArrayList<>();
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -24,22 +39,28 @@ public class Ray extends Line {
         setStroke(Color.RED);
         setStrokeWidth(globalStrokeWidth);
 
-        root.getChildren().add(this);
+        createLaserPointer();
+
+        group.getChildren().add(this);
+        group.getChildren().add(laserPointer);
+        root.getChildren().add(group);
     }
 
     public void update() {
-        double endX = (mousePos.getX() - this.getStartX()) * SIZE;
-        double endY = (mousePos.getY() - this.getStartY()) * SIZE;
-        this.setEndX(endX);
-        this.setEndY(endY);
+        if (isEdited) return;
 
-        root.getChildren().removeAll(rayReflections);
+        updateLaserPointer();
 
-        simulateRay(0);
+        for (Ray ray : rayReflections) {
+            root.getChildren().remove(ray.group);
+        }
+        rayReflections.clear();
+
+        simulateRay(this, 0);
     }
 
 
-    public void simulateRay(int recursiveDepth) {
+    public void simulateRay(Ray parentRay, int recursiveDepth) {
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
@@ -48,12 +69,19 @@ public class Ray extends Line {
         for (Object mirror : mirrors) {
             Point2D intersectionPoint = null;
 
-            if (mirror instanceof Shape currentMirror) {
+            if (mirror instanceof LineMirror currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
                 intersectionPoint = getRayIntersectionPoint(this, currentMirror);
+            }
+            else if (mirror instanceof EllipseMirror currentMirror) {
+                // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
+                double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
+                if (minimalPossibleDistance > shortestIntersectionDistance) continue;
+
+                intersectionPoint = getRayIntersectionPoint(this, currentMirror.outline);
             }
             if (intersectionPoint == null) continue;
 
@@ -114,7 +142,8 @@ public class Ray extends Line {
             nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
 
             nextRay.setBrightness(this.getBrightness() * mirror.getReflectivity());
-        } else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
+        }
+        else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
             // Calculate the angle of incidence
             double reflectionAngle = getEllipseReflectionAngle(this, mirror);
 
@@ -127,55 +156,30 @@ public class Ray extends Line {
             nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
 
             nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
-        } else if (closestIntersectionMirror instanceof FunnyMirror mirror) {
-            Point2D bestPoint = null;
-            int bestPointXIndex = 0;
-            for (int i = 0; i < mirror.getPoints().size(); i = i + 2) {
-                if (bestPoint == null) {
-                    bestPoint = new Point2D(mirror.getPoints().get(i), mirror.getPoints().get(i + 1));
-                    bestPointXIndex = i;
-                }
-                if (Math.abs(getEndX() - mirror.getPoints().get(i)) < Math.abs(getEndX() - bestPoint.getX()) && Math.abs(getEndY() - mirror.getPoints().get(i + 1)) < Math.abs(getEndY() - bestPoint.getY())) {
-                    bestPoint = new Point2D(mirror.getPoints().get(i), mirror.getPoints().get(i + 1));
-                    bestPointXIndex = i;
-                }
-                if (mirror.getPoints().size() < bestPointXIndex+3 || bestPointXIndex < 2) continue;
-                LineMirror simplifiedSurface = new LineMirror(mirror.getPoints().get(bestPointXIndex-2), mirror.getPoints().get(bestPointXIndex-1), mirror.getPoints().get(bestPointXIndex+2), mirror.getPoints().get(bestPointXIndex+3));
-                double reflectionAngle = getLineReflectionAngle(this, simplifiedSurface);
-
-                // Calculate the reflected ray's endpoint based on the reflection angle
-                reflectedY = closestIntersectionPoint.getY() + SIZE * Math.cos(reflectionAngle);
-                reflectedX = closestIntersectionPoint.getX() - SIZE * Math.sin(reflectionAngle);
-
-                // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                nextRay.setStartY(closestIntersectionPoint.getY() + 15*Math.cos(reflectionAngle));
-                nextRay.setStartX(closestIntersectionPoint.getX() - 15*Math.sin(reflectionAngle));
-
-            }
         }
 
         nextRay.setEndX(reflectedX);
         nextRay.setEndY(reflectedY);
 
-        rayReflections.add(nextRay);
-        nextRay.simulateRay(recursiveDepth + 1);
+        parentRay.rayReflections.add(nextRay);
+        nextRay.simulateRay(parentRay, + 1);
     }
 
 
-    public void setWavelength ( int wavelength){
+    public void setWavelength(int wavelength) {
         this.wavelength = wavelength;
 
         // TODO: change rays color based on the wavelength
     }
 
 
-    public int getWavelength () {
+    public int getWavelength() {
         return wavelength;
     }
 
 
     // Brightness = Opacity
-    public void setBrightness ( double brightness){
+    public void setBrightness(double brightness) {
         this.brightness = brightness;
 
         Color strokeColor = (Color) this.getStroke();
@@ -189,12 +193,155 @@ public class Ray extends Line {
     }
 
 
-    public double getBrightness () {
+    public double getBrightness() {
         return brightness;
     }
 
 
-    public double getMinimalDistanceToBounds (Bounds bounds){
+    public void openObjectEdit() {
+        MirrorMethods.setupObjectEdit();
+        isEdited = true;
+
+        // Place edit points
+        editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
+        editPoints.add(new Rectangle(
+                getStartX() + Math.cos(Math.toRadians(rotation)) * 100 - editPointSize / 2,
+                getStartY() + Math.sin(Math.toRadians(rotation)) * 100 - editPointSize / 2,
+                editPointSize, editPointSize
+        ));
+
+        editPoints.get(0).setOnMousePressed(mouseEvent -> {
+            isMousePressed = true;
+            isEditPointClicked.setValue(true);
+            moveToMouse();
+        });
+        editPoints.get(1).setOnMousePressed(mouseEvent -> {
+            isMousePressed = true;
+            isEditPointClicked.setValue(true);
+            rotateToMouse();
+        });
+        editPoints.get(0).setOnMouseReleased(this::executeEditPointRelease);
+        editPoints.get(1).setOnMouseReleased(this::executeEditPointRelease);
+
+        editPoints.get(0).toFront();
+        editPoints.get(1).toFront();
+
+        MirrorMethods.setupEditPoints(editPoints, isEditPointClicked);
+        group.getChildren().addAll(editPoints);
+        editedShape = group;
+    }
+
+
+    private void moveToMouse() {
+        new Thread(() -> {
+            double rotationTemp = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
+            while (isMousePressed) {
+                double deltaX = mousePos.getX() - getStartX();
+                double deltaY = mousePos.getY() - getStartY();
+
+                setStartX(mousePos.getX());
+                setStartY(mousePos.getY());
+
+                setEndX(getStartX() + Math.cos(rotationTemp) * SIZE);
+                setEndY(getStartY() + Math.sin(rotationTemp) * SIZE);
+
+
+                editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
+                editPoints.get(0).setY(editPoints.get(0).getY() + deltaY);
+                editPoints.get(1).setX(editPoints.get(1).getX() + deltaX);
+                editPoints.get(1).setY(editPoints.get(1).getY() + deltaY);
+
+                updateLaserPointer();
+
+                Platform.runLater(() -> {
+                    for (Ray ray : rayReflections) {
+                        root.getChildren().remove(ray.group);
+                    }
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+
+    private void rotateToMouse() {
+        new Thread(() -> {
+            while (isMousePressed) {
+                double rot = (Math.atan2(mousePos.getY() - getStartY(), mousePos.getX() - getStartX()));
+
+                editPoints.get(1).setX(getStartX() + Math.cos(rot) * 100 - editPointSize / 2);
+                editPoints.get(1).setY(getStartY() + Math.sin(rot) * 100 - editPointSize / 2);
+
+                setEndX(getStartX() + Math.cos(rot) * SIZE);
+                setEndY(getStartY() + Math.sin(rot) * SIZE);
+
+                updateLaserPointer();
+
+                Platform.runLater(() -> {
+                    for (Ray ray : rayReflections) {
+                        root.getChildren().remove(ray.group);
+                    }
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+
+    private void executeEditPointRelease(MouseEvent event) {
+        MirrorMethods.handleEditPointReleased(event, isEditPointClicked, editPoints);
+    }
+
+
+    public void closeObjectEdit() {
+        isEdited = false;
+        if (editPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(editPoints);
+            editPoints.clear();
+        }
+    }
+
+
+    private void createLaserPointer() {
+        laserPointer = new Rectangle();
+        laserPointer.setWidth(100);
+        laserPointer.setHeight(50);
+        laserPointer.setFill(Color.GRAY);
+        laserPointer.getTransforms().add(rotate);
+        laserPointer.toFront();
+        laserPointer.setOnMouseClicked(mouseEvent -> {
+            if (isEditMode && !isEdited) openObjectEdit();
+        });
+        updateLaserPointer();
+    }
+
+
+    private void updateLaserPointer() {
+        laserPointer.setX(getStartX() - laserPointer.getWidth() / 2);
+        laserPointer.setY(getStartY() - laserPointer.getHeight() / 2);
+        rotate.setPivotX(getStartX());
+        rotate.setPivotY(getStartY());
+        rotation = Math.toDegrees(Math.atan2(getEndY() - getStartY(), getEndX() - getStartX()));
+        rotate.setAngle(rotation);
+        toBack();
+    }
+
+
+    public double getMinimalDistanceToBounds(Bounds bounds) {
         // Get the start position of the ray
         double startX = getStartX();
         double startY = getStartY();
@@ -223,4 +370,3 @@ public class Ray extends Line {
         return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
     }
 }
-
