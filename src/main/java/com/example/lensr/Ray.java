@@ -8,6 +8,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
+import static java.awt.geom.Point2D.distance;
 
 public class Ray extends Line {
     Rectangle laserPointer;
@@ -69,19 +71,12 @@ public class Ray extends Line {
         for (Object mirror : mirrors) {
             Point2D intersectionPoint = null;
 
-            if (mirror instanceof LineMirror currentMirror) {
+            if (mirror instanceof Shape currentMirror) {
                 // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
                 intersectionPoint = getRayIntersectionPoint(this, currentMirror);
-            }
-            else if (mirror instanceof EllipseMirror currentMirror) {
-                // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
-                double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
-                if (minimalPossibleDistance > shortestIntersectionDistance) continue;
-
-                intersectionPoint = getRayIntersectionPoint(this, currentMirror.outline);
             }
             if (intersectionPoint == null) continue;
 
@@ -156,6 +151,29 @@ public class Ray extends Line {
             nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
 
             nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
+        }
+        else if (closestIntersectionMirror instanceof FunnyMirror mirror) {
+            Line intersectionSegment = null;
+            for (int i = 0; i + 2 < mirror.getPoints().size(); i = i + 2) {
+                // Find the mirror's segment that the ray intersects
+                Line segment = new Line(mirror.getPoints().get(i), mirror.getPoints().get(i+1), mirror.getPoints().get(i+2), mirror.getPoints().get(i+3));
+                if (distance(segment.getStartX(), segment.getStartY(), closestIntersectionPoint.getX(), closestIntersectionPoint.getY()) + distance(closestIntersectionPoint.getX(), closestIntersectionPoint.getY(), segment.getEndX(), segment.getStartX()) == distance(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY())) {
+                    intersectionSegment = segment;
+                    break;
+                }
+            }
+            if (intersectionSegment != null) {
+                System.out.println("found the segment");
+                double reflectionAngle = getLineReflectionAngle(this, intersectionSegment);
+
+                // Calculate the reflected ray's endpoint based on the reflection angle
+                reflectedY = closestIntersectionPoint.getY() + SIZE * Math.cos(reflectionAngle);
+                reflectedX = closestIntersectionPoint.getX() - SIZE * Math.sin(reflectionAngle);
+
+                // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                nextRay.setStartY(closestIntersectionPoint.getY() + 15 * Math.cos(reflectionAngle));
+                nextRay.setStartX(closestIntersectionPoint.getX() - 15 * Math.sin(reflectionAngle));
+            }
         }
 
         nextRay.setEndX(reflectedX);

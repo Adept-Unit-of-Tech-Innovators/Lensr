@@ -87,4 +87,5 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
+
 }
