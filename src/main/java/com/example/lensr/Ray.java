@@ -103,6 +103,64 @@ public class Ray extends Line {
             }
 
         }
+        for (Object lens : lenses)
+        {
+            Point2D intersectionPoint = null;
+            if(lens instanceof SphericalLens currentSphericalLens)
+            {
+                System.out.println("rucham ci mame");
+                double minimalDistanceToFirstArc = getMinimalDistanceToBounds(currentSphericalLens.getFirstArc().getLayoutBounds());
+                double minimalDistanceToSecondArc = getMinimalDistanceToBounds(currentSphericalLens.getSecondArc().getLayoutBounds());
+                double minimalDistanceToTop = getMinimalDistanceToBounds(currentSphericalLens.getTopLine().getLayoutBounds());
+                double minimalDistanceToBottom = getMinimalDistanceToBounds(currentSphericalLens.getBottomLine().getLayoutBounds());
+
+                double minimalDistance = Math.min(Math.min(Math.min(minimalDistanceToFirstArc, minimalDistanceToSecondArc), minimalDistanceToTop), minimalDistanceToBottom);
+
+                if(minimalDistance > shortestIntersectionDistance) continue;
+
+                Shape currObject = null;
+                if(minimalDistance == minimalDistanceToFirstArc) {
+                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getFirstArc());
+                    currObject = currentSphericalLens.getFirstArc();
+                } else if(minimalDistance == minimalDistanceToSecondArc) {
+                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getSecondArc());
+                    currObject = currentSphericalLens.getSecondArc();
+                } else if(minimalDistance == minimalDistanceToTop) {
+                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getTopLine());
+                    currObject = currentSphericalLens.getTopLine();
+                } else if(minimalDistance == minimalDistanceToBottom) {
+                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getFirstArc());
+                    currObject = currentSphericalLens.getBottomLine();
+                }
+
+
+
+                if (intersectionPoint == null) continue;
+
+                // Round the intersection point to 2 decimal places
+                intersectionPoint = new Point2D(
+                        Math.round(intersectionPoint.getX() * 100.0) / 100.0,
+                        Math.round(intersectionPoint.getY() * 100.0) / 100.0
+                );
+
+                // If the intersection point is the same as the previous intersection point, skip it
+                Point2D previousIntersectionPoint = new Point2D(getStartX(), getStartY());
+                if (previousIntersectionPoint.equals(intersectionPoint)) continue;
+
+                // If this is the closest intersection point so far, set it as the closest intersection point
+                double intersectionDistance = Math.sqrt(
+                        Math.pow(intersectionPoint.getX() - getStartX(), 2) +
+                                Math.pow(intersectionPoint.getY() - getStartY(), 2)
+                );
+
+                if (intersectionDistance < shortestIntersectionDistance && currObject != null) {
+                    closestIntersectionPoint = intersectionPoint;
+                    shortestIntersectionDistance = intersectionDistance;
+                    closestIntersectionMirror = currObject;
+                }
+            }
+
+        }
 
         // If there's no intersection, return
         if (closestIntersectionMirror == null) return;
@@ -175,6 +233,18 @@ public class Ray extends Line {
 
                 nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
             }
+        }
+        else if (closestIntersectionMirror instanceof SphericalLens.LensArc arc)
+        {
+            double refractionAngle = getArcRefractionAngle(this, arc, 1.5);
+
+            reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+            reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+
+
+            nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
+            nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
+            System.out.println("niga");
         }
 
         nextRay.setEndX(reflectedX);

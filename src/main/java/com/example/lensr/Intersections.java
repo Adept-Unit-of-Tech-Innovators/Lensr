@@ -87,5 +87,13 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
+    public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex)
+    {
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+
+        double angleOfRefraction = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
+        return angleOfIncidence + Math.toRadians(10);
+    }
+
 
 }

@@ -21,6 +21,7 @@ public class LensrStart extends Application {
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Ray> rays = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
+    public static List<Object> lenses = new ArrayList<>();
     public static Point2D mousePos;
     public static MutableValue xPressed = new MutableValue(false);
     public static MutableValue zPressed = new MutableValue(false);
@@ -80,6 +81,10 @@ public class LensrStart extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
+
+        SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 40);
+        testLens.addToRoot();
+        lenses.add(testLens);
     }
 
 

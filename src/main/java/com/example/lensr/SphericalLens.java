@@ -11,14 +11,16 @@ import javafx.scene.text.Text;
 import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens {
+    public class LensLine extends Line{}
+    public class LensArc extends Arc{}
     private double middleHeight;
     private double middleWidth;
     private double angleOfRotation;
     private double centerX;
     private double centerY;
 
-    private Arc firstArc;
-    private Arc secondArc;
+    private LensArc firstArc;
+    private LensArc secondArc;
     private Line topLine;
     private Line bottomLine;
 
@@ -38,8 +40,8 @@ public class SphericalLens {
         this.centerX = centerX;
         this.centerY = centerY;
 
-        firstArc = new Arc();
-        secondArc = new Arc();
+        firstArc = new LensArc();
+        secondArc = new LensArc();
 
         topLine = new Line();
         bottomLine = new Line();
@@ -128,11 +130,11 @@ public class SphericalLens {
         bottomLine.setStroke(mirrorColor);
     }
 
-    public Arc getFirstArc() {
+    public LensArc getFirstArc() {
         return firstArc;
     }
 
-    public Arc getSecondArc() {
+    public LensArc getSecondArc() {
         return secondArc;
     }
 
