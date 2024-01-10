@@ -1,0 +1,49 @@
+.root {
+    -fx-background-color: rgb(50, 50, 50);
+}
+
+/* Styling the slider track */
+.jfx-slider > .track {
+    -fx-background-color: #656565;
+    -fx-pref-height: 350%;
+}
+
+/* Styling the slider thumb */
+.jfx-slider > .thumb {
+    -fx-background-color: rgb(77, 102, 204);
+}
+
+/* Styling the filled track */
+.jfx-slider > .colored-track {
+    -fx-background-color: rgb(77, 102, 204);
+}
+
+/* Styling the animated thumb */
+.jfx-slider > .animated-thumb {
+    -fx-background-color: #656565;
+}
+
+/* Styling the slider value text inside animated thumb */
+.jfx-slider .slider-value {
+    -fx-opacity: 0;
+    /*-fx-fill: #ffffff;*/
+    /*-fx-stroke: #ffffff;*/
+    /*-fx-stroke-width: 0.5;*/
+}
+
+.jfx-slider {
+    -fx-show-tick-marks: false;
+}
+
+.button {
+    -fx-padding: 0.7em 0.57em;
+    -fx-font-size: 14px;
+    -jfx-button-type: FLAT;
+    -fx-background-color: #656565;
+    -fx-pref-width: 100;
+    -fx-text-fill: white;
+}
+
+.button-selected {
+    -fx-background-color: rgb(77, 102, 204);
+}

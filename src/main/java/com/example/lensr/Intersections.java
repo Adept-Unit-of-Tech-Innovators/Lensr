@@ -1,9 +1,8 @@
 package com.example.lensr;
 
 import javafx.geometry.Point2D;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.*;
+
 
 public class Intersections {
 
@@ -12,9 +11,11 @@ public class Intersections {
         double intersectionX, intersectionY;
 
         // Temporarily set stroke width to a low number for intersection calculation
-        ray.setStrokeWidth(0.1);
+        ray.setStrokeWidth(0.01);
+        object.setStrokeWidth(0.01);
         Shape intersectionShape = Shape.intersect(ray, object);
         ray.setStrokeWidth(0.5);
+        object.setStrokeWidth(LensrStart.globalStrokeWidth);
 
         // If intersection shape has negative dimensions there is no intersection
         if (intersectionShape.getLayoutBounds().getHeight() < 0) return null;
@@ -34,6 +35,20 @@ public class Intersections {
         } else intersectionY = minY;
 
         return new Point2D(intersectionX, intersectionY);
+    }
+
+    // Get the outline of a shape for ray intersection
+    // This is the object ray will intersect with (ray should not intersect with the object fill)
+    public static Shape getObjectOutline(Shape shape) {
+        // Copying shape in a cursed way
+        Shape copy = Shape.union(shape, shape);
+
+        copy.setStrokeWidth(1);
+        shape.setStrokeWidth(1);
+        shape.setStrokeType(StrokeType.OUTSIDE);
+        copy.setStrokeType(StrokeType.INSIDE);
+
+        return Shape.subtract(shape, copy);
     }
 
 
@@ -72,12 +87,5 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
-    public static double getSphericalRefractionAngle(Line ray, Arc lensSide, double refractiveIndex)
-    {
-        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
-
-        return Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
-//        return Math.toRadians(10);
-    }
 
 }
