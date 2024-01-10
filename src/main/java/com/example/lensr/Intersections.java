@@ -77,6 +77,7 @@ public class Intersections {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         return Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
+//        return Math.toRadians(10);
     }
 
 }

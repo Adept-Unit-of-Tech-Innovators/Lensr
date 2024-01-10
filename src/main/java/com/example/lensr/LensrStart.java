@@ -128,7 +128,7 @@ public class LensrStart extends Application {
                 double minimalDistance = Math.min(Math.min(Math.min(minimalPossibleDistanceToTop, minimalPossibleDistanceToBottom), minimalPossibleDistanceToFirstArc), minimalPossibleDistanceToSecondArc);
                 if(minimalDistance > shortestIntersectionDistance) continue;
 
-                if(minimalDistance == minimalPossibleDistanceToFirstArc)
+                if(minimalDistance == minimalPossibleDistanceToFirstArc && !currentRay.isInsideLens)
                 {
                     Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentSphericalLens.getFirstArc());
                     if (intersectionPoint != null) {
@@ -143,10 +143,11 @@ public class LensrStart extends Application {
                             closestIntersectionObject = currentSphericalLens;
                         }
                     }
-                    System.out.println(closestIntersectionPoint.getX() + " " + closestIntersectionPoint.getY());
+//                    System.out.println("first");
+//                    System.out.println(closestIntersectionPoint.getX() + " " + closestIntersectionPoint.getY());
 
                 }
-                else if(minimalDistance == minimalPossibleDistanceToSecondArc)
+                else if(minimalDistance == minimalPossibleDistanceToSecondArc && !currentRay.isInsideLens )
                 {
                     Point2D intersectionPoint = getRayIntersectionPoint(currentRay, currentSphericalLens.getSecondArc());
                     if (intersectionPoint != null) {
@@ -161,7 +162,8 @@ public class LensrStart extends Application {
                             closestIntersectionObject = currentSphericalLens;
                         }
                     }
-                    System.out.println(closestIntersectionPoint.getX() + " " + closestIntersectionPoint.getY());
+//                    System.out.println("second");
+//                    System.out.println(closestIntersectionPoint.getX() + " " + closestIntersectionPoint.getY());
 
                 }
             }
@@ -211,20 +213,22 @@ public class LensrStart extends Application {
 
             nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
         }
-        else if (closestIntersectionObject instanceof SphericalLens sphericalLens)
+        else if (closestIntersectionObject instanceof SphericalLens sphericalLens && !currentRay.isInsideLens)
         {
             double refractionAngle = getSphericalRefractionAngle(currentRay, sphericalLens.getFirstArc(), sphericalLens.getRefractiveIndex());
 
-            reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
-            reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+            reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+            reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
             System.out.println("lens detected");
 
         }
+        nextRay.isInsideLens = true;
 
         nextRay.setEndX(reflectedX);
         nextRay.setEndY(reflectedY);
 
         rayReflections.add(nextRay);
+        System.out.println(rayReflections.size());
         drawRaysRecursively(nextRay, closestIntersectionObject, recursiveDepth + 1);
     }
 
