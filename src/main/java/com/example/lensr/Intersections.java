@@ -49,12 +49,11 @@ public class Intersections {
         copy.setStrokeType(StrokeType.INSIDE);
 
         Shape a = Shape.subtract(shape, copy);
-        System.out.println(a.toString());
         return a;
     }
 
 
-    public static double getLineReflectionAngle(Ray ray, LineMirror mirror) {
+    public static double getLineReflectionAngle(Ray ray, Line mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the mirror line
@@ -64,7 +63,7 @@ public class Intersections {
     }
 
 
-    public static double getEllipseReflectionAngle(Ray ray, EllipseMirror mirror) {
+    public static double getEllipseReflectionAngle(Ray ray, Ellipse mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the normal vector at the intersection point

@@ -16,7 +16,6 @@ import java.util.List;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
-import static java.awt.geom.Point2D.distance;
 
 public class Ray extends Line {
     Rectangle laserPointer;
@@ -28,6 +27,7 @@ public class Ray extends Line {
     boolean isEdited;
     Group group = new Group();
     MutableValue isEditPointClicked = new MutableValue(false);
+    List<Ray> rayReflections = new ArrayList<>();
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -40,10 +40,7 @@ public class Ray extends Line {
         setStroke(Color.RED);
         setStrokeWidth(globalStrokeWidth);
 
-        createLaserPointer();
-
         group.getChildren().add(this);
-        group.getChildren().add(laserPointer);
         root.getChildren().add(group);
     }
 
@@ -52,18 +49,169 @@ public class Ray extends Line {
 
         updateLaserPointer();
 
-        System.out.println("bf: " + rayReflections.size());
         for (Ray ray : rayReflections) {
-            root.getChildren().remove(ray.group);
+            group.getChildren().remove(ray);
         }
         rayReflections.clear();
 
-        simulateRay(0);
-        System.out.println(rayReflections.size());
+        simulateRay();
+        laserPointer.toFront();
+    }
+
+    public void simulateRay() {
+        new Thread(() -> {
+            int recursiveDepth = 0;
+            Ray currentRay = this;
+            while (true) {
+                double shortestIntersectionDistance = Double.MAX_VALUE;
+                Object closestIntersectionMirror = null;
+                Point2D closestIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
+
+                for (Object mirror : mirrors) {
+                    Point2D intersectionPoint = null;
+
+                    if (mirror instanceof Shape currentMirror) {
+                        // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
+                        double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
+                        if (minimalPossibleDistance > shortestIntersectionDistance) continue;
+
+                        if (currentMirror instanceof EllipseMirror ellipseMirror) {
+                            intersectionPoint = getRayIntersectionPoint(currentRay, ellipseMirror.outline);
+                        }
+                        else {
+                            intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
+                        }
+                    }
+
+                    if (intersectionPoint == null) continue;
+
+                    // Round the intersection point to 2 decimal places
+                    intersectionPoint = new Point2D(
+                            Math.round(intersectionPoint.getX() * 100.0) / 100.0,
+                            Math.round(intersectionPoint.getY() * 100.0) / 100.0
+                    );
+
+                    // If the intersection point is the same as the previous intersection point, skip it
+                    Point2D previousIntersectionPoint = new Point2D(currentRay.getStartX(), currentRay.getStartY());
+                    if (previousIntersectionPoint.equals(intersectionPoint)) continue;
+
+                    // If this is the closest intersection point so far, set it as the closest intersection point
+                    double intersectionDistance = Math.sqrt(
+                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
+                    );
+
+                    if (intersectionDistance < shortestIntersectionDistance) {
+                        closestIntersectionPoint = intersectionPoint;
+                        shortestIntersectionDistance = intersectionDistance;
+                        closestIntersectionMirror = mirror;
+                    }
+
+                }
+
+                // I hate that you have to do this
+                Ray currentRayFinal = currentRay;
+                boolean isFirstRay = recursiveDepth == 0;
+
+                Platform.runLater(() -> {
+                    Ray ray = new Ray(currentRayFinal.getStartX(), currentRayFinal.getStartY(), currentRayFinal.getEndX(), currentRayFinal.getEndY());
+                    ray.setStrokeWidth(globalStrokeWidth);
+                    ray.setStroke(currentRayFinal.getStroke());
+                    ray.setBrightness(currentRayFinal.getBrightness());
+                    ray.toBack();
+                    // Don't add the first ray to the group (it's already added)
+                    if (!isFirstRay) {
+                        rayReflections.add(ray);
+                        this.group.getChildren().add(ray);
+                    }
+                });
+
+                // If there's no intersection, return
+                if (closestIntersectionMirror == null) break;
+
+                Point2D finalClosestIntersectionPoint = closestIntersectionPoint;
+
+                currentRay.setEndX(finalClosestIntersectionPoint.getX());
+                currentRay.setEndY(finalClosestIntersectionPoint.getY());
+
+                // Limit recursive depth
+                if (recursiveDepth >= 500) break;
+
+                // If the ray is so dim, its basically invisible
+                if (currentRay.getBrightness() < 0.001) break;
+
+                Ray nextRay = new Ray(0, 0, 0, 0);
+                nextRay.setStrokeWidth(globalStrokeWidth);
+                nextRay.setStroke(currentRay.getStroke());
+
+                double reflectedX = 0;
+                double reflectedY = 0;
+
+                if (closestIntersectionMirror instanceof LineMirror mirror) {
+                    // Calculate the angle of incidence
+                    double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
+
+                    // Calculate the reflected ray's endpoint based on the reflection angle
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+
+                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+
+                    nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
+                }
+                else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
+                    // Calculate the angle of incidence
+                    double reflectionAngle = getEllipseReflectionAngle(currentRay, mirror);
+
+                    // Calculate the end point of the reflected ray
+                    reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
+
+                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                    nextRay.setStartX(closestIntersectionPoint.getX() - Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
+
+                    nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
+                }
+                else if (closestIntersectionMirror instanceof FunnyMirror mirror) {
+                    Line intersectionSegment = null;
+                    for (int i = 0; i + 2 < mirror.getPoints().size(); i = i + 2) {
+                        // Find the mirror's segment that the ray intersects
+                        Line segment = new Line(mirror.getPoints().get(i), mirror.getPoints().get(i+1), mirror.getPoints().get(i+2), mirror.getPoints().get(i+3));
+                        if (segment.contains(closestIntersectionPoint)) {
+                            intersectionSegment = segment;
+                            break;
+                        }
+                    }
+                    if (intersectionSegment != null) {
+                        double reflectionAngle = getLineReflectionAngle(currentRay, intersectionSegment);
+
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
+                    }
+                }
+
+                nextRay.setEndX(reflectedX);
+                nextRay.setEndY(reflectedY);
+
+
+                recursiveDepth++;
+                currentRay = nextRay;
+            }
+        }).start();
     }
 
 
-    public void simulateRay(int recursiveDepth) {
+    /*public void simulateRay(Ray parentRay, int recursiveDepth) {
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
         Object closestIntersectionMirror = null;
@@ -77,8 +225,14 @@ public class Ray extends Line {
                 double minimalPossibleDistance = getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
                 if (minimalPossibleDistance > shortestIntersectionDistance) continue;
 
-                intersectionPoint = getRayIntersectionPoint(this, currentMirror);
+                if (currentMirror instanceof EllipseMirror ellipseMirror) {
+                    intersectionPoint = getRayIntersectionPoint(this, ellipseMirror.outline);
+                }
+                else {
+                    intersectionPoint = getRayIntersectionPoint(this, currentMirror);
+                }
             }
+
             if (intersectionPoint == null) continue;
 
             // Round the intersection point to 2 decimal places
@@ -108,8 +262,10 @@ public class Ray extends Line {
         // If there's no intersection, return
         if (closestIntersectionMirror == null) return;
 
-        setEndX(closestIntersectionPoint.getX());
-        setEndY(closestIntersectionPoint.getY());
+        Point2D finalClosestIntersectionPoint = closestIntersectionPoint;
+
+        setEndX(finalClosestIntersectionPoint.getX());
+        setEndY(finalClosestIntersectionPoint.getY());
 
         // Limit recursive depth
         if (recursiveDepth >= 500) return;
@@ -119,8 +275,7 @@ public class Ray extends Line {
 
         Ray nextRay = new Ray(0, 0, 0, 0);
         nextRay.create();
-        nextRay.setStroke(getStroke());
-        nextRay.setStrokeWidth(globalStrokeWidth);
+
 
         double reflectedX = 0;
         double reflectedY = 0;
@@ -181,10 +336,9 @@ public class Ray extends Line {
         nextRay.setEndX(reflectedX);
         nextRay.setEndY(reflectedY);
 
-        rayReflections.add(nextRay);
-        nextRay.simulateRay(recursiveDepth + 1);
-    }
-
+        parentRay.rayReflections.add(nextRay);
+        nextRay.simulateRay(parentRay, + 1);
+    }*/
 
     public void setWavelength(int wavelength) {
         this.wavelength = wavelength;
@@ -243,6 +397,8 @@ public class Ray extends Line {
         editPoints.get(0).setOnMouseReleased(this::executeEditPointRelease);
         editPoints.get(1).setOnMouseReleased(this::executeEditPointRelease);
 
+        editPoints.get(0).toFront();
+        editPoints.get(1).toFront();
 
         MirrorMethods.setupEditPoints(editPoints, isEditPointClicked);
         group.getChildren().addAll(editPoints);
@@ -252,14 +408,16 @@ public class Ray extends Line {
 
     private void moveToMouse() {
         new Thread(() -> {
+            double rotationTemp = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
             while (isMousePressed) {
                 double deltaX = mousePos.getX() - getStartX();
                 double deltaY = mousePos.getY() - getStartY();
+
                 setStartX(mousePos.getX());
                 setStartY(mousePos.getY());
 
-                setEndX(getStartX() + Math.cos(rotation) * SIZE);
-                setEndY(getStartY() + Math.sin(rotation) * SIZE);
+                setEndX(getStartX() + Math.cos(rotationTemp) * SIZE);
+                setEndY(getStartY() + Math.sin(rotationTemp) * SIZE);
 
 
                 editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
@@ -269,8 +427,7 @@ public class Ray extends Line {
 
                 updateLaserPointer();
 
-                Platform.runLater(() -> {
-                });
+                Platform.runLater(() -> group.getChildren().removeAll(rayReflections));
 
                 synchronized (lock) {
                     try {
@@ -297,8 +454,7 @@ public class Ray extends Line {
 
                 updateLaserPointer();
 
-                Platform.runLater(() -> {
-                });
+                Platform.runLater(() -> group.getChildren().removeAll(rayReflections));
 
                 synchronized (lock) {
                     try {
@@ -326,7 +482,7 @@ public class Ray extends Line {
     }
 
 
-    private void createLaserPointer() {
+    public void createLaserPointer() {
         laserPointer = new Rectangle();
         laserPointer.setWidth(100);
         laserPointer.setHeight(50);
@@ -336,6 +492,7 @@ public class Ray extends Line {
         laserPointer.setOnMouseClicked(mouseEvent -> {
             if (isEditMode && !isEdited) openObjectEdit();
         });
+        group.getChildren().add(laserPointer);
         updateLaserPointer();
     }
 

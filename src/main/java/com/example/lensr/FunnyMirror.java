@@ -5,12 +5,10 @@ import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.setupEditPoints;
 import static com.example.lensr.MirrorMethods.setupObjectEdit;
