@@ -6,7 +6,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 
@@ -23,7 +27,7 @@ public class SphericalLens {
     private LensArc secondArc;
     private Line topLine;
     private Line bottomLine;
-
+    List<Shape> elements = new ArrayList<>();
     private double refractiveIndex;
     private double focalLength;
 
@@ -43,9 +47,13 @@ public class SphericalLens {
         firstArc = new LensArc();
         secondArc = new LensArc();
 
-        topLine = new Line();
-        bottomLine = new Line();
+        topLine = new LensLine();
+        bottomLine = new LensLine();
 
+        elements.add(firstArc);
+        elements.add(secondArc);
+        elements.add(topLine);
+        elements.add(bottomLine);
         resize(lensThickness, middleWidth, middleHeight);
     }
 
@@ -104,6 +112,8 @@ public class SphericalLens {
         System.out.println("ArcX: " + arc.getCenterX());
         System.out.println("ArcY: " + arc.getCenterY());
         System.out.println("ArcLength: " + arc.getLength());
+        System.out.println("Rotation: " + arc.getRotate());
+        System.out.println("Start Angle: " + arc.getStartAngle());
         System.out.println();
 
 
@@ -114,8 +124,8 @@ public class SphericalLens {
         middleHeight = newHeight;
         middleWidth = newWidth;
 
-        arcAdjust(firstArc, lensThickness, true);
-        arcAdjust(secondArc, lensThickness, false);
+        arcAdjust(firstArc, lensThickness, false);
+        arcAdjust(secondArc, lensThickness, true);
 
         topLine.setStartX(centerX - (middleWidth / 2));
         topLine.setStartY(centerY - (middleHeight / 2));

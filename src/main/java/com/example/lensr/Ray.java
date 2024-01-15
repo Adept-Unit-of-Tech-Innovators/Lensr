@@ -16,7 +16,6 @@ import java.util.List;
 
 import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
-import static java.awt.geom.Point2D.distance;
 
 public class Ray extends Line {
     Rectangle laserPointer;
@@ -106,36 +105,52 @@ public class Ray extends Line {
         for (Object lens : lenses)
         {
             Point2D intersectionPoint = null;
+            Point2D tempPoint = null;
+            Shape currObject = null;
             if(lens instanceof SphericalLens currentSphericalLens)
             {
-                System.out.println("rucham ci mame");
-                double minimalDistanceToFirstArc = getMinimalDistanceToBounds(currentSphericalLens.getFirstArc().getLayoutBounds());
-                double minimalDistanceToSecondArc = getMinimalDistanceToBounds(currentSphericalLens.getSecondArc().getLayoutBounds());
-                double minimalDistanceToTop = getMinimalDistanceToBounds(currentSphericalLens.getTopLine().getLayoutBounds());
-                double minimalDistanceToBottom = getMinimalDistanceToBounds(currentSphericalLens.getBottomLine().getLayoutBounds());
+                double minimalDistance = Double.MAX_VALUE;
 
-                double minimalDistance = Math.min(Math.min(Math.min(minimalDistanceToFirstArc, minimalDistanceToSecondArc), minimalDistanceToTop), minimalDistanceToBottom);
+                for (Shape element : currentSphericalLens.elements) {
+                    double currDistance = getMinimalDistanceToBounds(element.getLayoutBounds());
 
-                if(minimalDistance > shortestIntersectionDistance) continue;
+                    if(element instanceof SphericalLens.LensArc arc && arc.getStartAngle() < 0)
+                    {
+                        // TO DO: Create a new ray, starting and going in the opposite direction than the current ray
+                        // For this ray, check its distance to the arc
+                        // Assign this value to currDistance
+                        Ray temp = new Ray(getEndX(), getEndY(), getStartX(), getStartY());
 
-                Shape currObject = null;
-                if(minimalDistance == minimalDistanceToFirstArc) {
-                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getFirstArc());
-                    currObject = currentSphericalLens.getFirstArc();
-                } else if(minimalDistance == minimalDistanceToSecondArc) {
-                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getSecondArc());
-                    currObject = currentSphericalLens.getSecondArc();
-                } else if(minimalDistance == minimalDistanceToTop) {
-                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getTopLine());
-                    currObject = currentSphericalLens.getTopLine();
-                } else if(minimalDistance == minimalDistanceToBottom) {
-                    intersectionPoint = getRayIntersectionPoint(this, currentSphericalLens.getFirstArc());
-                    currObject = currentSphericalLens.getBottomLine();
+                        double distanceToArc = Math.abs(Math.sqrt(Math.pow(temp.getEndX() - temp.getStartX(), 2) + Math.pow(temp.getEndY() - temp.getStartY(), 2)) - temp.getMinimalDistanceToBounds(arc.getLayoutBounds()));
+                        System.out.println("Distance to arc: " + distanceToArc);
+                        tempPoint = getRayIntersectionPoint(temp, arc);
+                        if(tempPoint != null)
+                        {
+                            Rectangle rectangle = new Rectangle(10, 10, Color.BLUE);
+                            rectangle.setX(tempPoint.getX());
+                            rectangle.setY(tempPoint.getY());
+                            root.getChildren().add(rectangle);
+                        }
+
+                        if(distanceToArc < currDistance) currDistance = distanceToArc;
+                    }
+                    if(minimalDistance > currDistance && currDistance > 0 && getRayIntersectionPoint(this, element) != null)
+                    {
+                        minimalDistance = currDistance;
+                        intersectionPoint = getRayIntersectionPoint(this, element);
+                        if(element instanceof SphericalLens.LensArc arc && arc.getStartAngle() * (getStartY() - arc.getCenterX()) < 0) intersectionPoint = tempPoint;
+                        currObject = element;
+                        System.out.println("new distance: " + minimalDistance);
+
+                        if(element == currentSphericalLens.getFirstArc()) System.out.println("first arc");
+                        else if(element == currentSphericalLens.getSecondArc()) System.out.println("second arc");
+                        else if(element == currentSphericalLens.getTopLine()) System.out.println("top line");
+                        else if(element == currentSphericalLens.getBottomLine()) System.out.println("bottom line");
+                    }
+                    System.out.println();
                 }
 
-
-
-                if (intersectionPoint == null) continue;
+                if(minimalDistance > shortestIntersectionDistance || intersectionPoint == null) continue;
 
                 // Round the intersection point to 2 decimal places
                 intersectionPoint = new Point2D(
@@ -153,7 +168,7 @@ public class Ray extends Line {
                                 Math.pow(intersectionPoint.getY() - getStartY(), 2)
                 );
 
-                if (intersectionDistance < shortestIntersectionDistance && currObject != null) {
+                if (intersectionDistance < shortestIntersectionDistance) {
                     closestIntersectionPoint = intersectionPoint;
                     shortestIntersectionDistance = intersectionDistance;
                     closestIntersectionMirror = currObject;
@@ -236,7 +251,23 @@ public class Ray extends Line {
         }
         else if (closestIntersectionMirror instanceof SphericalLens.LensArc arc)
         {
+            System.out.println("arc");
             double refractionAngle = getArcRefractionAngle(this, arc, 1.5);
+
+            reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+            reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+
+            Rectangle rectangle = new Rectangle(10, 10, Color.VIOLET);
+            rectangle.setX(closestIntersectionPoint.getX());
+            rectangle.setY(closestIntersectionPoint.getY());
+            root.getChildren().add(rectangle);
+
+            nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
+            nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
+        }
+        else if (closestIntersectionMirror instanceof SphericalLens.LensLine line)
+        {
+            double refractionAngle = getLineReflectionAngle(this, line);
 
             reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
             reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
@@ -244,13 +275,16 @@ public class Ray extends Line {
 
             nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
             nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
-            System.out.println("niga");
+            System.out.println("line");
         }
 
         nextRay.setEndX(reflectedX);
         nextRay.setEndY(reflectedY);
 
+        System.out.println("Start coordinates: " + nextRay.getStartX() + " " + nextRay.getStartY());
+
         parentRay.rayReflections.add(nextRay);
+
         nextRay.simulateRay(parentRay, + 1);
     }
 
