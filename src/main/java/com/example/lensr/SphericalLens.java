@@ -16,7 +16,20 @@ import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens {
     public class LensLine extends Line{}
-    public class LensArc extends Arc{}
+    public class LensArc extends Arc
+    {
+        private double thickness;
+
+        public LensArc(double thickness) {
+            this.thickness = thickness;
+        }
+        public Line getChord()
+        {
+            Line chord = new Line(topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY());
+            if(this == firstArc) chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getEndX(), bottomLine.getEndY());
+            return chord;
+        }
+    }
     private double middleHeight;
     private double middleWidth;
     private double angleOfRotation;
@@ -25,8 +38,8 @@ public class SphericalLens {
 
     private LensArc firstArc;
     private LensArc secondArc;
-    private Line topLine;
-    private Line bottomLine;
+    private LensLine topLine;
+    private LensLine bottomLine;
     List<Shape> elements = new ArrayList<>();
     private double refractiveIndex;
     private double focalLength;
@@ -44,8 +57,8 @@ public class SphericalLens {
         this.centerX = centerX;
         this.centerY = centerY;
 
-        firstArc = new LensArc();
-        secondArc = new LensArc();
+        firstArc = new LensArc(lensThickness);
+        secondArc = new LensArc(lensThickness);
 
         topLine = new LensLine();
         bottomLine = new LensLine();

@@ -105,40 +105,29 @@ public class Ray extends Line {
         for (Object lens : lenses)
         {
             Point2D intersectionPoint = null;
-            Point2D tempPoint = null;
             Shape currObject = null;
             if(lens instanceof SphericalLens currentSphericalLens)
             {
                 double minimalDistance = Double.MAX_VALUE;
-
+                Shape shape = null;
                 for (Shape element : currentSphericalLens.elements) {
                     double currDistance = getMinimalDistanceToBounds(element.getLayoutBounds());
+                    shape = element;
 
-                    if(element instanceof SphericalLens.LensArc arc && arc.getStartAngle() < 0)
+                    if(element instanceof SphericalLens.LensArc arc)
                     {
-                        // TO DO: Create a new ray, starting and going in the opposite direction than the current ray
-                        // For this ray, check its distance to the arc
-                        // Assign this value to currDistance
-                        Ray temp = new Ray(getEndX(), getEndY(), getStartX(), getStartY());
+                        shape = getObjectOutline(shape);
+                        Line chord = arc.getChord();
 
-                        double distanceToArc = Math.abs(Math.sqrt(Math.pow(temp.getEndX() - temp.getStartX(), 2) + Math.pow(temp.getEndY() - temp.getStartY(), 2)) - temp.getMinimalDistanceToBounds(arc.getLayoutBounds()));
-                        System.out.println("Distance to arc: " + distanceToArc);
-                        tempPoint = getRayIntersectionPoint(temp, arc);
-                        if(tempPoint != null)
-                        {
-                            Rectangle rectangle = new Rectangle(10, 10, Color.BLUE);
-                            rectangle.setX(tempPoint.getX());
-                            rectangle.setY(tempPoint.getY());
-                            root.getChildren().add(rectangle);
-                        }
+                        chord.setStroke(Color.MINTCREAM);
+                        root.getChildren().add(chord);
 
-                        if(distanceToArc < currDistance) currDistance = distanceToArc;
+                        shape = subtract(shape, chord);
                     }
                     if(minimalDistance > currDistance && currDistance > 0 && getRayIntersectionPoint(this, element) != null)
                     {
                         minimalDistance = currDistance;
-                        intersectionPoint = getRayIntersectionPoint(this, element);
-                        if(element instanceof SphericalLens.LensArc arc && arc.getStartAngle() * (getStartY() - arc.getCenterX()) < 0) intersectionPoint = tempPoint;
+                        intersectionPoint = getRayIntersectionPoint(this, shape);
                         currObject = element;
                         System.out.println("new distance: " + minimalDistance);
 

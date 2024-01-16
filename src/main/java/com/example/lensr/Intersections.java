@@ -43,6 +43,7 @@ public class Intersections {
         // Copying shape in a cursed way
         Shape copy = Shape.union(shape, shape);
 
+
         copy.setStrokeWidth(1);
         shape.setStrokeWidth(1);
         shape.setStrokeType(StrokeType.OUTSIDE);
