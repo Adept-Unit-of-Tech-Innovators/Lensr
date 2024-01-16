@@ -92,7 +92,7 @@ public class Intersections {
     {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
-//        double angleOfRefraction = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
+        double angleOfRefraction = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
         return angleOfIncidence + Math.toRadians(10);
     }
 

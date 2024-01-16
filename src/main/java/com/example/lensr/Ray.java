@@ -111,20 +111,17 @@ public class Ray extends Line {
                 double minimalDistance = Double.MAX_VALUE;
                 Shape shape = null;
                 for (Shape element : currentSphericalLens.elements) {
-                    double currDistance = getMinimalDistanceToBounds(element.getLayoutBounds());
                     shape = element;
 
                     if(element instanceof SphericalLens.LensArc arc)
                     {
                         shape = getObjectOutline(shape);
-                        Line chord = arc.getChord();
-
-                        chord.setStroke(Color.MINTCREAM);
-                        root.getChildren().add(chord);
-
-                        shape = subtract(shape, chord);
+                        shape = subtract(shape, arc.getChord());
                     }
-                    if(minimalDistance > currDistance && currDistance > 0 && getRayIntersectionPoint(this, element) != null)
+
+                    double currDistance = getMinimalDistanceToBounds(shape.getLayoutBounds());
+
+                    if(minimalDistance > currDistance && currDistance > 0 && getRayIntersectionPoint(this, shape) != null)
                     {
                         minimalDistance = currDistance;
                         intersectionPoint = getRayIntersectionPoint(this, shape);
@@ -136,7 +133,6 @@ public class Ray extends Line {
                         else if(element == currentSphericalLens.getTopLine()) System.out.println("top line");
                         else if(element == currentSphericalLens.getBottomLine()) System.out.println("bottom line");
                     }
-                    System.out.println();
                 }
 
                 if(minimalDistance > shortestIntersectionDistance || intersectionPoint == null) continue;

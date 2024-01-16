@@ -26,7 +26,7 @@ public class SphericalLens {
         public Line getChord()
         {
             Line chord = new Line(topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY());
-            if(this == firstArc) chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getEndX(), bottomLine.getEndY());
+            if(this == firstArc) chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getStartX(), bottomLine.getStartY());
             return chord;
         }
     }
@@ -114,20 +114,18 @@ public class SphericalLens {
         System.out.println("Angle: in radians - " + angleInRadians + ", in degrees - " + angleInDegrees);
 
         arc.setStartAngle(180 - angleInDegrees/2);
+        if(isRightOriented) arc.setStartAngle(-angleInDegrees/2);
+
         arc.setLength(angleInDegrees);
 
-        if(isRightOriented)
-        {
-            arc.setStartAngle(-angleInDegrees/2);
-        }
 
-        System.out.println("Radius: " + radius);
-        System.out.println("ArcX: " + arc.getCenterX());
-        System.out.println("ArcY: " + arc.getCenterY());
-        System.out.println("ArcLength: " + arc.getLength());
-        System.out.println("Rotation: " + arc.getRotate());
-        System.out.println("Start Angle: " + arc.getStartAngle());
-        System.out.println();
+//        System.out.println("Radius: " + radius);
+//        System.out.println("ArcX: " + arc.getCenterX());
+//        System.out.println("ArcY: " + arc.getCenterY());
+//        System.out.println("ArcLength: " + arc.getLength());
+//        System.out.println("Rotation: " + arc.getRotate());
+//        System.out.println("Start Angle: " + arc.getStartAngle());
+//        System.out.println();
 
 
     }
