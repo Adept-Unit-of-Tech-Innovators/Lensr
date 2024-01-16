@@ -2,6 +2,7 @@ package com.example.lensr;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.shape.Shape;
 
 import static com.example.lensr.LensrStart.*;
 
@@ -12,9 +13,10 @@ public class UserControls {
             isMousePressed = true;
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 
-            // Close ellipse mirror edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
-                    && !group.getLayoutBounds().contains(mousePos))
+            // Close line mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
+                    && !mirror.isMouseOnHitbox && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
             {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
@@ -23,10 +25,9 @@ public class UserControls {
                 return;
             }
 
-            // Close line mirror edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
-                    && !mirror.isMouseOnHitbox && mirror.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
+            // Close ellipse mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
+                    && !group.getLayoutBounds().contains(mousePos))
             {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
@@ -44,7 +45,6 @@ public class UserControls {
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
                 rays.forEach(Ray::update);
-                vPressed.setValue(false);
                 return;
             }
 
@@ -58,30 +58,39 @@ public class UserControls {
                 ray.isEdited = false;
                 editedShape = null;
                 ray.update();
-                vPressed.setValue(false);
                 return;
             }
 
 
-            // Place mirrors
-            if (xPressed.getValue()) {
-                EllipseMirror newMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
-                newMirror.create();
-                mirrors.add(newMirror);
-                newMirror.scale(mousePos);
-                return;
-            }
-            if (zPressed.getValue()) {
-                LineMirror newMirror = new LineMirror(mousePos.getX(), mousePos.getY(),mousePos.getX(), mousePos.getY());
-                newMirror.create();
-                mirrors.add(newMirror);
-                newMirror.scale(mousePos);
-                return;
-            }
-            if (vPressed.getValue()) {
-                FunnyMirror newMirror = new FunnyMirror();
-                newMirror.draw();
-                mirrors.add(newMirror);
+            // Place objects
+            switch (keyPressed) {
+                case X:
+                    EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
+                    ellipseMirror.create();
+                    mirrors.add(ellipseMirror);
+                    ellipseMirror.scale(mousePos);
+                    return;
+                case Z:
+                    LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                    lineMirror.create();
+                    mirrors.add(lineMirror);
+                    lineMirror.scale(mousePos);
+                    return;
+                case V:
+                    FunnyMirror funnyMirror = new FunnyMirror();
+                    funnyMirror.draw();
+                    mirrors.add(funnyMirror);
+                case C:
+                    Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
+                    ray.create();
+                    ray.createLaserPointer();
+                    rays.add(ray);
+                    for (Ray ray1 : rays) {
+                        if (ray1.isEdited) {
+                            ray1.closeObjectEdit();
+                            ray.simulateRay();
+                        }
+                    }
             }
         });
 
@@ -89,36 +98,42 @@ public class UserControls {
 
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
-            if (xPressed.getValue()) {
-                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
-                    mirror.openObjectEdit();
-                }
-                return;
-            }
-            if (zPressed.getValue()) {
-                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror) {
-                    mirror.openObjectEdit();
-                }
-                return;
-            }
-            if (vPressed.getValue()) {
-                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror) {
-                    mirror.openObjectEdit();
-                }
+            switch (keyPressed) {
+                case X:
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
+                        mirror.openObjectEdit();
+
+                    }
+                case Z:
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror) {
+                        mirror.openObjectEdit();
+                    }
+                case V:
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror) {
+                        mirror.openObjectEdit();
+                    }
+                case C:
+                    if (!rays.isEmpty()) {
+                        rays.get(rays.size() - 1).openObjectEdit();
+                    }
             }
         });
 
         scene.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode().toString().equals("E")) {
                 // If mode was switched during an edit, finish the edit
-                if (xPressed.getValue()) {
-                    xPressed.setValueAndCloseEdit(false);
-                }
-                else if (zPressed.getValue()) {
-                    zPressed.setValueAndCloseEdit(false);
-                }
-                else if (vPressed.getValue()) {
-                    vPressed.setValueAndCloseEdit(false);
+
+                keyPressed = Key.None;
+                for (Object mirror : LensrStart.mirrors) {
+                    if (mirror instanceof LineMirror lineMirror) {
+                        lineMirror.closeObjectEdit();
+                    }
+                    if (mirror instanceof EllipseMirror ellipseMirror) {
+                        ellipseMirror.closeObjectEdit();
+                    }
+                    if (mirror instanceof FunnyMirror funnyMirror) {
+                        funnyMirror.closeObjectEdit();
+                    }
                 }
 
                 if (isEditMode) {
@@ -147,35 +162,20 @@ public class UserControls {
                 altPressed = true;
             }
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
-                xPressed.setValueAndCloseEdit(!xPressed.getValue());
-                zPressed.setValue(false);
-                vPressed.setValue(false);
+                keyPressed = Key.X;
+                MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
-                zPressed.setValueAndCloseEdit(!zPressed.getValue());
-                xPressed.setValue(false);
-                vPressed.setValue(false);
+                keyPressed = Key.Z;
+                MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
-                vPressed.setValueAndCloseEdit(!vPressed.getValue());
-                zPressed.setValue(false);
-                xPressed.setValue(false);
+                keyPressed = Key.V;
+                MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                vPressed.setValueAndCloseEdit(false);
-                zPressed.setValue(false);
-                xPressed.setValue(false);
-                Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
-                ray.create();
-                ray.createLaserPointer();
-                rays.add(ray);
-                for (Ray ray1 : rays) {
-                    if (ray1.isEdited) {
-                        ray1.closeObjectEdit();
-                        ray.simulateRay();
-                    }
-                }
-                ray.openObjectEdit();
+                keyPressed = Key.C;
+                MirrorMethods.closeMirrorsEdit();
             }
             for (ToolbarButton button : toolbar) {
                 button.updateRender();

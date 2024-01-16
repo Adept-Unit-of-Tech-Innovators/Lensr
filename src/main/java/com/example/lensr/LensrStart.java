@@ -22,9 +22,14 @@ public class LensrStart extends Application {
     public static List<Ray> rays = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
     public static Point2D mousePos;
-    public static MutableValue xPressed = new MutableValue(false);
-    public static MutableValue zPressed = new MutableValue(false);
-    public static MutableValue vPressed = new MutableValue(false);
+    public enum Key {
+        None,
+        Z,
+        X,
+        C,
+        V
+    }
+    public static Key keyPressed;
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
     public static boolean isEditMode = false;
@@ -40,39 +45,30 @@ public class LensrStart extends Application {
         // WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
 
         // Create toolbar buttons
-        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", zPressed, new MutableValue[]{xPressed, vPressed}, 25, 25);
-        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", xPressed, new MutableValue[]{zPressed, vPressed}, 150, 25);
-        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", vPressed, new MutableValue[]{zPressed, xPressed}, 275, 25);
+        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", Key.Z, 25, 25);
+        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", Key.X, 150, 25);
+        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 275, 25);
+        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 400, 25);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
+        toolbar.add(rayButton);
 
-        lineMirrorButton.setOnAction(actionEvent -> {
-            lineMirrorButton.variableToChange.setValueAndCloseEdit(!lineMirrorButton.variableToChange.getValue());
-            Arrays.asList(lineMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
-            toolbar.forEach(ToolbarButton::updateRender);
-
-        });
-
-        ellipseMirrorButton.setOnAction(actionEvent -> {
-            ellipseMirrorButton.variableToChange.setValueAndCloseEdit(!ellipseMirrorButton.variableToChange.getValue());
-            Arrays.asList(ellipseMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
-            toolbar.forEach(ToolbarButton::updateRender);
-
-        });
-
-        funnyMirrorButton.setOnAction(actionEvent -> {
-            funnyMirrorButton.variableToChange.setValueAndCloseEdit(!funnyMirrorButton.variableToChange.getValue());
-            Arrays.asList(funnyMirrorButton.oppositeVariables).forEach(item -> item.setValue(false));
-            toolbar.forEach(ToolbarButton::updateRender);
-        });
-
-        lineMirrorButton.addToRoot();
-        ellipseMirrorButton.addToRoot();
-        funnyMirrorButton.addToRoot();
         for (ToolbarButton button : toolbar) {
+            button.setOnAction(actionEvent -> {
+                if (keyPressed != button.valueToSet) {
+                    keyPressed = button.valueToSet;
+                }
+                else {
+                    keyPressed = Key.None;
+                }
+                toolbar.forEach(ToolbarButton::updateRender);
+
+            });
+            button.addToRoot();
             button.disableProperty().setValue(true);
         }
+
 
         UserControls.setUserControls();
 
