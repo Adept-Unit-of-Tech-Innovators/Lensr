@@ -20,12 +20,17 @@ public class MirrorMethods {
 
                 }
             }
-            else {
-                if (mirror instanceof LineMirror lineMirror) {
+            else if (mirror instanceof LineMirror lineMirror) {
                     if (lineMirror.isEdited) {
                         lineMirror.isEditPointClicked.setValue(false);
                         lineMirror.closeObjectEdit();
                     }
+
+            }
+            else if (mirror instanceof FunnyMirror funnyMirror) {
+                if (funnyMirror.isEdited) {
+                    funnyMirror.isEditPointClicked.setValue(false);
+                    funnyMirror.closeObjectEdit();
                 }
             }
         }

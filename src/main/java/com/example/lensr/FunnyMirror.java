@@ -55,7 +55,6 @@ public class FunnyMirror extends Polyline {
                         index = index + 2;
                     }
                 }
-                System.out.println(this);
                 return null;
             }
         };

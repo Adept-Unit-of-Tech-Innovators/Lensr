@@ -61,6 +61,9 @@ public class UserControls {
                 return;
             }
 
+            if (editedShape != null) {
+                return;
+            }
 
             // Place objects
             switch (keyPressed) {
@@ -69,17 +72,21 @@ public class UserControls {
                     ellipseMirror.create();
                     mirrors.add(ellipseMirror);
                     ellipseMirror.scale(mousePos);
+                    editedShape = ellipseMirror.group;
                     return;
                 case Z:
                     LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     lineMirror.create();
                     mirrors.add(lineMirror);
                     lineMirror.scale(mousePos);
+                    editedShape = lineMirror.group;
                     return;
                 case V:
                     FunnyMirror funnyMirror = new FunnyMirror();
                     funnyMirror.draw();
                     mirrors.add(funnyMirror);
+                    editedShape = funnyMirror.group;
+                    return;
                 case C:
                     Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
                     ray.create();
@@ -91,6 +98,7 @@ public class UserControls {
                             ray.simulateRay();
                         }
                     }
+                    editedShape = ray.group;
             }
         });
 
@@ -98,6 +106,8 @@ public class UserControls {
 
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
+            if (editedShape == null) return;
+
             switch (keyPressed) {
                 case X:
                     if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
@@ -124,26 +134,11 @@ public class UserControls {
                 // If mode was switched during an edit, finish the edit
 
                 keyPressed = Key.None;
-                for (Object mirror : LensrStart.mirrors) {
-                    if (mirror instanceof LineMirror lineMirror) {
-                        lineMirror.closeObjectEdit();
-                    }
-                    if (mirror instanceof EllipseMirror ellipseMirror) {
-                        ellipseMirror.closeObjectEdit();
-                    }
-                    if (mirror instanceof FunnyMirror funnyMirror) {
-                        funnyMirror.closeObjectEdit();
-                    }
-                }
+                MirrorMethods.closeMirrorsEdit();
 
                 if (isEditMode) {
                     for (ToolbarButton button : toolbar) {
                         button.disableProperty().setValue(true);
-                    }
-                    for (Object mirror : mirrors) {
-                        if (mirror instanceof EllipseMirror ellipseMirror) {
-                            ellipseMirror.closeObjectEdit();
-                        }
                     }
                 }
                 else {
@@ -155,31 +150,45 @@ public class UserControls {
                 isEditMode = !isEditMode;
             }
 
-            if (keyEvent.getCode().toString().equals("SHIFT")) {
+            if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
                 shiftPressed = true;
             }
-            if (keyEvent.getCode().toString().equals("ALT")) {
+            if (keyEvent.getCode().toString().equals("ALT") && isEditMode) {
                 altPressed = true;
             }
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
-                keyPressed = Key.X;
+                if (keyPressed == Key.X) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.X;
+                }
                 MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
-                keyPressed = Key.Z;
+                if (keyPressed == Key.Z) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.Z;
+                }
                 MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
-                keyPressed = Key.V;
+                if (keyPressed == Key.V) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.V;
+                }
                 MirrorMethods.closeMirrorsEdit();
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                keyPressed = Key.C;
+                if (keyPressed == Key.C) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.C;
+                }
                 MirrorMethods.closeMirrorsEdit();
             }
-            for (ToolbarButton button : toolbar) {
-                button.updateRender();
-            }
+            toolbar.forEach(ToolbarButton::updateRender);
         });
 
         scene.setOnKeyReleased(keyEvent -> {
