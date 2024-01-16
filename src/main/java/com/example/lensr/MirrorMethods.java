@@ -11,8 +11,6 @@ import static com.example.lensr.LensrStart.*;
 
 public class MirrorMethods {
     public static void setupObjectEdit() {
-        xPressed.setValueAndCloseEdit(false);
-        zPressed.setValueAndCloseEdit(false);
 
         for (Object mirror : mirrors) {
             if (mirror instanceof EllipseMirror ellipseMirror) {
@@ -22,12 +20,17 @@ public class MirrorMethods {
 
                 }
             }
-            else {
-                if (mirror instanceof LineMirror lineMirror) {
+            else if (mirror instanceof LineMirror lineMirror) {
                     if (lineMirror.isEdited) {
                         lineMirror.isEditPointClicked.setValue(false);
                         lineMirror.closeObjectEdit();
                     }
+
+            }
+            else if (mirror instanceof FunnyMirror funnyMirror) {
+                if (funnyMirror.isEdited) {
+                    funnyMirror.isEditPointClicked.setValue(false);
+                    funnyMirror.closeObjectEdit();
                 }
             }
         }
@@ -64,6 +67,19 @@ public class MirrorMethods {
         }
 
         event.consume();
+    }
+    public static void closeMirrorsEdit() {
+        for (Object mirror : LensrStart.mirrors) {
+            if (mirror instanceof LineMirror lineMirror) {
+                lineMirror.closeObjectEdit();
+            }
+            if (mirror instanceof EllipseMirror ellipseMirror) {
+                ellipseMirror.closeObjectEdit();
+            }
+            if (mirror instanceof FunnyMirror funnyMirror) {
+                funnyMirror.closeObjectEdit();
+            }
+        }
     }
 
 
