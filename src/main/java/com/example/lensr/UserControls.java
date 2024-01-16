@@ -58,6 +58,7 @@ public class UserControls {
                 ray.isEdited = false;
                 editedShape = null;
                 ray.update();
+                vPressed.setValue(false);
                 return;
             }
 
@@ -89,7 +90,7 @@ public class UserControls {
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
             if (xPressed.getValue()) {
-                if (mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
+                if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
                     mirror.openObjectEdit();
                 }
                 return;
