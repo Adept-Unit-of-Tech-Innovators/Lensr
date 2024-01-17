@@ -37,13 +37,11 @@ public class LensrStart extends Application {
     public static boolean mouseEventHandled = false;
     public static Object editedShape;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
+    public static WavelengthSlider wavelengthSlider;
 
     @Override
     public void start(Stage primaryStage) {
         scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
-
-        // Commented out because it doesn't work properly yet as it works with the old ray system
-        // WavelengthSlider wavelengthSlider = new WavelengthSlider(rays, rayReflections);
 
         // Create toolbar buttons
         ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", Key.Z, 25, 25);

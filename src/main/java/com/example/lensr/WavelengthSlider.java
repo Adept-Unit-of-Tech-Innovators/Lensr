@@ -4,47 +4,46 @@ import com.jfoenix.controls.JFXSlider;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
-import java.util.List;
-
 public class WavelengthSlider extends JFXSlider {
 
-    public static JFXSlider slider = new JFXSlider(380, 780, 400);
 
-    public WavelengthSlider(List<Ray> rays, List<Ray> rayReflections) {
+    Ray currentRay;
 
-        slider.setLayoutX(800);
-        slider.setLayoutY(50);
-        slider.setPrefHeight(40);
-        slider.setPrefWidth(150);
 
-        slider.setMin(380);
-        slider.setMax(780);
-        slider.setValue(400);
+    public WavelengthSlider(Ray currentRay) {
+
+        this.currentRay = currentRay;
+
+        setLayoutX(800);
+        setLayoutY(50);
+        setPrefHeight(40);
+        setPrefWidth(150);
+
+        setMin(380);
+        setMax(780);
+        setValue(400);
 
         final double[] colourSliderValue = {0.0};
 
         // Laser changes
-        slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+        valueProperty().addListener((observable, oldValue, newValue) -> {
             colourSliderValue[0] = newValue.doubleValue();
 
             Color color = getColorFromWavelength(colourSliderValue[0]);
 
-            StackPane colorPreview = (StackPane) slider.lookup(".animated-thumb");
+            StackPane colorPreview = (StackPane) lookup(".animated-thumb");
             colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color));
 
-            // TODO: This will need to be changed once we add multiple rays
-            for (Ray ray : rays) {
-                ray.setStroke(color);
-            }
+            this.currentRay.setStroke(color);
 
-            for (Ray rayReflection : rayReflections) {
+            for (Ray rayReflection : this.currentRay.rayReflections) {
                 double brightness = rayReflection.getBrightness();
                 rayReflection.setStroke(color);
                 rayReflection.setBrightness(brightness);
             }
 
         });
-        LensrStart.root.getChildren().add(slider);
+        LensrStart.root.getChildren().add(this);
     }
 
     public static Color getColorFromWavelength(double wavelength) {
@@ -123,4 +122,17 @@ public class WavelengthSlider extends JFXSlider {
         return String.format("#%02X%02X%02X", red, green, blue);
     }
 
+    public void setCurrentRay (Ray ray){
+        currentRay = ray;
+    }
+
+    public void hide() {
+        setVisible(false);
+        System.out.println("Hiding");
+    }
+
+    public void show() {
+        setVisible(true);
+        System.out.println("Showing");
+    }
 }
