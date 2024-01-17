@@ -29,11 +29,12 @@ public class LensrStart extends Application {
         C,
         V
     }
-    public static Key keyPressed;
+    public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
+    public static boolean mouseEventHandled = false;
     public static Object editedShape;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
 

@@ -3,6 +3,7 @@ package com.example.lensr;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 
@@ -27,9 +28,6 @@ public class FunnyMirror extends Polyline {
     }
 
     public void draw() {
-        setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) openObjectEdit();
-        });
         setStrokeWidth(globalStrokeWidth);
         setStroke(mirrorColor);
         group.getChildren().add(this);
@@ -59,6 +57,9 @@ public class FunnyMirror extends Polyline {
             }
         };
         new Thread(task).start();
+        this.setTranslateX(0);
+        this.setTranslateY(0);
+
 
     }
 

@@ -45,10 +45,6 @@ public class EllipseMirror extends Ellipse {
         setStrokeWidth(globalStrokeWidth);
         setStrokeType(StrokeType.OUTSIDE);
 
-        setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) openObjectEdit();
-        });
-
         group.getChildren().add(this);
         group.getChildren().add(outline);
         root.getChildren().add(group);

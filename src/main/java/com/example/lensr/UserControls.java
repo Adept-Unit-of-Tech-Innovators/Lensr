@@ -4,12 +4,15 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.Shape;
 
+import java.util.Timer;
+
 import static com.example.lensr.LensrStart.*;
 
 public class UserControls {
 
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
+            if (!isEditMode) return;
             isMousePressed = true;
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
 
@@ -61,6 +64,28 @@ public class UserControls {
                 return;
             }
 
+            if (!mirrors.isEmpty()) {
+                for (Object mirror : mirrors) {
+                    if (mirror instanceof LineMirror lineMirror && lineMirror.isMouseOnHitbox) {
+                        lineMirror.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof  EllipseMirror ellipseMirror && ellipseMirror.contains(mousePos)) {
+                        ellipseMirror.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof FunnyMirror funnyMirror && funnyMirror.contains(mousePos)) {
+                        funnyMirror.openObjectEdit();
+                        return;
+                    }
+                }
+                for (Ray ray : rays) {
+                    if (ray.laserPointer.contains(mousePos) && !ray.isEdited) {
+                        ray.openObjectEdit();
+                    }
+                }
+            }
+
             if (editedShape != null) {
                 return;
             }
@@ -110,20 +135,20 @@ public class UserControls {
 
             switch (keyPressed) {
                 case X:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror) {
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
 
                     }
                 case Z:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror) {
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case V:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror) {
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case C:
-                    if (!rays.isEmpty()) {
+                    if (!rays.isEmpty() && !rays.get(rays.size() - 1).isEdited) {
                         rays.get(rays.size() - 1).openObjectEdit();
                     }
             }
