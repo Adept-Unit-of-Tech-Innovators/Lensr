@@ -363,10 +363,6 @@ public class Ray extends Line {
         laserPointer.setFill(Color.GRAY);
         laserPointer.getTransforms().add(rotate);
         laserPointer.toFront();
-//        laserPointer.setOnMouseClicked(mouseEvent -> {
-//            mouseEventHandled = true;
-//            if (isEditMode && !isEdited) openObjectEdit();
-//        });
         group.getChildren().add(laserPointer);
         updateLaserPointer();
     }

@@ -35,10 +35,6 @@ public class LightEater extends Circle {
         setStrokeWidth(globalStrokeWidth);
         setStrokeType(StrokeType.OUTSIDE);
 
-        setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) openObjectEdit();
-        });
-
         group.getChildren().add(this);
         root.getChildren().add(group);
     }

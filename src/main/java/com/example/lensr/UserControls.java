@@ -50,6 +50,7 @@ public class UserControls {
                 return;
             }
 
+            // Close light eater edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror
                     && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
@@ -80,7 +81,7 @@ public class UserControls {
                         lineMirror.openObjectEdit();
                         return;
                     }
-                    if (mirror instanceof  EllipseMirror ellipseMirror && ellipseMirror.contains(mousePos)) {
+                    if (mirror instanceof EllipseMirror ellipseMirror && ellipseMirror.contains(mousePos)) {
                         ellipseMirror.openObjectEdit();
                         return;
                     }
@@ -88,10 +89,17 @@ public class UserControls {
                         funnyMirror.openObjectEdit();
                         return;
                     }
+                    if (mirror instanceof LightEater lightEater && lightEater.contains(mousePos)) {
+                        lightEater.openObjectEdit();
+                        return;
+                    }
                 }
+            }
+            if (!rays.isEmpty()) {
                 for (Ray ray : rays) {
                     if (ray.laserPointer.contains(mousePos) && !ray.isEdited) {
                         ray.openObjectEdit();
+                        return;
                     }
                 }
             }
@@ -152,24 +160,24 @@ public class UserControls {
 
             switch (keyPressed) {
                 case X:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror && !mirror.isEdited) {
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case Z:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror && !mirror.isEdited) {
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case V:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror && !mirror.isEdited) {
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case B:
-                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LightEater mirror) {
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case C:
-                    if (!rays.isEmpty() && !rays.get(rays.size() - 1).isEdited) {
-                        rays.get(rays.size() - 1).openObjectEdit();
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray && !ray.isEdited) {
+                        ray.openObjectEdit();
                     }
             }
         });
