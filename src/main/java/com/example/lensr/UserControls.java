@@ -133,13 +133,16 @@ public class UserControls {
                     Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
                     ray.create();
                     ray.createLaserPointer();
-                    rays.add(ray);
                     for (Ray ray1 : rays) {
                         if (ray1.isEdited) {
                             ray1.closeObjectEdit();
                             ray.simulateRay();
                         }
                     }
+                    if (rays.isEmpty()) {
+                        wavelengthSlider = new WavelengthSlider(ray);
+                    }
+                    rays.add(ray);
                     editedShape = ray.group;
             }
         });

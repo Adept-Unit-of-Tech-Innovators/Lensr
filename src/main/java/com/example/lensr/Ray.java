@@ -216,8 +216,6 @@ public class Ray extends Line {
 
     public void setWavelength(int wavelength) {
         this.wavelength = wavelength;
-
-        // TODO: change rays color based on the wavelength
     }
 
 
@@ -247,6 +245,9 @@ public class Ray extends Line {
 
 
     public void openObjectEdit() {
+        wavelengthSlider.setCurrentRay(this);
+        wavelengthSlider.show();
+
         MirrorMethods.setupObjectEdit();
         isEdited = true;
 
@@ -348,6 +349,7 @@ public class Ray extends Line {
 
 
     public void closeObjectEdit() {
+        wavelengthSlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
@@ -363,10 +365,6 @@ public class Ray extends Line {
         laserPointer.setFill(Color.GRAY);
         laserPointer.getTransforms().add(rotate);
         laserPointer.toFront();
-//        laserPointer.setOnMouseClicked(mouseEvent -> {
-//            mouseEventHandled = true;
-//            if (isEditMode && !isEdited) openObjectEdit();
-//        });
         group.getChildren().add(laserPointer);
         updateLaserPointer();
     }
