@@ -7,41 +7,31 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class EllipseMirror extends Ellipse {
+public class LightEater extends Circle {
     Group group = new Group();
-    // The outline of the object for ray intersection
-    public Shape outline = getObjectOutline(this);
     List<Rectangle> editPoints = new ArrayList<>();
-    // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 1;
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
 
 
-
-    public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
+    public LightEater(double centerX, double centerY, double radius) {
         setCenterX(centerX);
         setCenterY(centerY);
-        setRadiusX(radiusX);
-        setRadiusY(radiusY);
+        setRadius(radius);
     }
 
 
     public void create() {
-        setFill(Color.TRANSPARENT);
-        setStroke(mirrorColor);
+        setFill(Color.BLACK);
+        setStroke(Color.BLACK);
         setStrokeWidth(globalStrokeWidth);
         setStrokeType(StrokeType.OUTSIDE);
 
@@ -50,7 +40,6 @@ public class EllipseMirror extends Ellipse {
         });
 
         group.getChildren().add(this);
-        group.getChildren().add(outline);
         root.getChildren().add(group);
     }
 
@@ -102,67 +91,33 @@ public class EllipseMirror extends Ellipse {
     }
 
 
-    private void updateOutline() {
-        Ellipse ellipse = new Ellipse(this.getCenterX(), this.getCenterY(), this.getRadiusX(), this.getRadiusY());
-        ellipse.setFill(Color.TRANSPARENT);
-        ellipse.setStroke(Color.BLACK);
-        outline = getObjectOutline(ellipse);
-        outline.setStrokeWidth(1);
-    }
-
-
-    public void setReflectivity(double reflectivity) {
-        this.reflectivity = reflectivity;
-    }
-
-
-    public double getReflectivity() {
-        return reflectivity;
-    }
-
-
-
     public void scale(Point2D anchor) {
         new Thread(() -> {
-            double centerX, centerY, radiusX, radiusY;
+            double centerX, centerY, radius;
 
             while (isMousePressed) {
                 // Resizing standard based on Photoshop and MS Paint :)
-                if (altPressed && shiftPressed) {
+                if (altPressed) {
                     centerX = anchor.getX();
                     centerY = anchor.getY();
-                    radiusX = radiusY = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
+                    radius  = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
                 }
-                else if (altPressed) {
-                    centerX = anchor.getX();
-                    centerY = anchor.getY();
-                    radiusX = Math.abs(mousePos.getX() - centerX);
-                    radiusY = Math.abs(mousePos.getY() - centerY);
-                }
-                else if (shiftPressed) {
+                else {
                     double minDistance = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) ) / 2;
                     centerX = anchor.getX() + (mousePos.getX() > anchor.getX() ? minDistance : -minDistance);
                     centerY = anchor.getY() + (mousePos.getY() > anchor.getY() ? minDistance : -minDistance);
-                    radiusX = radiusY = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
-                }
-                else {
-                    centerX = anchor.getX() + ( (mousePos.getX() - anchor.getX()) / 2);
-                    centerY = anchor.getY() + ( (mousePos.getY() - anchor.getY()) / 2);
-                    radiusX = Math.abs(mousePos.getX() - centerX);
-                    radiusY = Math.abs(mousePos.getY() - centerY);
+                    radius = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
                 }
 
                 double finalCenterX = centerX;
                 double finalCenterY = centerY;
-                double finalRadiusX = radiusX;
-                double finalRadiusY = radiusY;
+                double finalRadius = radius;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     setCenterX(finalCenterX);
                     setCenterY(finalCenterY);
-                    setRadiusX(finalRadiusX);
-                    setRadiusY(finalRadiusY);
+                    setRadius(finalRadius);
 
                     // Update editPoints location
                     if (isEditPointClicked.getValue()) {
@@ -177,8 +132,6 @@ public class EllipseMirror extends Ellipse {
                             editPoints.get(i).setY(y + offset);
                         }
                     }
-
-                    updateOutline();
                 });
 
                 synchronized (lock) {
@@ -189,7 +142,6 @@ public class EllipseMirror extends Ellipse {
                     }
                 }
             }
-
         }).start();
     }
 }

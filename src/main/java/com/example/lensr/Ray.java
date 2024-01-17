@@ -199,6 +199,9 @@ public class Ray extends Line {
                         nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                     }
                 }
+                else if (closestIntersectionMirror instanceof LightEater) {
+                    return;
+                }
 
                 nextRay.setEndX(reflectedX);
                 nextRay.setEndY(reflectedY);
