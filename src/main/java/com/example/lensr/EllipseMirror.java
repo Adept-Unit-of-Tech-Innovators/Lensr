@@ -95,6 +95,7 @@ public class EllipseMirror extends Ellipse {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 
 

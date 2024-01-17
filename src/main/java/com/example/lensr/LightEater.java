@@ -84,6 +84,7 @@ public class LightEater extends Circle {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 
 

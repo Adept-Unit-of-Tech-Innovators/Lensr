@@ -94,6 +94,7 @@ public class LineMirror extends Line {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 
 

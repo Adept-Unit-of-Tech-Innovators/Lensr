@@ -98,5 +98,6 @@ public class FunnyMirror extends Polyline {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 }
