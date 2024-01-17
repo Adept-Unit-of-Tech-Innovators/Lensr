@@ -187,24 +187,27 @@ public class LineMirror extends Line {
                     endY = mousePos.getY();
                 }
 
-                this.setStartX(startX);
-                this.setStartY(startY);
-                this.setEndX(endX);
-                this.setEndY(endY);
-
-                // Update editPoints location
-                if (isEditPointClicked.getValue()) {
-                    editPoints.get(0).setX(getStartX() - editPointSize / 2);
-                    editPoints.get(0).setY(getStartY() - editPointSize / 2);
-                    editPoints.get(1).setX(getEndX() - editPointSize / 2);
-                    editPoints.get(1).setY(getEndY() - editPointSize / 2);
-                }
-
-                updateHitbox();
+                double finalStartX = startX;
+                double finalStartY = startY;
+                double finalEndX = endX;
+                double finalEndY = endY;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
-                    // Update UI components or perform other UI-related tasks
+                    this.setStartX(finalStartX);
+                    this.setStartY(finalStartY);
+                    this.setEndX(finalEndX);
+                    this.setEndY(finalEndY);
+
+                    // Update editPoints location
+                    if (isEditPointClicked.getValue()) {
+                        editPoints.get(0).setX(getStartX() - editPointSize / 2);
+                        editPoints.get(0).setY(getStartY() - editPointSize / 2);
+                        editPoints.get(1).setX(getEndX() - editPointSize / 2);
+                        editPoints.get(1).setY(getEndY() - editPointSize / 2);
+                    }
+
+                    updateHitbox();
                 });
 
                 synchronized (lock) {

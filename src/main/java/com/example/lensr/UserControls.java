@@ -2,7 +2,6 @@ package com.example.lensr;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.shape.Shape;
 
 import java.util.Timer;
 
@@ -41,6 +40,17 @@ public class UserControls {
 
             // Close funny mirror edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror
+                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                rays.forEach(Ray::update);
+                return;
+            }
+
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror
                     && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
             {
@@ -95,15 +105,15 @@ public class UserControls {
                 case X:
                     EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                     ellipseMirror.create();
-                    mirrors.add(ellipseMirror);
                     ellipseMirror.scale(mousePos);
+                    mirrors.add(ellipseMirror);
                     editedShape = ellipseMirror.group;
                     return;
                 case Z:
                     LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     lineMirror.create();
-                    mirrors.add(lineMirror);
                     lineMirror.scale(mousePos);
+                    mirrors.add(lineMirror);
                     editedShape = lineMirror.group;
                     return;
                 case V:
@@ -111,6 +121,13 @@ public class UserControls {
                     funnyMirror.draw();
                     mirrors.add(funnyMirror);
                     editedShape = funnyMirror.group;
+                    return;
+                case B:
+                    LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
+                    lightEater.create();
+                    lightEater.scale(mousePos);
+                    mirrors.add(lightEater);
+                    editedShape = lightEater.group;
                     return;
                 case C:
                     Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
@@ -137,7 +154,6 @@ public class UserControls {
                 case X:
                     if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof EllipseMirror mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
-
                     }
                 case Z:
                     if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LineMirror mirror && !mirror.isEdited) {
@@ -145,6 +161,10 @@ public class UserControls {
                     }
                 case V:
                     if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof FunnyMirror mirror && !mirror.isEdited) {
+                        mirror.openObjectEdit();
+                    }
+                case B:
+                    if (!mirrors.isEmpty() && mirrors.get(mirrors.size() - 1) instanceof LightEater mirror) {
                         mirror.openObjectEdit();
                     }
                 case C:
@@ -202,6 +222,14 @@ public class UserControls {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.V;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("B") && isEditMode) {
+                if (keyPressed == Key.B) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.B;
                 }
                 MirrorMethods.closeMirrorsEdit();
             }
