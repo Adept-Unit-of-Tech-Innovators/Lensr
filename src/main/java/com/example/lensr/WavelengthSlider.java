@@ -128,11 +128,9 @@ public class WavelengthSlider extends JFXSlider {
 
     public void hide() {
         setVisible(false);
-        System.out.println("Hiding");
     }
 
     public void show() {
         setVisible(true);
-        System.out.println("Showing");
     }
 }
