@@ -82,7 +82,7 @@ public class LensrStart extends Application {
 
         primaryStage.show();
 
-        SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 40);
+        SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 20);
         testLens.addToRoot();
         lenses.add(testLens);
     }

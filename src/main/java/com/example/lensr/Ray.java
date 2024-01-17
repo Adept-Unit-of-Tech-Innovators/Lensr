@@ -64,7 +64,7 @@ public class Ray extends Line {
     public void simulateRay(Ray parentRay, int recursiveDepth) {
         // Get first mirror the object will intersect with
         double shortestIntersectionDistance = Double.MAX_VALUE;
-        Object closestIntersectionMirror = null;
+        Object closestIntersectionObject = null;
         Point2D closestIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
 
         for (Object mirror : mirrors) {
@@ -98,7 +98,7 @@ public class Ray extends Line {
             if (intersectionDistance < shortestIntersectionDistance) {
                 closestIntersectionPoint = intersectionPoint;
                 shortestIntersectionDistance = intersectionDistance;
-                closestIntersectionMirror = mirror;
+                closestIntersectionObject = mirror;
             }
 
         }
@@ -112,26 +112,33 @@ public class Ray extends Line {
                 Shape shape = null;
                 for (Shape element : currentSphericalLens.elements) {
                     shape = element;
+                    if(element == currentSphericalLens.getFirstArc()) System.out.print("first arc");
+                    else if(element == currentSphericalLens.getSecondArc()) System.out.print("second arc");
+                    else if(element == currentSphericalLens.getTopLine()) System.out.print("top line");
+                    else if(element == currentSphericalLens.getBottomLine()) System.out.print("bottom line");
 
                     if(element instanceof SphericalLens.LensArc arc)
                     {
                         shape = getObjectOutline(shape);
                         shape = subtract(shape, arc.getChord());
+                        shape.setFill(Color.MEDIUMSPRINGGREEN);
+                        shape.setStrokeWidth(globalStrokeWidth);
+                        root.getChildren().add(shape);
                     }
 
                     double currDistance = getMinimalDistanceToBounds(shape.getLayoutBounds());
+
+                    System.out.print( " - " + currDistance + "; intersection point ");
+                    if(getRayIntersectionPoint(this, shape) != null) System.out.println("exists");
+                    else System.out.println("does not exist");
 
                     if(minimalDistance > currDistance && currDistance > 0 && getRayIntersectionPoint(this, shape) != null)
                     {
                         minimalDistance = currDistance;
                         intersectionPoint = getRayIntersectionPoint(this, shape);
                         currObject = element;
-                        System.out.println("new distance: " + minimalDistance);
+//                        System.out.println("new distance: " + minimalDistance);
 
-                        if(element == currentSphericalLens.getFirstArc()) System.out.println("first arc");
-                        else if(element == currentSphericalLens.getSecondArc()) System.out.println("second arc");
-                        else if(element == currentSphericalLens.getTopLine()) System.out.println("top line");
-                        else if(element == currentSphericalLens.getBottomLine()) System.out.println("bottom line");
                     }
                 }
 
@@ -156,14 +163,14 @@ public class Ray extends Line {
                 if (intersectionDistance < shortestIntersectionDistance) {
                     closestIntersectionPoint = intersectionPoint;
                     shortestIntersectionDistance = intersectionDistance;
-                    closestIntersectionMirror = currObject;
+                    closestIntersectionObject = currObject;
                 }
             }
 
         }
 
         // If there's no intersection, return
-        if (closestIntersectionMirror == null) return;
+        if (closestIntersectionObject == null) return;
 
         setEndX(closestIntersectionPoint.getX());
         setEndY(closestIntersectionPoint.getY());
@@ -182,7 +189,7 @@ public class Ray extends Line {
         double reflectedX = 0;
         double reflectedY = 0;
 
-        if (closestIntersectionMirror instanceof LineMirror mirror) {
+        if (closestIntersectionObject instanceof LineMirror mirror) {
             // Calculate the angle of incidence
             double reflectionAngle = getLineReflectionAngle(this, mirror);
 
@@ -196,7 +203,7 @@ public class Ray extends Line {
 
             nextRay.setBrightness(this.getBrightness() * mirror.getReflectivity());
         }
-        else if (closestIntersectionMirror instanceof EllipseMirror mirror) {
+        else if (closestIntersectionObject instanceof EllipseMirror mirror) {
             // Calculate the angle of incidence
             double reflectionAngle = getEllipseReflectionAngle(this, mirror);
 
@@ -210,7 +217,7 @@ public class Ray extends Line {
 
             nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
         }
-        else if (closestIntersectionMirror instanceof FunnyMirror mirror) {
+        else if (closestIntersectionObject instanceof FunnyMirror mirror) {
             Line intersectionSegment = null;
             for (int i = 0; i + 2 < mirror.getPoints().size(); i = i + 2) {
                 // Find the mirror's segment that the ray intersects
@@ -234,11 +241,11 @@ public class Ray extends Line {
                 nextRay.setBrightness(getBrightness() * mirror.getReflectivity());
             }
         }
-        else if (closestIntersectionMirror instanceof SphericalLens.LensArc arc)
+        else if (closestIntersectionObject instanceof SphericalLens.LensArc arc)
         {
             System.out.println("arc");
             double refractionAngle = getArcRefractionAngle(this, arc, 1.5);
-
+            
             reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
             reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
 
@@ -250,7 +257,7 @@ public class Ray extends Line {
             nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
             nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
         }
-        else if (closestIntersectionMirror instanceof SphericalLens.LensLine line)
+        else if (closestIntersectionObject instanceof SphericalLens.LensLine line)
         {
             double refractionAngle = getLineReflectionAngle(this, line);
 
@@ -270,7 +277,7 @@ public class Ray extends Line {
 
         parentRay.rayReflections.add(nextRay);
 
-        nextRay.simulateRay(parentRay, + 1);
+        nextRay.simulateRay(parentRay, recursiveDepth + 1);
     }
 
 
