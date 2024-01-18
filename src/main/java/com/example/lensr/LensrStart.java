@@ -18,7 +18,7 @@ public class LensrStart extends Application {
     public static final int SIZE = 1000;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
-    public static List<Ray> rays = new ArrayList<>();
+    public static List<Object> lightSources = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
     public static Point2D mousePos;
     public enum Key {

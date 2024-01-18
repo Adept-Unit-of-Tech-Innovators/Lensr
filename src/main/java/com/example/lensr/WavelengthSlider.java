@@ -7,10 +7,10 @@ import javafx.scene.paint.Color;
 public class WavelengthSlider extends JFXSlider {
 
 
-    Ray currentRay;
+    OriginRay currentRay;
 
 
-    public WavelengthSlider(Ray currentRay) {
+    public WavelengthSlider(OriginRay currentRay) {
 
         this.currentRay = currentRay;
 
@@ -122,7 +122,7 @@ public class WavelengthSlider extends JFXSlider {
         return String.format("#%02X%02X%02X", red, green, blue);
     }
 
-    public void setCurrentRay (Ray ray){
+    public void setCurrentRay (OriginRay ray){
         currentRay = ray;
     }
 

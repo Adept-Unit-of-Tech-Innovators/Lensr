@@ -3,9 +3,8 @@ package com.example.lensr;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 
-import java.util.Timer;
-
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 
 public class UserControls {
 
@@ -23,7 +22,11 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
-                rays.forEach(Ray::update);
+                lightSources.stream()
+                        .filter(lightSource -> lightSource instanceof BeamSource beamSource)
+                        .map(beamSource -> (BeamSource) beamSource)
+                        .forEach(BeamSource::update);
+
                 return;
             }
 
@@ -34,7 +37,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
-                rays.forEach(Ray::update);
+                updateLightSources();
                 return;
             }
 
@@ -46,7 +49,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
-                rays.forEach(Ray::update);
+                updateLightSources();
                 return;
             }
 
@@ -58,23 +61,24 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
-                rays.forEach(Ray::update);
+                updateLightSources();
                 return;
             }
 
             // Close ray edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray
-                    && !ray.laserPointer.contains(mousePos) && ray.editPoints.stream().noneMatch(rectangle ->
+            if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
+                    && !beamSource.contains(mousePos) && beamSource.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
             {
-                ray.closeObjectEdit();
-                ray.isEditPointClicked.setValue(false);
-                ray.isEdited = false;
+                beamSource.closeObjectEdit();
+                beamSource.isEditPointClicked.setValue(false);
+                beamSource.isEdited = false;
                 editedShape = null;
-                ray.update();
+                beamSource.update();
                 return;
             }
 
+            // Open object edit if clicked
             if (!mirrors.isEmpty()) {
                 for (Object mirror : mirrors) {
                     if (mirror instanceof LineMirror lineMirror && lineMirror.isMouseOnHitbox) {
@@ -95,10 +99,11 @@ public class UserControls {
                     }
                 }
             }
-            if (!rays.isEmpty()) {
-                for (Ray ray : rays) {
-                    if (ray.laserPointer.contains(mousePos) && !ray.isEdited) {
-                        ray.openObjectEdit();
+            // Same for light sources
+            if (!lightSources.isEmpty()) {
+                for (Object lightSource : lightSources) {
+                    if (lightSource instanceof BeamSource beamSource && beamSource.contains(mousePos) && !beamSource.isEdited) {
+                        beamSource.openObjectEdit();
                         return;
                     }
                 }
@@ -108,6 +113,7 @@ public class UserControls {
                 return;
             }
 
+
             // Place objects
             switch (keyPressed) {
                 case X:
@@ -116,42 +122,37 @@ public class UserControls {
                     ellipseMirror.scale(mousePos);
                     mirrors.add(ellipseMirror);
                     editedShape = ellipseMirror.group;
-                    return;
+                    break;
                 case Z:
                     LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     lineMirror.create();
                     lineMirror.scale(mousePos);
                     mirrors.add(lineMirror);
                     editedShape = lineMirror.group;
-                    return;
+                    break;
                 case V:
                     FunnyMirror funnyMirror = new FunnyMirror();
                     funnyMirror.draw();
                     mirrors.add(funnyMirror);
                     editedShape = funnyMirror.group;
-                    return;
+                    break;
                 case B:
                     LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
                     lightEater.create();
                     lightEater.scale(mousePos);
                     mirrors.add(lightEater);
                     editedShape = lightEater.group;
-                    return;
+                    break;
                 case C:
-                    Ray ray = new Ray(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
-                    ray.create();
-                    ray.createLaserPointer();
-                    for (Ray ray1 : rays) {
-                        if (ray1.isEdited) {
-                            ray1.closeObjectEdit();
-                            ray.simulateRay();
-                        }
+                    BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
+                    beamSource.create();
+                    if (lightSources.isEmpty()) {
+                        wavelengthSlider = new WavelengthSlider(beamSource.originRay);
                     }
-                    if (rays.isEmpty()) {
-                        wavelengthSlider = new WavelengthSlider(ray);
-                    }
-                    rays.add(ray);
-                    editedShape = ray.group;
+                    lightSources.add(beamSource);
+                    editedShape = beamSource.group;
+                    break;
+
             }
         });
 
@@ -179,8 +180,8 @@ public class UserControls {
                         mirror.openObjectEdit();
                     }
                 case C:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Ray ray && !ray.isEdited) {
-                        ray.openObjectEdit();
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BeamSource beamSource && !beamSource.isEdited) {
+                        beamSource.openObjectEdit();
                     }
             }
         });

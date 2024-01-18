@@ -82,5 +82,13 @@ public class MirrorMethods {
         }
     }
 
+    public static void updateLightSources() {
+        for (Object lightSource : LensrStart.lightSources) {
+            if (lightSource instanceof BeamSource beamSource) {
+                beamSource.update();
+            }
+        }
+    }
+
 
 }
