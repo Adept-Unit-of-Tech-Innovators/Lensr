@@ -42,11 +42,6 @@ public class LineMirror extends Line {
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
 
-//        setOnMouseClicked(mouseEvent -> {
-//            mouseEventHandled = true;
-//            if (isEditMode && !isEdited) openObjectEdit();
-//        });
-
         createRectangleHitbox();
 
         group.getChildren().add(this);

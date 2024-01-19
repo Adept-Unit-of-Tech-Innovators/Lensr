@@ -2,6 +2,7 @@ package com.example.lensr;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.control.Slider;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
@@ -22,10 +23,7 @@ public class UserControls {
                 mirror.closeObjectEdit();
                 mirror.isEditPointClicked.setValue(false);
                 editedShape = null;
-                lightSources.stream()
-                        .filter(lightSource -> lightSource instanceof BeamSource beamSource)
-                        .map(beamSource -> (BeamSource) beamSource)
-                        .forEach(BeamSource::update);
+                updateLightSources();
 
                 return;
             }
@@ -110,6 +108,10 @@ public class UserControls {
                         lightEater.openObjectEdit();
                         return;
                     }
+                    if (mirror instanceof Filter filter && filter.isMouseOnHitbox) {
+                        filter.openObjectEdit();
+                        return;
+                    }
                 }
             }
             // Same for light sources
@@ -159,6 +161,9 @@ public class UserControls {
                 case N:
                     Filter filter = new Filter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     filter.create();
+                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                        passbandSlider = new WavelengthSlider(filter);
+                    }
                     filter.scale(mousePos);
                     mirrors.add(filter);
                     editedShape = filter.group;

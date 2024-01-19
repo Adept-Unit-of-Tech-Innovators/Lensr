@@ -67,6 +67,7 @@ public class Filter extends Line {
         }
         group.getChildren().addAll(editPoints);
         editedShape = group;
+        passbandSlider.show();
     }
 
 
@@ -93,6 +94,7 @@ public class Filter extends Line {
             editPoints.clear();
         }
         editedShape = null;
+        passbandSlider.hide();
     }
 
 
@@ -228,6 +230,72 @@ public class Filter extends Line {
 
     public void setPassband(double passband) {
         this.passband = passband;
+
+        double factor;
+        double red;
+        double green;
+        double blue;
+
+        int intensityMax = 255;
+        double Gamma = 0.8;
+
+        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
+        // what
+        if ((passband >= 380) && (passband < 440)) {
+            red = -(passband - 440.0) / (440.0 - 380.0);
+            green = 0.0;
+            blue = 1.0;
+        } else if ((passband >= 440) && (passband < 490)) {
+            red = 0.0;
+            green = (passband - 440.0) / (490.0 - 440.0);
+            blue = 1.0;
+        } else if ((passband >= 490) && (passband < 510)) {
+            red = 0.0;
+            green = 1.0;
+            blue = -(passband - 510.0) / (510.0 - 490.0);
+        } else if ((passband >= 510) && (passband < 580)) {
+            red = (passband - 510.0) / (580.0 - 510.0);
+            green = 1.0;
+            blue = 0.0;
+        } else if ((passband >= 580) && (passband < 645)) {
+            red = 1.0;
+            green = -(passband - 645.0) / (645.0 - 580.0);
+            blue = 0.0;
+        } else if ((passband >= 645) && (passband < 781)) {
+            red = 1.0;
+            green = 0.0;
+            blue = 0.0;
+        } else {
+            red = 0.0;
+            green = 0.0;
+            blue = 0.0;
+        }
+        // Let the intensity fall off near the vision limits
+        if ((passband >= 380) && (passband < 420)) {
+            factor = 0.3 + 0.7 * (passband - 380) / (420 - 380);
+        } else if ((passband >= 420) && (passband < 701)) {
+            factor = 1.0;
+        }
+        else if ((passband >= 701) && (passband < 781)) {
+            factor = 0.3 + 0.7 * (780 - passband) / (780 - 700);
+        } else {
+            factor = 0.0;
+        }
+
+        if (red != 0) {
+            red = Math.round(intensityMax * Math.pow(red * factor, Gamma));
+        }
+
+        if (green != 0) {
+            green = Math.round(intensityMax * Math.pow(green * factor, Gamma));
+        }
+
+        if (blue != 0) {
+            blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
+        }
+        
+
+        setStroke(Color.rgb((int) red, (int) green, (int) blue));
     }
 
 

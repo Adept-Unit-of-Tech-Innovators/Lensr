@@ -26,7 +26,7 @@ public class Ray extends Line {
         int intensityMax = 255;
         double Gamma = 0.8;
 
-        // adjusting to transform between different colours for example green and yellow with addition of red and absence of blue
+        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
         // what
         if ((wavelength >= 380) && (wavelength < 440)) {
             red = -(wavelength - 440.0) / (440.0 - 380.0);

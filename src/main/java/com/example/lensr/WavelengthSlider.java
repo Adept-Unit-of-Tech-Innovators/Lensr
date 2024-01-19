@@ -1,6 +1,7 @@
 package com.example.lensr;
 
 import com.jfoenix.controls.JFXSlider;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
@@ -20,17 +21,21 @@ public class WavelengthSlider extends JFXSlider {
         setMax(780);
         setValue(600);
 
-        final double[] colourSliderValue = {0.0};
+        final double[] colorSliderValue = {0.0};
 
         // Laser changes
         valueProperty().addListener((observable, oldValue, newValue) -> {
-            colourSliderValue[0] = newValue.doubleValue();
+            colorSliderValue[0] = newValue.doubleValue();
 
             Color color = new Color(0, 0, 0, 1);
 
             if (currentSource instanceof BeamSource beamSource) {
-                beamSource.setWavelength(colourSliderValue[0]);
+                beamSource.setWavelength(colorSliderValue[0]);
                 color = (Color) beamSource.originRay.getStroke();
+            }
+            else if (currentSource instanceof Filter filter) {
+                filter.setPassband(colorSliderValue[0]);
+                color = (Color) filter.getStroke();
             }
 
             StackPane colorPreview = (StackPane) lookup(".animated-thumb");

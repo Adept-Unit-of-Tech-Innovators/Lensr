@@ -39,6 +39,7 @@ public class LensrStart extends Application {
     public static Object editedShape;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
     public static WavelengthSlider wavelengthSlider;
+    public static WavelengthSlider passbandSlider;
 
     @Override
     public void start(Stage primaryStage) {
