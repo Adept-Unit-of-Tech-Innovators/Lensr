@@ -65,6 +65,19 @@ public class UserControls {
                 return;
             }
 
+
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Filter filter
+                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                filter.closeObjectEdit();
+                filter.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
+
+
             // Close ray edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
                     && !beamSource.contains(mousePos) && beamSource.editPoints.stream().noneMatch(rectangle ->
@@ -143,11 +156,18 @@ public class UserControls {
                     mirrors.add(lightEater);
                     editedShape = lightEater.group;
                     break;
+                case N:
+                    Filter filter = new Filter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                    filter.create();
+                    filter.scale(mousePos);
+                    mirrors.add(filter);
+                    editedShape = filter.group;
+                    break;
                 case C:
                     BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                     beamSource.create();
                     if (lightSources.isEmpty()) {
-                        wavelengthSlider = new WavelengthSlider(beamSource.originRay);
+                        wavelengthSlider = new WavelengthSlider(beamSource);
                     }
                     lightSources.add(beamSource);
                     editedShape = beamSource.group;
@@ -177,6 +197,10 @@ public class UserControls {
                     }
                 case B:
                     if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror && !mirror.isEdited) {
+                        mirror.openObjectEdit();
+                    }
+                case N:
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Filter mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case C:
@@ -242,6 +266,14 @@ public class UserControls {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.B;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("N") && isEditMode) {
+                if (keyPressed == Key.N) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.N;
                 }
                 MirrorMethods.closeMirrorsEdit();
             }

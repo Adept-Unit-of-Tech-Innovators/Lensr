@@ -108,7 +108,7 @@ public class OriginRay extends Ray {
 
                 Ray nextRay = new Ray(0, 0, 0, 0);
                 nextRay.setStrokeWidth(globalStrokeWidth);
-                nextRay.setStroke(currentRay.getStroke());
+                nextRay.setWavelength(currentRay.getWavelength());
 
                 double reflectedX = 0;
                 double reflectedY = 0;
@@ -163,6 +163,45 @@ public class OriginRay extends Ray {
                         nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
 
                         nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
+                    }
+                }
+                else if (closestIntersectionMirror instanceof Filter filter) {
+                    if (currentRay.getWavelength() >= ((Filter) closestIntersectionMirror).getPassband()) {
+                        // Calculate the angle of incidence
+                        double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
+
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+
+                            // Set the brightness of the ray assuming Gaussian filter profile (standard for bandpass filters)
+                            double sigma = filter.getFWHM() / (2 * Math.sqrt(2 * Math.log(2)));
+                            // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⢴⣮⣽⣿⣿⣿⣿⣿⣯⣭⣭⣿⣢⢄⡀⠀⠀⠀⠀
+                            //⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣾⣿⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⢆⠀⠀⠀
+                            //⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⡿⠛⠋⠙⣉⠛⣛⣿⣿⣿⠟⠛⢧⢷⠀⠀
+                            //⠀⠀⠀⠀⠀⠀⡼⣿⣿⣿⣿⣿⣿⠯⠄⠀⠀⠀⠀⣦⣤⣽⣿⣟⣗⣄⠈⢣⡗⠀
+                            //⠀⠀⠀⠀⠀⢠⢿⣿⣿⣿⣿⣿⣿⡴⠚⠉⠀⢀⣤⣬⣬⣿⣿⣿⠹⣿⡇⠀⣿⠀
+                            //⠀⠀⠀⠀⠀⢸⢸⣿⣿⣿⣿⣿⠋⠀⠀⢠⠴⠟⣛⣿⣿⣿⣿⣿⣶⣾⣰⡀⢹⡢
+                            //⠀⠀⠀⠀⠀⣸⢾⠟⠻⣿⣿⠇⠀⠀⠀⠐⢿⣿⣿⣿⣿⣿⣿⡟⢻⢻⣿⣿⣶⡇
+                            //⠀⠀⠀⠀⢀⣾⣏⣐⡄⠀⣯⡀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⣿⠄⠘⣿⣿⣿⣷⡅
+                            //⠀⠀⠀⠀⢸⣤⣿⣿⠀⠀⣿⣷⡀⠀⠀⠀⣠⣶⣿⣿⣿⣿⠇⣄⣀⠸⡾⣷⡄⡇
+                            //⠀⠀⠀⠀⠈⠣⣃⡈⢉⣸⣿⡻⣿⣮⣴⣾⡏⢀⣽⣿⣿⣿⣶⣶⣶⣴⣇⣿⠀⣱
+                            //⠀⠀⠀⠀⠀⠀⡏⡏⠁⣿⢿⣆⣿⣿⣿⣿⣧⣿⣿⣿⣛⣿⣿⣿⣿⡦⣾⡟⢠⣃
+                            //⠀⠀⠀⠀⠀⠀⣧⡇⢠⡏⢂⢹⣿⣿⣿⣿⣿⣿⣿⣿⡷⣬⣭⣙⡛⢳⣼⣿⣿⣎
+                            //⠀⠀⠀⠀⠀⢠⢿⠀⠘⣿⣧⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣾⣿⣿⣥⣿⣿⢿⡿
+                            //⠀⠀⠀⠀⠀⢸⡟⠀⠀⠙⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣸⣿⢻⡿⠀
+                            //⠀⠀⠀⠀⠀⣯⡇⠀⠀⠀⠀⠈⠙⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⢸⠁⠀
+                            //⠀⠀⠀⢀⣴⠟⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⣜⡆⠀
+                            //⣒⠶⡛⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⣿⣿⣿⡿⣠⡟⠀⠀
+                            double exponent = -Math.pow(currentRay.getWavelength() - filter.getPassband(), 2) / (2 * Math.pow(sigma, 2));
+                            nextRay.setBrightness(currentRay.getBrightness() * filter.getPeakTransmission() * Math.exp(exponent));
+                    }
+                    else {
+                        return;
                     }
                 }
                 else if (closestIntersectionMirror instanceof LightEater) {

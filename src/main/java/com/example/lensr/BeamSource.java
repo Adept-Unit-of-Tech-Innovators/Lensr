@@ -15,11 +15,12 @@ import static com.example.lensr.LensrStart.lock;
 
 public class BeamSource extends Rectangle {
     OriginRay originRay = new OriginRay(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
-    List<Rectangle> editPoints = new ArrayList<>();
-    boolean isEdited;
-    Group group = new Group();
     MutableValue isEditPointClicked = new MutableValue(false);
+    List<Rectangle> editPoints = new ArrayList<>();
     Rotate rotate = new Rotate();
+    Group group = new Group();
+    double wavelength = 600;
+    boolean isEdited;
 
     public BeamSource(double x, double y) {
         setX(x);
@@ -40,6 +41,7 @@ public class BeamSource extends Rectangle {
         originRay.setStartY(getCenterY());
         originRay.setEndX(getCenterX() + SIZE * Math.cos(angle));
         originRay.setEndY(getCenterY() + SIZE * Math.sin(angle));
+        originRay.setWavelength(wavelength);
 
         group.getChildren().add(originRay);
         root.getChildren().add(group);
@@ -59,7 +61,7 @@ public class BeamSource extends Rectangle {
     }
 
     public void openObjectEdit() {
-        wavelengthSlider.setCurrentRay(originRay);
+        wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
 
         MirrorMethods.setupObjectEdit();
@@ -68,8 +70,8 @@ public class BeamSource extends Rectangle {
         // Place edit points
         editPoints.add(new Rectangle(getCenterX() - editPointSize / 2, getCenterY() - editPointSize / 2, editPointSize,editPointSize));
         editPoints.add(new Rectangle(
-                getCenterX() + Math.cos(Math.toRadians(getTotalRotation())) * 100 - editPointSize / 2,
-                getCenterY() + Math.sin(Math.toRadians(getTotalRotation())) * 100 - editPointSize / 2,
+                getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 100 - editPointSize / 2,
+                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100 - editPointSize / 2,
                 editPointSize, editPointSize
         ));
 
@@ -190,15 +192,14 @@ public class BeamSource extends Rectangle {
         return getY() + getHeight() / 2;
     }
 
-    private double getTotalRotation() {
-        double totalRotation = getRotate();
 
-        for (var transform : getTransforms()) {
-            if (transform instanceof Rotate) {
-                totalRotation += ((Rotate) transform).getAngle();
-            }
-        }
+    public void setWavelength(double wavelength) {
+        this.wavelength = wavelength;
+        originRay.setWavelength(wavelength);
+    }
 
-        return totalRotation;
+
+    public double getWavelength() {
+        return wavelength;
     }
 }
