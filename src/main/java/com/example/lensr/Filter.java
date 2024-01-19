@@ -53,6 +53,12 @@ public class Filter extends Line {
     }
 
     public void openObjectEdit() {
+        // Setup sliders
+        passbandSlider.setCurrentSource(this);
+        passbandSlider.show();
+        peakTransmissionSlider.setCurrentSource(this);
+        peakTransmissionSlider.show();
+
         setupObjectEdit();
         isEdited = true;
 
@@ -67,7 +73,6 @@ public class Filter extends Line {
         }
         group.getChildren().addAll(editPoints);
         editedShape = group;
-        passbandSlider.show();
     }
 
 
@@ -88,13 +93,16 @@ public class Filter extends Line {
 
 
     public void closeObjectEdit() {
+        // Hide sliders
+        passbandSlider.hide();
+        peakTransmissionSlider.hide();
+
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
         editedShape = null;
-        passbandSlider.hide();
     }
 
 

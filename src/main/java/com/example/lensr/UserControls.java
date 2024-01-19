@@ -163,6 +163,7 @@ public class UserControls {
                     filter.create();
                     if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
                         passbandSlider = new WavelengthSlider(filter);
+                        peakTransmissionSlider = new ZeroOneSlider(filter);
                     }
                     filter.scale(mousePos);
                     mirrors.add(filter);

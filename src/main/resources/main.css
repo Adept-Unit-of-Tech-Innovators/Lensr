@@ -3,35 +3,66 @@
 }
 
 /* Styling the slider track */
-.jfx-slider > .track {
+.primary-slider > .track {
     -fx-background-color: #656565;
     -fx-pref-height: 350%;
 }
 
 /* Styling the slider thumb */
-.jfx-slider > .thumb {
+.primary-slider > .thumb {
     -fx-background-color: rgb(77, 102, 204);
 }
 
 /* Styling the filled track */
-.jfx-slider > .colored-track {
+.primary-slider > .colored-track {
     -fx-background-color: rgb(77, 102, 204);
 }
 
 /* Styling the animated thumb */
-.jfx-slider > .animated-thumb {
-    -fx-background-color: #656565;
+.primary-slider > .animated-thumb {
+    -fx-background-color: rgb(77, 102, 204);
 }
 
 /* Styling the slider value text inside animated thumb */
-.jfx-slider .slider-value {
-    -fx-opacity: 0;
-    /*-fx-fill: #ffffff;*/
-    /*-fx-stroke: #ffffff;*/
-    /*-fx-stroke-width: 0.5;*/
+.primary-slider .slider-value {
+    -fx-fill: white;
+    -fx-stroke: white;
+    -fx-stroke-width: 0.5;
 }
 
-.jfx-slider {
+.primary-slider {
+    -fx-show-tick-marks: false;
+}
+
+/* Styling the slider track */
+.secondary-slider > .track {
+    -fx-background-color: #656565;
+    -fx-pref-height: 350%;
+}
+
+/* Styling the slider thumb */
+.secondary-slider > .thumb {
+    -fx-background-color: #248c40;
+}
+
+/* Styling the filled track */
+.secondary-slider > .colored-track {
+    -fx-background-color: #248c40;
+}
+
+/* Styling the animated thumb */
+.secondary-slider > .animated-thumb {
+    -fx-background-color: #248c40;
+}
+
+/* Styling the slider value text inside animated thumb */
+.secondary-slider .slider-value {
+    -fx-fill: white;
+    -fx-stroke: white;
+    -fx-stroke-width: 0.5;
+}
+
+.secondary-slider {
     -fx-show-tick-marks: false;
 }
 

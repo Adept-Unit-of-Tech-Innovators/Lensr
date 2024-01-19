@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import com.jfoenix.controls.JFXSlider;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
@@ -40,6 +41,7 @@ public class LensrStart extends Application {
     public static List<ToolbarButton> toolbar = new ArrayList<>();
     public static WavelengthSlider wavelengthSlider;
     public static WavelengthSlider passbandSlider;
+    public static ZeroOneSlider peakTransmissionSlider;
 
     @Override
     public void start(Stage primaryStage) {

@@ -10,6 +10,7 @@ public class WavelengthSlider extends JFXSlider {
     Object currentSource;
 
     public WavelengthSlider(Object currentSource) {
+        this.getStyleClass().add("primary-slider");
         this.currentSource = currentSource;
 
         setLayoutX(800);
@@ -27,19 +28,12 @@ public class WavelengthSlider extends JFXSlider {
         valueProperty().addListener((observable, oldValue, newValue) -> {
             colorSliderValue[0] = newValue.doubleValue();
 
-            Color color = new Color(0, 0, 0, 1);
-
             if (currentSource instanceof BeamSource beamSource) {
                 beamSource.setWavelength(colorSliderValue[0]);
-                color = (Color) beamSource.originRay.getStroke();
             }
             else if (currentSource instanceof Filter filter) {
                 filter.setPassband(colorSliderValue[0]);
-                color = (Color) filter.getStroke();
             }
-
-            StackPane colorPreview = (StackPane) lookup(".animated-thumb");
-            colorPreview.setStyle("-fx-background-color: " + getHexFromColor(color));
         });
         LensrStart.root.getChildren().add(this);
     }
