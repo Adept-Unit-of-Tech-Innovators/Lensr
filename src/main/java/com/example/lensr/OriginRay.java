@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
-import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
 
 public class OriginRay extends Ray {
+    Object parentSource;
     List<Ray> rayReflections = new ArrayList<>();
 
     public OriginRay(double startX, double startY, double endX, double endY) {
@@ -86,6 +86,9 @@ public class OriginRay extends Ray {
                     // Don't add the first ray to the group (it's already added)
                     if (!(finalCurrentRay instanceof OriginRay)) {
                         this.rayReflections.add(ray);
+                        if (parentSource instanceof BeamSource beamSource) {
+                            beamSource.group.getChildren().add(ray);
+                        }
                     }
                 });
 
@@ -175,15 +178,13 @@ public class OriginRay extends Ray {
         }).start();
     }
 
-    public double getTotalRotation() {
-        double totalRotation = getRotate();
 
-        for (var transform : getTransforms()) {
-            if (transform instanceof Rotate) {
-                totalRotation += ((Rotate) transform).getAngle();
-            }
-        }
+    public void setParentSource(Object parentSource) {
+        this.parentSource = parentSource;
+    }
 
-        return totalRotation;
+
+    public Object getParentSource() {
+        return parentSource;
     }
 }

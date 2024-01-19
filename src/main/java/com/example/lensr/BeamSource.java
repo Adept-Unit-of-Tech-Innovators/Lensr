@@ -19,6 +19,7 @@ public class BeamSource extends Rectangle {
     boolean isEdited;
     Group group = new Group();
     MutableValue isEditPointClicked = new MutableValue(false);
+    Rotate rotate = new Rotate();
 
     public BeamSource(double x, double y) {
         setX(x);
@@ -26,10 +27,20 @@ public class BeamSource extends Rectangle {
         setWidth(100);
         setHeight(50);
         setFill(Color.GRAY);
+        getTransforms().add(rotate);
     }
 
     public void create() {
         group.getChildren().add(this);
+
+        double angle = Math.toRadians(getRotate()); // Get the current rotation of in radians
+
+        originRay.setParentSource(this);
+        originRay.setStartX(getCenterX());
+        originRay.setStartY(getCenterY());
+        originRay.setEndX(getCenterX() + SIZE * Math.cos(angle));
+        originRay.setEndY(getCenterY() + SIZE * Math.sin(angle));
+
         group.getChildren().add(originRay);
         root.getChildren().add(group);
         toFront();
@@ -40,27 +51,11 @@ public class BeamSource extends Rectangle {
         if (isEdited) {
             return;
         }
-        double angleInRadians = Math.toRadians(getRotate()); // Get the current rotation of in radians
 
-        double newEndX = getCenterX() + SIZE * Math.cos(angleInRadians);
-        double newEndY = getCenterY() + SIZE * Math.sin(angleInRadians);
-
-        // Update originRay's properties
-        originRay.setStartX(getCenterX());
-        originRay.setStartY(getCenterY());
-        originRay.setEndX(newEndX);
-        originRay.setEndY(newEndY);
-        originRay.toBack();
-
-        for (Ray ray : originRay.rayReflections) {
-            group.getChildren().remove(ray);
-        }
+        group.getChildren().removeAll(originRay.rayReflections);
+        originRay.rayReflections.clear();
 
         originRay.simulate();
-
-        for (Ray ray : originRay.rayReflections) {
-            group.getChildren().add(ray);
-        }
     }
 
     public void openObjectEdit() {
@@ -101,20 +96,31 @@ public class BeamSource extends Rectangle {
 
     private void moveToMouse() {
         new Thread(() -> {
-            Platform.runLater(() -> originRay.rayReflections.clear());
+            Platform.runLater(() -> {
+                group.getChildren().removeAll(originRay.rayReflections);
+                originRay.rayReflections.clear();
+            });
 
             while (isMousePressed) {
+                double deltaX = mousePos.getX() - getCenterX();
+                double deltaY = mousePos.getY() - getCenterY();
 
-                setTranslateX(mousePos.getX() - getCenterX());
-                setTranslateY(mousePos.getY() - getCenterY());
+                setX(getX() + deltaX);
+                setY(getY() + deltaY);
 
-                originRay.setTranslateX(mousePos.getX() - getCenterX());
-                originRay.setTranslateY(mousePos.getY() - getCenterY());
+                rotate.setPivotX(getCenterX());
+                rotate.setPivotY(getCenterY());
 
-                editPoints.get(0).setTranslateX(mousePos.getX() - getCenterX());
-                editPoints.get(0).setTranslateY(mousePos.getY() - getCenterY());
-                editPoints.get(1).setTranslateX(mousePos.getX() - getCenterX());
-                editPoints.get(1).setTranslateY(mousePos.getY() - getCenterY());
+                originRay.setStartX(getCenterX());
+                originRay.setStartY(getCenterY());
+
+                originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * SIZE);
+                originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * SIZE);
+
+                editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
+                editPoints.get(0).setY(editPoints.get(0).getY() + deltaY);
+                editPoints.get(1).setX(editPoints.get(1).getX() + deltaX);
+                editPoints.get(1).setY(editPoints.get(1).getY() + deltaY);
 
                 synchronized (lock) {
                     try {
@@ -130,20 +136,25 @@ public class BeamSource extends Rectangle {
 
     private void rotateToMouse() {
         new Thread(() -> {
-            Platform.runLater(() -> originRay.rayReflections.clear());
+            Platform.runLater(() -> {
+                group.getChildren().removeAll(originRay.rayReflections);
+                originRay.rayReflections.clear();
+            });
+
             while (isMousePressed) {
+                double angle = Math.atan2(mousePos.getY() - getCenterY(), mousePos.getX() - getCenterX());
+
                 // Rotate the light source
-                Rotate rotate = new Rotate();
-                double angle = Math.toDegrees(Math.atan2(mousePos.getY() - getCenterY(), mousePos.getX() - getCenterX()));
-                rotate.setAngle(angle - getTotalRotation());
+                rotate.setAngle(Math.toDegrees(angle));
                 rotate.setPivotX(getCenterX());
                 rotate.setPivotY(getCenterY());
 
                 // Adjust the ray and edit point positions
-                getTransforms().add(rotate);
-                editPoints.get(1).setX(getCenterX() + Math.cos(Math.toRadians(angle)) * 100 - editPointSize / 2);
-                editPoints.get(1).setY(getCenterY() + Math.sin(Math.toRadians(angle)) * 100 - editPointSize / 2);
-                originRay.getTransforms().add(rotate);
+                editPoints.get(1).setX(getCenterX() + Math.cos(angle) * 100 - editPointSize / 2);
+                editPoints.get(1).setY(getCenterY() + Math.sin(angle) * 100 - editPointSize / 2);
+
+                originRay.setEndX(originRay.getStartX() + Math.cos(angle) * SIZE);
+                originRay.setEndY(originRay.getStartY() + Math.sin(angle) * SIZE);
 
                 synchronized (lock) {
                     try {
