@@ -24,6 +24,8 @@ public class OriginRay extends Ray {
     }
 
     public void simulate() {
+        setEndX(getStartX() + (getEndX() - getStartX()) * SIZE);
+        setEndY(getStartY() + (getEndY() - getStartY()) * SIZE);
         new Thread(() -> {
             int recursiveDepth = 0;
             Ray currentRay = this;
