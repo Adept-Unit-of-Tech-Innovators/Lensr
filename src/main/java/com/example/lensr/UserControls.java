@@ -6,6 +6,7 @@ import javafx.scene.control.Slider;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
+import static com.example.lensr.ParameterSlider.*;
 
 public class UserControls {
 
@@ -162,8 +163,9 @@ public class UserControls {
                     Filter filter = new Filter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     filter.create();
                     if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        passbandSlider = new WavelengthSlider(filter);
-                        peakTransmissionSlider = new ZeroOneSlider(filter);
+                        passbandSlider = new ParameterSlider(filter, ValueToChange.Passband, SliderStyle.Primary);
+                        peakTransmissionSlider = new ParameterSlider(filter, ValueToChange.PeakTransmission, SliderStyle.Secondary);
+                        FWHMSlider = new ParameterSlider(filter, ValueToChange.FWHM, SliderStyle.Tertiary);
                     }
                     filter.scale(mousePos);
                     mirrors.add(filter);
@@ -173,7 +175,7 @@ public class UserControls {
                     BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                     beamSource.create();
                     if (lightSources.isEmpty()) {
-                        wavelengthSlider = new WavelengthSlider(beamSource);
+                        wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.WaveLength, SliderStyle.Primary);
                     }
                     lightSources.add(beamSource);
                     editedShape = beamSource.group;

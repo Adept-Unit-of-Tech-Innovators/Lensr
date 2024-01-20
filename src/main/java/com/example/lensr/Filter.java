@@ -58,6 +58,8 @@ public class Filter extends Line {
         passbandSlider.show();
         peakTransmissionSlider.setCurrentSource(this);
         peakTransmissionSlider.show();
+        FWHMSlider.setCurrentSource(this);
+        FWHMSlider.show();
 
         setupObjectEdit();
         isEdited = true;
@@ -96,6 +98,7 @@ public class Filter extends Line {
         // Hide sliders
         passbandSlider.hide();
         peakTransmissionSlider.hide();
+        FWHMSlider.hide();
 
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {

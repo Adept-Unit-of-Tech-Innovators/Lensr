@@ -1,29 +1,26 @@
+/* Background */
 .root {
     -fx-background-color: rgb(50, 50, 50);
 }
 
-/* Styling the slider track */
+/* Primary slider */
 .primary-slider > .track {
     -fx-background-color: #656565;
     -fx-pref-height: 350%;
 }
 
-/* Styling the slider thumb */
 .primary-slider > .thumb {
     -fx-background-color: rgb(77, 102, 204);
 }
 
-/* Styling the filled track */
 .primary-slider > .colored-track {
     -fx-background-color: rgb(77, 102, 204);
 }
 
-/* Styling the animated thumb */
 .primary-slider > .animated-thumb {
     -fx-background-color: rgb(77, 102, 204);
 }
 
-/* Styling the slider value text inside animated thumb */
 .primary-slider .slider-value {
     -fx-fill: white;
     -fx-stroke: white;
@@ -34,28 +31,24 @@
     -fx-show-tick-marks: false;
 }
 
-/* Styling the slider track */
+/* Secondary slider */
 .secondary-slider > .track {
     -fx-background-color: #656565;
     -fx-pref-height: 350%;
 }
 
-/* Styling the slider thumb */
 .secondary-slider > .thumb {
-    -fx-background-color: #248c40;
+    -fx-background-color: #37a45a;
 }
 
-/* Styling the filled track */
 .secondary-slider > .colored-track {
-    -fx-background-color: #248c40;
+    -fx-background-color: #37a45a;
 }
 
-/* Styling the animated thumb */
 .secondary-slider > .animated-thumb {
-    -fx-background-color: #248c40;
+    -fx-background-color: #37a45a;
 }
 
-/* Styling the slider value text inside animated thumb */
 .secondary-slider .slider-value {
     -fx-fill: white;
     -fx-stroke: white;
@@ -66,6 +59,35 @@
     -fx-show-tick-marks: false;
 }
 
+/* Tertiary slider */
+.tertiary-slider > .track {
+    -fx-background-color: #656565;
+    -fx-pref-height: 350%;
+}
+
+.tertiary-slider > .thumb {
+    -fx-background-color: #ed4245;
+}
+
+.tertiary-slider > .colored-track {
+    -fx-background-color: #ed4245;
+}
+
+.tertiary-slider > .animated-thumb {
+    -fx-background-color: #ed4245;
+}
+
+.tertiary-slider .slider-value {
+    -fx-fill: white;
+    -fx-stroke: white;
+    -fx-stroke-width: 0.5;
+}
+
+.tertiary-slider {
+    -fx-show-tick-marks: false;
+}
+
+/* Button */
 .button {
     -fx-padding: 0.7em 0.57em;
     -fx-font-size: 14px;
