@@ -47,14 +47,28 @@ public class ParameterSlider extends JFXSlider {
 
         double minVal = 0;
         double maxVal = 1;
+        double startingVal = 0.5;
 
-        if (valueToChange == ValueToChange.WaveLength || valueToChange == ValueToChange.Passband) {
+        if (valueToChange == ValueToChange.WaveLength && source instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
+            startingVal = beamSource.getWavelength();
         }
-        else if (valueToChange == ValueToChange.FWHM) {
+        else if (valueToChange == ValueToChange.Passband && source instanceof Filter filter) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = filter.getPassband();
+            filter.setPassband(startingVal); // temp for coloring the filter at the start
+        }
+        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof Filter filter) {
             minVal = 0;
-            maxVal = 400; // Passband max - passband min
+            maxVal = 1;
+            startingVal = filter.getPeakTransmission();
+        }
+        else if (valueToChange == ValueToChange.FWHM && source instanceof Filter filter) {
+            minVal = 0;
+            maxVal = 400;
+            startingVal = filter.getFWHM();
         }
 
         // Set values for the slider
@@ -65,7 +79,7 @@ public class ParameterSlider extends JFXSlider {
 
         setMin(minVal);
         setMax(maxVal);
-        setValue((minVal + maxVal) / 2);
+        setValue(startingVal);
 
         textField.setLayoutX(725);
         textField.setPrefWidth(50);
@@ -85,21 +99,22 @@ public class ParameterSlider extends JFXSlider {
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
-            textField.setText(String.valueOf(Math.round(newValue.doubleValue() * 100.0) / 100.0));
+            double roundedValue = Math.round(newValue.doubleValue() * 100.0) / 100.0;
+            textField.setText(String.valueOf(roundedValue));
             if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.WaveLength) {
-                beamSource.setWavelength(newValue.doubleValue());
+                beamSource.setWavelength(roundedValue);
                 return;
             }
             if (currentSource instanceof Filter filter && valueToChange == ValueToChange.Passband) {
-                filter.setPassband(newValue.doubleValue());
+                filter.setPassband(roundedValue);
                 return;
             }
             if (currentSource instanceof Filter filter && valueToChange == ValueToChange.PeakTransmission) {
-                filter.setPeakTransmission(newValue.doubleValue());
+                filter.setPeakTransmission(roundedValue);
                 return;
             }
             if (currentSource instanceof Filter filter && valueToChange == ValueToChange.FWHM) {
-                filter.setFWHM(newValue.doubleValue());
+                filter.setFWHM(roundedValue);
             }
         });
 
