@@ -1,8 +1,10 @@
 package com.example.lensr;
 
+import com.jfoenix.controls.JFXTextField;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -53,7 +55,7 @@ public class LensrStart extends Application {
         ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 275, 25);
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
         ToolbarButton FilterButton = new ToolbarButton("Filter", Key.N, 525, 25);
-        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 650, 25);
+        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 25, 80);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -75,7 +77,6 @@ public class LensrStart extends Application {
             button.addToRoot();
             button.disableProperty().setValue(true);
         }
-
 
         UserControls.setUserControls();
 

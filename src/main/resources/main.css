@@ -18,13 +18,7 @@
 }
 
 .primary-slider > .animated-thumb {
-    -fx-background-color: rgb(77, 102, 204);
-}
-
-.primary-slider .slider-value {
-    -fx-fill: white;
-    -fx-stroke: white;
-    -fx-stroke-width: 0.5;
+    -fx-opacity: 0;
 }
 
 .primary-slider {
@@ -46,13 +40,7 @@
 }
 
 .secondary-slider > .animated-thumb {
-    -fx-background-color: #37a45a;
-}
-
-.secondary-slider .slider-value {
-    -fx-fill: white;
-    -fx-stroke: white;
-    -fx-stroke-width: 0.5;
+    -fx-opacity: 0;
 }
 
 .secondary-slider {
@@ -74,13 +62,7 @@
 }
 
 .tertiary-slider > .animated-thumb {
-    -fx-background-color: #ed4245;
-}
-
-.tertiary-slider .slider-value {
-    -fx-fill: white;
-    -fx-stroke: white;
-    -fx-stroke-width: 0.5;
+    -fx-opacity: 0;
 }
 
 .tertiary-slider {
@@ -99,4 +81,9 @@
 
 .button-selected {
     -fx-background-color: rgb(77, 102, 204);
+}
+
+.text-field {
+    -fx-background-color: #656565;
+    -fx-text-fill: white;
 }

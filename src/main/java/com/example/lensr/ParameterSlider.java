@@ -1,7 +1,11 @@
 package com.example.lensr;
 
 import com.jfoenix.controls.JFXSlider;
+import com.jfoenix.controls.JFXTextField;
 import javafx.beans.binding.Bindings;
+import javafx.scene.control.TextField;
+
+import static com.example.lensr.LensrStart.root;
 
 public class ParameterSlider extends JFXSlider {
 
@@ -19,21 +23,25 @@ public class ParameterSlider extends JFXSlider {
     }
 
     Object currentSource;
+    TextField textField = new TextField();
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                setLayoutY(50);
+                setLayoutY(25);
+                textField.setLayoutY(30);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                setLayoutY(100);
+                setLayoutY(75);
+                textField.setLayoutY(80);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                setLayoutY(150);
+                setLayoutY(125);
+                textField.setLayoutY(130);
                 break;
         }
 
@@ -59,6 +67,11 @@ public class ParameterSlider extends JFXSlider {
         setMax(maxVal);
         setValue((minVal + maxVal) / 2);
 
+        textField.setLayoutX(725);
+        textField.setPrefWidth(50);
+        textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
+
+
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
         if (valueToChange == ValueToChange.PeakTransmission) {
         setValueFactory(slider ->
@@ -67,10 +80,12 @@ public class ParameterSlider extends JFXSlider {
         }
 
 
-        LensrStart.root.getChildren().add(this);
+        root.getChildren().add(this);
+        root.getChildren().add(textField);
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
+            textField.setText(String.valueOf(Math.round(newValue.doubleValue() * 100.0) / 100.0));
             if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.WaveLength) {
                 beamSource.setWavelength(newValue.doubleValue());
                 return;
@@ -87,6 +102,11 @@ public class ParameterSlider extends JFXSlider {
                 filter.setFWHM(newValue.doubleValue());
             }
         });
+
+        textField.setOnAction(actionEvent -> {
+            double value = Double.parseDouble(textField.getText());
+            setValue(value);
+        });
     }
 
     public void setCurrentSource (Object source) {
@@ -95,9 +115,13 @@ public class ParameterSlider extends JFXSlider {
 
     public void hide() {
         setVisible(false);
+        textField.setDisable(true);
+        textField.setVisible(false);
     }
 
     public void show() {
         setVisible(true);
+        textField.setDisable(false);
+        textField.setVisible(true);
     }
 }
