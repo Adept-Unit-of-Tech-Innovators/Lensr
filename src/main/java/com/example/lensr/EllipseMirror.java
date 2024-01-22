@@ -20,14 +20,14 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
 public class EllipseMirror extends Ellipse {
-    Group group = new Group();
+    public Group group = new Group();
     // The outline of the object for ray intersection
     public Shape outline = getObjectOutline(this);
     List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 1;
-    boolean isEdited;
-    MutableValue isEditPointClicked = new MutableValue(false);
+    public double reflectivity = 1;
+    public boolean isEdited;
+    public MutableValue isEditPointClicked = new MutableValue(false);
 
 
 
@@ -52,6 +52,7 @@ public class EllipseMirror extends Ellipse {
 
 
     public void openObjectEdit() {
+        reflectivitySlider.show();
         setupObjectEdit();
         isEdited = true;
 
@@ -90,6 +91,7 @@ public class EllipseMirror extends Ellipse {
 
 
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);

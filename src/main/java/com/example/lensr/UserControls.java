@@ -135,6 +135,9 @@ public class UserControls {
                 case X:
                     EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                     ellipseMirror.create();
+                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                        reflectivitySlider = new ParameterSlider(ellipseMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    }
                     ellipseMirror.scale(mousePos);
                     mirrors.add(ellipseMirror);
                     editedShape = ellipseMirror.group;
@@ -142,6 +145,9 @@ public class UserControls {
                 case Z:
                     LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     lineMirror.create();
+                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                        reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    }
                     lineMirror.scale(mousePos);
                     mirrors.add(lineMirror);
                     editedShape = lineMirror.group;
@@ -149,6 +155,9 @@ public class UserControls {
                 case V:
                     FunnyMirror funnyMirror = new FunnyMirror();
                     funnyMirror.draw();
+                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                        reflectivitySlider = new ParameterSlider(funnyMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    }
                     mirrors.add(funnyMirror);
                     editedShape = funnyMirror.group;
                     break;

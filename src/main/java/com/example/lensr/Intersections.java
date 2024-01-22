@@ -14,7 +14,7 @@ public class Intersections {
         ray.setStrokeWidth(0.01);
         object.setStrokeWidth(0.01);
         Shape intersectionShape = Shape.intersect(ray, object);
-        ray.setStrokeWidth(0.5);
+        ray.setStrokeWidth(LensrStart.globalStrokeWidth);
         object.setStrokeWidth(LensrStart.globalStrokeWidth);
 
         // If intersection shape has negative dimensions there is no intersection

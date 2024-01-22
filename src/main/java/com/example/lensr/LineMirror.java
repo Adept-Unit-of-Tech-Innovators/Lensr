@@ -50,6 +50,7 @@ public class LineMirror extends Line {
     }
 
     public void openObjectEdit() {
+        reflectivitySlider.show();
         setupObjectEdit();
         isEdited = true;
 
@@ -84,6 +85,7 @@ public class LineMirror extends Line {
 
 
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);

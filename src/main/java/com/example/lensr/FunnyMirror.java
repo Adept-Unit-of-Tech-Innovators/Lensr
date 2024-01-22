@@ -3,7 +3,6 @@ package com.example.lensr;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 
@@ -73,6 +72,7 @@ public class FunnyMirror extends Polyline {
     }
 
     public void openObjectEdit() {
+        reflectivitySlider.show();
         setupObjectEdit();
         isEdited = true;
 
@@ -93,6 +93,7 @@ public class FunnyMirror extends Polyline {
     }
 
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);

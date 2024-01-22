@@ -12,7 +12,8 @@ public class ParameterSlider extends JFXSlider {
         WaveLength,
         Passband,
         PeakTransmission,
-        FWHM
+        FWHM,
+        Reflectivity
     }
 
     enum SliderStyle {
@@ -44,9 +45,9 @@ public class ParameterSlider extends JFXSlider {
                 break;
         }
 
-        double minVal = 0;
-        double maxVal = 1;
-        double startingVal = 0.5;
+        double minVal = -100;
+        double maxVal = -1;
+        double startingVal = -100;
 
         if (valueToChange == ValueToChange.WaveLength && source instanceof BeamSource beamSource) {
             minVal = 380;
@@ -68,6 +69,21 @@ public class ParameterSlider extends JFXSlider {
             minVal = 0;
             maxVal = 400;
             startingVal = filter.getFWHM();
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && source instanceof LineMirror lineMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = lineMirror.getReflectivity();
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && source instanceof EllipseMirror ellipseMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = ellipseMirror.getReflectivity();
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && source instanceof FunnyMirror funnyMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = funnyMirror.getReflectivity();
         }
 
         // Set values for the slider
@@ -114,6 +130,18 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof Filter filter && valueToChange == ValueToChange.FWHM) {
                 filter.setFWHM(roundedValue);
+                return;
+            }
+            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
+                lineMirror.setReflectivity(roundedValue);
+                return;
+            }
+            if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
+                ellipseMirror.setReflectivity(roundedValue);
+                return;
+            }
+            if (currentSource instanceof FunnyMirror funnyMirror && valueToChange == ValueToChange.Reflectivity) {
+                funnyMirror.setReflectivity(roundedValue);
             }
         });
 

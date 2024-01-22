@@ -20,6 +20,7 @@ public class BeamSource extends Rectangle {
     Rotate rotate = new Rotate();
     Group group = new Group();
     double wavelength = 580;
+    double brightness = 1.0;
     boolean isEdited;
 
     public BeamSource(double x, double y) {
@@ -41,7 +42,9 @@ public class BeamSource extends Rectangle {
         originRay.setStartY(getCenterY());
         originRay.setEndX(getCenterX() + SIZE * Math.cos(angle));
         originRay.setEndY(getCenterY() + SIZE * Math.sin(angle));
+        originRay.setStrokeWidth(globalStrokeWidth);
         originRay.setWavelength(wavelength);
+        originRay.setBrightness(brightness);
 
         group.getChildren().add(originRay);
         root.getChildren().add(group);

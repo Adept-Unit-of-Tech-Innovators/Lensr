@@ -1,10 +1,8 @@
 package com.example.lensr;
 
-import com.jfoenix.controls.JFXTextField;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -44,6 +42,7 @@ public class LensrStart extends Application {
     public static ParameterSlider passbandSlider;
     public static ParameterSlider peakTransmissionSlider;
     public static ParameterSlider FWHMSlider;
+    public static ParameterSlider reflectivitySlider;
 
     @Override
     public void start(Stage primaryStage) {
