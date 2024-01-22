@@ -1,7 +1,6 @@
 package com.example.lensr;
 
 import com.jfoenix.controls.JFXSlider;
-import com.jfoenix.controls.JFXTextField;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TextField;
 
@@ -88,9 +87,9 @@ public class ParameterSlider extends JFXSlider {
 
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
         if (valueToChange == ValueToChange.PeakTransmission) {
-        setValueFactory(slider ->
-                		Bindings.createStringBinding(() -> (Math.round(getValue() * 100.0) / 100.0) + "",
-                                slider.valueProperty()));
+            setValueFactory(slider ->
+                    Bindings.createStringBinding(() -> (Math.round(getValue() * 100.0) / 100.0) + "",
+                            slider.valueProperty()));
         }
 
 
