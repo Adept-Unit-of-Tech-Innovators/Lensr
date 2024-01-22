@@ -109,9 +109,8 @@ public class Ray extends Line {
             if(lens instanceof SphericalLens currentSphericalLens)
             {
                 double minimalDistance = Double.MAX_VALUE;
-                Shape shape = null;
+                Shape shape;
                 for (Shape element : currentSphericalLens.elements) {
-                    shape = element;
                     if(element == currentSphericalLens.getFirstArc()) System.out.print("first arc");
                     else if(element == currentSphericalLens.getSecondArc()) System.out.print("second arc");
                     else if(element == currentSphericalLens.getTopLine()) System.out.print("top line");
@@ -119,12 +118,11 @@ public class Ray extends Line {
 
                     if(element instanceof SphericalLens.LensArc arc)
                     {
-                        shape = getObjectOutline(shape);
-                        shape = subtract(shape, arc.getChord());
-                        shape.setFill(Color.MEDIUMSPRINGGREEN);
-                        shape.setStrokeWidth(globalStrokeWidth);
-                        root.getChildren().add(shape);
+                        System.out.println(arc.getBounds() == null);
+                        shape = arc.getBounds();
+
                     }
+                    else shape = element;
 
                     double currDistance = getMinimalDistanceToBounds(shape.getLayoutBounds());
 
@@ -259,7 +257,7 @@ public class Ray extends Line {
         }
         else if (closestIntersectionObject instanceof SphericalLens.LensLine line)
         {
-            double refractionAngle = getLineReflectionAngle(this, line);
+            double refractionAngle = getLineRefractionAngle(this, line, 1.5, true);
 
             reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
             reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);

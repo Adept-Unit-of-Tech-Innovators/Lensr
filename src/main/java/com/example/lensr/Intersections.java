@@ -43,9 +43,8 @@ public class Intersections {
         // Copying shape in a cursed way
         Shape copy = Shape.union(shape, shape);
 
-
-        copy.setStrokeWidth(1);
-        shape.setStrokeWidth(1);
+        copy.setStrokeWidth(LensrStart.globalStrokeWidth);
+        shape.setStrokeWidth(LensrStart.globalStrokeWidth);
         shape.setStrokeType(StrokeType.OUTSIDE);
         copy.setStrokeType(StrokeType.INSIDE);
 
@@ -88,10 +87,22 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
+    public static double getLineRefractionAngle(Line ray, Line lens, double refractiveIndex, boolean isEnteringLens)
+    {
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double lensAngle = Math.atan2(lens.getEndY() - lens.getStartY(), lens.getEndX() - lens.getStartX());
+        double normalAngle = lensAngle + Math.PI/2;
+
+        System.out.println("Normal angle: " + Math.toDegrees(normalAngle));
+        if(isEnteringLens) refractiveIndex = 1/refractiveIndex;
+        System.out.println("Angle of refraction: " + Math.toDegrees(Math.asin(refractiveIndex * Math.sin(angleOfIncidence)) - normalAngle));
+        return Math.asin(refractiveIndex * Math.sin(angleOfIncidence)) - normalAngle;
+    }
+
     public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex)
     {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
-
+        //TODO: Calculate the normal angle
         double angleOfRefraction = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
         return angleOfIncidence + Math.toRadians(10);
     }

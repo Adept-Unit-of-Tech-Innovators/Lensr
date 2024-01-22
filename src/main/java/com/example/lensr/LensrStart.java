@@ -3,8 +3,10 @@ package com.example.lensr;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class LensrStart extends Application {
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
     public static Object editedShape;
+    public static Shape test;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
 
     @Override
@@ -68,6 +71,8 @@ public class LensrStart extends Application {
             toolbar.forEach(ToolbarButton::updateRender);
         });
 
+
+
         lineMirrorButton.addToRoot();
         ellipseMirrorButton.addToRoot();
         funnyMirrorButton.addToRoot();
@@ -85,6 +90,7 @@ public class LensrStart extends Application {
         SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 20);
         testLens.addToRoot();
         lenses.add(testLens);
+        test = Shape.subtract(Intersections.getObjectOutline(testLens.getSecondArc()), testLens.getSecondArc().getChord());
     }
 
 
