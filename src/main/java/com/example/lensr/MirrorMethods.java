@@ -1,5 +1,9 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.BeamSource;
+import com.example.lensr.objects.EllipseMirror;
+import com.example.lensr.objects.FunnyMirror;
+import com.example.lensr.objects.LineMirror;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;

@@ -1,5 +1,6 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.MutableValue;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -7,40 +8,52 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
+import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeType;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LightEater extends Circle {
-    Group group = new Group();
+public class EllipseMirror extends Ellipse {
+    public Group group = new Group();
+    // The outline of the object for ray intersection
+    public Shape outline = getObjectOutline(this);
     List<Rectangle> editPoints = new ArrayList<>();
-    boolean isEdited;
-    MutableValue isEditPointClicked = new MutableValue(false);
+    // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
+    public double reflectivity = 1;
+    public boolean isEdited;
+    public MutableValue isEditPointClicked = new MutableValue(false);
 
 
-    public LightEater(double centerX, double centerY, double radius) {
+
+    public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
         setCenterX(centerX);
         setCenterY(centerY);
-        setRadius(radius);
+        setRadiusX(radiusX);
+        setRadiusY(radiusY);
     }
 
 
     public void create() {
-        setFill(Color.BLACK);
-        setStroke(Color.BLACK);
+        setFill(Color.TRANSPARENT);
+        setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
         setStrokeType(StrokeType.OUTSIDE);
 
         group.getChildren().add(this);
+        group.getChildren().add(outline);
         root.getChildren().add(group);
     }
 
 
     public void openObjectEdit() {
+        reflectivitySlider.show();
         setupObjectEdit();
         isEdited = true;
 
@@ -79,6 +92,7 @@ public class LightEater extends Circle {
 
 
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
@@ -88,33 +102,67 @@ public class LightEater extends Circle {
     }
 
 
+    private void updateOutline() {
+        Ellipse ellipse = new Ellipse(this.getCenterX(), this.getCenterY(), this.getRadiusX(), this.getRadiusY());
+        ellipse.setFill(Color.TRANSPARENT);
+        ellipse.setStroke(Color.BLACK);
+        outline = getObjectOutline(ellipse);
+        outline.setStrokeWidth(1);
+    }
+
+
+    public void setReflectivity(double reflectivity) {
+        this.reflectivity = reflectivity;
+    }
+
+
+    public double getReflectivity() {
+        return reflectivity;
+    }
+
+
+
     public void scale(Point2D anchor) {
         new Thread(() -> {
-            double centerX, centerY, radius;
+            double centerX, centerY, radiusX, radiusY;
 
             while (isMousePressed) {
                 // Resizing standard based on Photoshop and MS Paint :)
-                if (altPressed) {
+                if (altPressed && shiftPressed) {
                     centerX = anchor.getX();
                     centerY = anchor.getY();
-                    radius  = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
+                    radiusX = radiusY = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
                 }
-                else {
+                else if (altPressed) {
+                    centerX = anchor.getX();
+                    centerY = anchor.getY();
+                    radiusX = Math.abs(mousePos.getX() - centerX);
+                    radiusY = Math.abs(mousePos.getY() - centerY);
+                }
+                else if (shiftPressed) {
                     double minDistance = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) ) / 2;
                     centerX = anchor.getX() + (mousePos.getX() > anchor.getX() ? minDistance : -minDistance);
                     centerY = anchor.getY() + (mousePos.getY() > anchor.getY() ? minDistance : -minDistance);
-                    radius = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
+                    radiusX = radiusY = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
+                }
+                else {
+                    centerX = anchor.getX() + ( (mousePos.getX() - anchor.getX()) / 2);
+                    centerY = anchor.getY() + ( (mousePos.getY() - anchor.getY()) / 2);
+                    radiusX = Math.abs(mousePos.getX() - centerX);
+                    radiusY = Math.abs(mousePos.getY() - centerY);
                 }
 
                 double finalCenterX = centerX;
                 double finalCenterY = centerY;
-                double finalRadius = radius;
+                double finalRadiusX = radiusX;
+                double finalRadiusY = radiusY;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     setCenterX(finalCenterX);
                     setCenterY(finalCenterY);
-                    setRadius(finalRadius);
+                    setRadiusX(finalRadiusX);
+                    setRadiusY(finalRadiusY);
 
                     // Update editPoints location
                     if (isEditPointClicked.getValue()) {
@@ -129,6 +177,8 @@ public class LightEater extends Circle {
                             editPoints.get(i).setY(y + offset);
                         }
                     }
+
+                    updateOutline();
                 });
 
                 synchronized (lock) {
@@ -139,6 +189,7 @@ public class LightEater extends Circle {
                     }
                 }
             }
+
         }).start();
     }
 }

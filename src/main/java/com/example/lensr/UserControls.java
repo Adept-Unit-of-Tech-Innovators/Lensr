@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.*;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.Slider;

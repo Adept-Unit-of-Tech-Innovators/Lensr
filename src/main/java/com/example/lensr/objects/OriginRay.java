@@ -1,4 +1,4 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
 import javafx.application.Platform;
 import javafx.geometry.Point2D;

@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TextField;

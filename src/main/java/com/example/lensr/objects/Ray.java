@@ -1,4 +1,4 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
 import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;

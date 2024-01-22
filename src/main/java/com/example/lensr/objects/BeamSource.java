@@ -1,5 +1,7 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.MirrorMethods;
+import com.example.lensr.MutableValue;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
@@ -14,14 +16,14 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 
 public class BeamSource extends Rectangle {
-    OriginRay originRay = new OriginRay(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
-    MutableValue isEditPointClicked = new MutableValue(false);
-    List<Rectangle> editPoints = new ArrayList<>();
-    Rotate rotate = new Rotate();
-    Group group = new Group();
-    double wavelength = 580;
-    double brightness = 1.0;
-    boolean isEdited;
+    public OriginRay originRay = new OriginRay(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
+    public MutableValue isEditPointClicked = new MutableValue(false);
+    public List<Rectangle> editPoints = new ArrayList<>();
+    public Rotate rotate = new Rotate();
+    public Group group = new Group();
+    public double wavelength = 580;
+    public double brightness = 1.0;
+    public boolean isEdited;
 
     public BeamSource(double x, double y) {
         setX(x);

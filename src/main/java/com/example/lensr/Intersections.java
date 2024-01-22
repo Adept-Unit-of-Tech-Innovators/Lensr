@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.Ray;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.*;
 

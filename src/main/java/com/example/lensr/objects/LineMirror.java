@@ -1,5 +1,6 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.MutableValue;
 import javafx.application.Platform;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -17,17 +18,17 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
 public class LineMirror extends Line {
-    Group group = new Group();
+    public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
     Rectangle hitbox;
-    boolean isMouseOnHitbox;
-    List<Rectangle> editPoints = new ArrayList<>();
+    public boolean isMouseOnHitbox;
+    public List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     double reflectivity = 0.9;
     double rotation = 0;
-    boolean isEdited;
-    MutableValue isEditPointClicked = new MutableValue(false);
+    public boolean isEdited;
+    public MutableValue isEditPointClicked = new MutableValue(false);
 
     public LineMirror(double startX, double startY, double endX, double endY) {
         setStartX(startX);
