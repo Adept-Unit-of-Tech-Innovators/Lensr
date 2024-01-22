@@ -19,7 +19,7 @@ public class BeamSource extends Rectangle {
     List<Rectangle> editPoints = new ArrayList<>();
     Rotate rotate = new Rotate();
     Group group = new Group();
-    double wavelength = 600;
+    double wavelength = 580;
     boolean isEdited;
 
     public BeamSource(double x, double y) {

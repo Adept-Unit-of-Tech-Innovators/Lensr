@@ -28,7 +28,7 @@ public class Filter extends Line {
     double rotation = 0;
     boolean isEdited;
     MutableValue isEditPointClicked = new MutableValue(false);
-    double passband = 780;
+    double passband = 580;
     double peakTransmission = 0.9;
     double FWHM = 20;
 
