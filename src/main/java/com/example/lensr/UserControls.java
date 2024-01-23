@@ -66,7 +66,7 @@ public class UserControls {
             }
 
 
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Filter filter
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter filter
                     && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
                     rectangle.contains(mousePos)))
             {
@@ -110,7 +110,7 @@ public class UserControls {
                         lightEater.openObjectEdit();
                         return;
                     }
-                    if (mirror instanceof Filter filter && filter.isMouseOnHitbox) {
+                    if (mirror instanceof GaussianRolloffFilter filter && filter.isMouseOnHitbox) {
                         filter.openObjectEdit();
                         return;
                     }
@@ -170,7 +170,7 @@ public class UserControls {
                     editedShape = lightEater.group;
                     break;
                 case N:
-                    Filter filter = new Filter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                    GaussianRolloffFilter filter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                     filter.create();
                     if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
                         passbandSlider = new ParameterSlider(filter, ValueToChange.Passband, SliderStyle.Primary);
@@ -218,7 +218,7 @@ public class UserControls {
                         mirror.openObjectEdit();
                     }
                 case N:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof Filter mirror && !mirror.isEdited) {
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
                     }
                 case C:

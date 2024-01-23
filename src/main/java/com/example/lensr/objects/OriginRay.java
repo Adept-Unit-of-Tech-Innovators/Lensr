@@ -167,7 +167,7 @@ public class OriginRay extends Ray {
                         nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                     }
                 }
-                else if (closestIntersectionMirror instanceof Filter filter) {
+                else if (closestIntersectionMirror instanceof GaussianRolloffFilter filter) {
                     // Calculate the angle of incidence
                     double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
 

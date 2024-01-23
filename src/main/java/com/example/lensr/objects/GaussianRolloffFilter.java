@@ -18,7 +18,7 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.*;
 
-public class Filter extends Line {
+public class GaussianRolloffFilter extends Line {
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
@@ -33,7 +33,7 @@ public class Filter extends Line {
     double peakTransmission = 0.9;
     double FWHM = 20;
 
-    public Filter(double startX, double startY, double endX, double endY) {
+    public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
         setEndX(endX);

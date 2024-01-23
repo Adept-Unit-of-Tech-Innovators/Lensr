@@ -55,18 +55,18 @@ public class ParameterSlider extends JFXSlider {
             maxVal = 780;
             startingVal = beamSource.getWavelength();
         }
-        else if (valueToChange == ValueToChange.Passband && source instanceof Filter filter) {
+        else if (valueToChange == ValueToChange.Passband && source instanceof GaussianRolloffFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getPassband();
             filter.setPassband(startingVal); // temp for coloring the filter at the start
         }
-        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof Filter filter) {
+        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof GaussianRolloffFilter filter) {
             minVal = 0;
             maxVal = 1;
             startingVal = filter.getPeakTransmission();
         }
-        else if (valueToChange == ValueToChange.FWHM && source instanceof Filter filter) {
+        else if (valueToChange == ValueToChange.FWHM && source instanceof GaussianRolloffFilter filter) {
             minVal = 0;
             maxVal = 400;
             startingVal = filter.getFWHM();
@@ -121,15 +121,15 @@ public class ParameterSlider extends JFXSlider {
                 beamSource.setWavelength(roundedValue);
                 return;
             }
-            if (currentSource instanceof Filter filter && valueToChange == ValueToChange.Passband) {
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
                 filter.setPassband(roundedValue);
                 return;
             }
-            if (currentSource instanceof Filter filter && valueToChange == ValueToChange.PeakTransmission) {
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
                 return;
             }
-            if (currentSource instanceof Filter filter && valueToChange == ValueToChange.FWHM) {
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
                 filter.setFWHM(roundedValue);
                 return;
             }
