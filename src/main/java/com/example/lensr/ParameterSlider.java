@@ -4,8 +4,11 @@ import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.root;
+import static com.example.lensr.LensrStart.toolbar;
 
 public class ParameterSlider extends JFXSlider {
 
@@ -25,24 +28,26 @@ public class ParameterSlider extends JFXSlider {
 
     Object currentSource;
     TextField textField = new TextField();
+    Text label = new Text();
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
+        show();
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                setLayoutY(25);
-                textField.setLayoutY(30);
+                setLayoutX(100);
+                textField.setLayoutX(35);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                setLayoutY(75);
-                textField.setLayoutY(80);
+                setLayoutX(350);
+                textField.setLayoutX(285);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                setLayoutY(125);
-                textField.setLayoutY(130);
+                setLayoutX(600);
+                textField.setLayoutX(535);
                 break;
         }
 
@@ -54,42 +59,49 @@ public class ParameterSlider extends JFXSlider {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
+            label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.Passband && source instanceof GaussianRolloffFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getPassband();
             filter.setPassband(startingVal); // temp for coloring the filter at the start
+            label.setText("Passband");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && source instanceof GaussianRolloffFilter filter) {
             minVal = 0;
             maxVal = 1;
             startingVal = filter.getPeakTransmission();
+            label.setText("Peak transmission");
         }
         else if (valueToChange == ValueToChange.FWHM && source instanceof GaussianRolloffFilter filter) {
             minVal = 0;
             maxVal = 400;
             startingVal = filter.getFWHM();
+            label.setText("FWHM");
         }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof LineMirror lineMirror) {
             minVal = 0;
             maxVal = 1;
             startingVal = lineMirror.getReflectivity();
+            label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof EllipseMirror ellipseMirror) {
             minVal = 0;
             maxVal = 1;
             startingVal = ellipseMirror.getReflectivity();
+            label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof FunnyMirror funnyMirror) {
             minVal = 0;
             maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
+            label.setText("Reflectivity");
         }
 
         // Set values for the slider
         this.currentSource = source;
-        setLayoutX(800);
+        setLayoutY(25);
         setPrefHeight(40);
         setPrefWidth(150);
 
@@ -97,9 +109,13 @@ public class ParameterSlider extends JFXSlider {
         setMax(maxVal);
         setValue(startingVal);
 
-        textField.setLayoutX(725);
+        textField.setLayoutY(32.5);
         textField.setPrefWidth(50);
         textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
+
+        label.getStyleClass().add("label");
+        label.setLayoutY(this.getLayoutY()-5);
+        label.setLayoutX(this.getLayoutX() + this.getWidth()/2);
 
 
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
@@ -112,6 +128,7 @@ public class ParameterSlider extends JFXSlider {
 
         root.getChildren().add(this);
         root.getChildren().add(textField);
+        root.getChildren().add(label);
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -160,11 +177,15 @@ public class ParameterSlider extends JFXSlider {
         setVisible(false);
         textField.setDisable(true);
         textField.setVisible(false);
+        toolbar.forEach(button -> button.setVisible(true));
+        label.setVisible(false);
     }
 
     public void show() {
         setVisible(true);
         textField.setDisable(false);
         textField.setVisible(true);
+        toolbar.forEach(button -> button.setVisible(false));
+        label.setVisible(true);
     }
 }
