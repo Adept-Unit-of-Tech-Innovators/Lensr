@@ -187,6 +187,7 @@ public class UserControls {
                     if (lightSources.isEmpty()) {
                         wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.WaveLength, SliderStyle.Primary);
                     }
+                    beamSource.openObjectEdit();
                     lightSources.add(beamSource);
                     editedShape = beamSource.group;
                     break;

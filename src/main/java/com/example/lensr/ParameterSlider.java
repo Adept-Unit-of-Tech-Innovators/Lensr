@@ -4,6 +4,7 @@ import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
@@ -29,25 +30,28 @@ public class ParameterSlider extends JFXSlider {
     Object currentSource;
     TextField textField = new TextField();
     Text label = new Text();
+    HBox hBox = new HBox();
+    VBox vBox = new VBox();
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
+        hBox.getChildren().add(textField);
+        hBox.getChildren().add(this);
+        vBox.getChildren().add(label);
+        vBox.getChildren().add(hBox);
         show();
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                setLayoutX(100);
-                textField.setLayoutX(35);
+                vBox.setLayoutX(50);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                setLayoutX(350);
-                textField.setLayoutX(285);
+                vBox.setLayoutX(350);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                setLayoutX(600);
-                textField.setLayoutX(535);
+                vBox.setLayoutX(650);
                 break;
         }
 
@@ -101,7 +105,7 @@ public class ParameterSlider extends JFXSlider {
 
         // Set values for the slider
         this.currentSource = source;
-        setLayoutY(25);
+        vBox.setLayoutY(25);
         setPrefHeight(40);
         setPrefWidth(150);
 
@@ -114,8 +118,10 @@ public class ParameterSlider extends JFXSlider {
         textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
 
         label.getStyleClass().add("label");
-        label.setLayoutY(this.getLayoutY()-5);
-        label.setLayoutX(this.getLayoutX() + this.getWidth()/2);
+
+        hBox.setAlignment(javafx.geometry.Pos.CENTER);
+        hBox.setSpacing(10);
+        vBox.setAlignment(javafx.geometry.Pos.CENTER);
 
 
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
@@ -126,9 +132,7 @@ public class ParameterSlider extends JFXSlider {
         }
 
 
-        root.getChildren().add(this);
-        root.getChildren().add(textField);
-        root.getChildren().add(label);
+        root.getChildren().add(vBox);
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -174,18 +178,18 @@ public class ParameterSlider extends JFXSlider {
     }
 
     public void hide() {
-        setVisible(false);
-        textField.setDisable(true);
-        textField.setVisible(false);
-        toolbar.forEach(button -> button.setVisible(true));
-        label.setVisible(false);
+        vBox.setVisible(false);
+        vBox.setDisable(true);
+        toolbar.forEach(button -> {
+            button.setVisible(true);
+            button.toFront();
+        });
     }
 
     public void show() {
-        setVisible(true);
-        textField.setDisable(false);
-        textField.setVisible(true);
+        toFront();
+        vBox.setVisible(true);
+        vBox.setDisable(false);
         toolbar.forEach(button -> button.setVisible(false));
-        label.setVisible(true);
     }
 }
