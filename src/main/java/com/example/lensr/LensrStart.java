@@ -54,7 +54,7 @@ public class LensrStart extends Application {
         ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 275, 25);
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
         ToolbarButton FilterButton = new ToolbarButton("Filter", Key.N, 525, 25);
-        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 25, 80);
+        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 650, 25);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);

@@ -87,3 +87,9 @@
     -fx-background-color: #656565;
     -fx-text-fill: white;
 }
+
+.label {
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+    -fx-fill: white;
+}
