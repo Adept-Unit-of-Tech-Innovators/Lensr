@@ -18,6 +18,7 @@ public class ToolbarButton extends JFXButton {
             LensrStart.keyPressed = valueToSet;
             updateRender();
         });
+        toFront();
     }
 
     public void addToRoot() {

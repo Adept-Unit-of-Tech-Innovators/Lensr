@@ -24,8 +24,24 @@ public class OriginRay extends Ray {
     }
 
     public void simulate() {
-        setEndX(getStartX() + (getEndX() - getStartX()) * SIZE);
-        setEndY(getStartY() + (getEndY() - getStartY()) * SIZE);
+        // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
+        // That's some clever chat-gpt code right there
+        if (getEndX() > SIZE || getEndX() < 0 || getEndY() > SIZE || getEndY() < 0) {
+            Point2D intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, SIZE, 0));
+            if (intersectionPoint == null) {
+                intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, 0, SIZE));
+                if (intersectionPoint == null) {
+                    intersectionPoint = getRayIntersectionPoint(this, new Line(0, SIZE, SIZE, SIZE));
+                    if (intersectionPoint == null) {
+                        intersectionPoint = getRayIntersectionPoint(this, new Line(SIZE, 0, SIZE, SIZE));
+                    }
+                }
+            }
+            if (intersectionPoint != null) {
+                setEndX(intersectionPoint.getX());
+                setEndY(intersectionPoint.getY());
+            }
+        }
         new Thread(() -> {
             int recursiveDepth = 0;
             Ray currentRay = this;

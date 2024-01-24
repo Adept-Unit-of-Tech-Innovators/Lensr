@@ -50,7 +50,7 @@ public class BeamSource extends Rectangle {
 
         group.getChildren().add(originRay);
         root.getChildren().add(group);
-        toFront();
+        originRay.toBack();
         update();
     }
 

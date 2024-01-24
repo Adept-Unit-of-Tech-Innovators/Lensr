@@ -3,7 +3,10 @@ package com.example.lensr;
 import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.root;
@@ -28,35 +31,165 @@ public class ParameterSlider extends JFXSlider {
         Tertiary
     }
 
+    // Local variables
+    SliderStyle sliderStyle;
+    ValueToChange valueToChange;
+    double minVal = getMin();
+    double maxVal = getMax();
+    double startingVal = getValue();
     Object currentSource;
+
+    // GUI elements
     TextField textField = new TextField();
     Text label = new Text();
+    HBox hBox = new HBox();
+    VBox sliderAndLabel = new VBox();
+    VBox inputField = new VBox();
+
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
+        this.valueToChange = valueToChange;
+        this.sliderStyle = sliderStyle;
+        this.currentSource = source;
+        setCorrectValues();
+
+        // Set up the GUI
+        sliderAndLabel.getChildren().add(label);
+        sliderAndLabel.getChildren().add(this);
+        inputField.getChildren().add(textField);
+        hBox.getChildren().add(inputField);
+        hBox.getChildren().add(sliderAndLabel);
         show();
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                setLayoutX(100);
-                textField.setLayoutX(35);
+                hBox.setLayoutX(50);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                setLayoutX(350);
-                textField.setLayoutX(285);
+                hBox.setLayoutX(350);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                setLayoutX(600);
-                textField.setLayoutX(535);
+                hBox.setLayoutX(650);
                 break;
         }
 
-        double minVal = 0;
-        double maxVal = 1;
-        double startingVal = 0.5;
+        // Set values for the slider
+        this.currentSource = source;
+        hBox.setLayoutY(25);
+        setPrefHeight(40);
+        setPrefWidth(150);
 
+        textField.setLayoutY(32.5);
+        textField.setPrefWidth(50);
+        textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
+
+        label.getStyleClass().add("label");
+
+        hBox.setAlignment(javafx.geometry.Pos.CENTER);
+        hBox.setSpacing(10);
+
+        inputField.setPadding(new Insets(12, 0, 0, 0));
+        inputField.setAlignment(Pos.CENTER);
+        sliderAndLabel.setAlignment(javafx.geometry.Pos.CENTER);
+
+
+        // Set the decimal format to 2 decimal places if the slider is for peak transmission
+        if (valueToChange == ValueToChange.PeakTransmission) {
+            setValueFactory(slider ->
+                    Bindings.createStringBinding(() -> (Math.round(getValue() * 100.0) / 100.0) + "",
+                            slider.valueProperty()));
+        }
+
+
+        root.getChildren().add(hBox);
+
+        // Set the value of the slider to the appropriate value of the current source
+        valueProperty().addListener((observable, oldValue, newValue) -> {
+            double roundedValue = Math.round(newValue.doubleValue() * 100.0) / 100.0;
+            textField.setText(String.valueOf(roundedValue));
+            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
+                beamSource.setWavelength(roundedValue);
+                return;
+            }
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
+                filter.setPeakTransmission(roundedValue);
+                return;
+            }
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
+                filter.setPassband(roundedValue);
+                return;
+            }
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
+                filter.setFWHM(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
+                filter.setTransmission(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.StartPassband) {
+                filter.setStartPassband(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.EndPassband) {
+                filter.setEndPassband(roundedValue);
+                return;
+            }
+            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
+                lineMirror.setReflectivity(roundedValue);
+                return;
+            }
+            if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
+                ellipseMirror.setReflectivity(roundedValue);
+                return;
+            }
+            if (currentSource instanceof FunnyMirror funnyMirror && valueToChange == ValueToChange.Reflectivity) {
+                funnyMirror.setReflectivity(roundedValue);
+            }
+        });
+
+        textField.setOnAction(actionEvent -> {
+            try {
+                double value = Double.parseDouble(textField.getText());
+                setValue(value);
+            } catch (NumberFormatException e) {
+                textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0));
+            }
+        });
+    }
+
+    public void setCurrentSource (Object source) {
+        currentSource = source;
+        setCorrectValues();
+    }
+
+    public void hide() {
+        // Set the value of the slider to the appropriate value of the text field
+        try { setValue(Double.parseDouble(textField.getText())); }
+        catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0)); }
+        textField.setFocusTraversable(false);
+
+        // Update UI
+        hBox.setVisible(false);
+        hBox.setDisable(true);
+        toolbar.forEach(button -> {
+            button.setVisible(true);
+            button.toFront();
+        });
+    }
+
+    public void show() {
+        // Update UI
+        toFront();
+        hBox.setVisible(true);
+        hBox.setDisable(false);
+        toolbar.forEach(button -> button.setVisible(false));
+    }
+
+    private void setCorrectValues () {
         if (valueToChange == ValueToChange.Wavelength && source instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
@@ -109,106 +242,8 @@ public class ParameterSlider extends JFXSlider {
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
         }
-
-        // Set values for the slider
-        this.currentSource = source;
-        setLayoutY(25);
-        setPrefHeight(40);
-        setPrefWidth(150);
-
         setMin(minVal);
         setMax(maxVal);
         setValue(startingVal);
-
-        textField.setLayoutY(32.5);
-        textField.setPrefWidth(50);
-        textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
-
-        label.getStyleClass().add("label");
-        label.setLayoutY(this.getLayoutY()-5);
-        label.setLayoutX(this.getLayoutX() + this.getWidth()/2);
-
-
-        // Set the decimal format to 2 decimal places if the slider is for peak transmission
-        if (valueToChange == ValueToChange.PeakTransmission) {
-            setValueFactory(slider ->
-                    Bindings.createStringBinding(() -> (Math.round(getValue() * 100.0) / 100.0) + "",
-                            slider.valueProperty()));
-        }
-
-
-        root.getChildren().add(this);
-        root.getChildren().add(textField);
-        root.getChildren().add(label);
-
-        // Set the value of the slider to the appropriate value of the current source
-        valueProperty().addListener((observable, oldValue, newValue) -> {
-            double roundedValue = Math.round(newValue.doubleValue() * 100.0) / 100.0;
-            textField.setText(String.valueOf(roundedValue));
-            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
-                beamSource.setWavelength(roundedValue);
-                return;
-            }
-            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
-                filter.setPeakTransmission(roundedValue);
-                return;
-            }
-            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
-                filter.setPassband(roundedValue);
-                return;
-            }
-            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
-                filter.setFWHM(roundedValue);
-                return;
-            }
-            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
-                filter.setTransmission(roundedValue);
-                return;
-            }
-            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.StartPassband) {
-                filter.setStartPassband(roundedValue);
-                return;
-            }
-            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.EndPassband) {
-                filter.setEndPassband(roundedValue);
-                return;
-            }
-            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
-                lineMirror.setReflectivity(roundedValue);
-                return;
-            }
-            if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
-                ellipseMirror.setReflectivity(roundedValue);
-                return;
-            }
-            if (currentSource instanceof FunnyMirror funnyMirror && valueToChange == ValueToChange.Reflectivity) {
-                funnyMirror.setReflectivity(roundedValue);
-            }
-        });
-
-        textField.setOnAction(actionEvent -> {
-            double value = Double.parseDouble(textField.getText());
-            setValue(value);
-        });
-    }
-
-    public void setCurrentSource (Object source) {
-        currentSource = source;
-    }
-
-    public void hide() {
-        setVisible(false);
-        textField.setDisable(true);
-        textField.setVisible(false);
-        toolbar.forEach(button -> button.setVisible(true));
-        label.setVisible(false);
-    }
-
-    public void show() {
-        setVisible(true);
-        textField.setDisable(false);
-        textField.setVisible(true);
-        toolbar.forEach(button -> button.setVisible(false));
-        label.setVisible(true);
     }
 }

@@ -213,6 +213,7 @@ public class UserControls {
                     if (lightSources.isEmpty()) {
                         wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
                     }
+                    beamSource.openObjectEdit();
                     lightSources.add(beamSource);
                     editedShape = beamSource.group;
                     break;
