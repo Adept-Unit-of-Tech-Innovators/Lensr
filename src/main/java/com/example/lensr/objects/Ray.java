@@ -13,6 +13,7 @@ public class Ray extends Line {
         setStartY(startY);
         setEndX(endX);
         setEndY(endY);
+        setBlendMode(BlendMode.SCREEN);
     }
 
     public void setWavelength(double wavelength) {

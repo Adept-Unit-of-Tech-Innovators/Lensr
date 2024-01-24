@@ -6,6 +6,7 @@ import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
@@ -103,7 +104,7 @@ public class ParameterSlider extends JFXSlider {
                             slider.valueProperty()));
         }
 
-
+        hBox.setBlendMode(BlendMode.SRC_ATOP);
         root.getChildren().add(hBox);
 
         // Set the value of the slider to the appropriate value of the current source
