@@ -4,6 +4,7 @@ import com.example.lensr.MirrorMethods;
 import com.example.lensr.MutableValue;
 import javafx.application.Platform;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -16,7 +17,7 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 
 public class BeamSource extends Rectangle {
-    public OriginRay originRay = new OriginRay(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
+    public List<OriginRay> originRays = new ArrayList<>();
     public MutableValue isEditPointClicked = new MutableValue(false);
     public List<Rectangle> editPoints = new ArrayList<>();
     public Rotate rotate = new Rotate();
@@ -39,18 +40,22 @@ public class BeamSource extends Rectangle {
 
         double angle = Math.toRadians(getRotate()); // Get the current rotation of in radians
 
+        OriginRay originRay = new OriginRay(
+                getCenterX(),
+                getCenterY(),
+                getCenterX() + Math.cos(angle) * SIZE,
+                getCenterY() + Math.sin(angle) * SIZE
+        );
         originRay.setParentSource(this);
-        originRay.setStartX(getCenterX());
-        originRay.setStartY(getCenterY());
-        originRay.setEndX(getCenterX() + SIZE * Math.cos(angle));
-        originRay.setEndY(getCenterY() + SIZE * Math.sin(angle));
         originRay.setStrokeWidth(globalStrokeWidth);
         originRay.setWavelength(wavelength);
         originRay.setBrightness(brightness);
 
-        group.getChildren().add(originRay);
+        originRays.add(originRay);
+
+        group.getChildren().addAll(originRays);
         root.getChildren().add(group);
-        originRay.toBack();
+        originRays.forEach(Node::toBack);
         update();
     }
 
@@ -59,15 +64,19 @@ public class BeamSource extends Rectangle {
             return;
         }
 
-        group.getChildren().removeAll(originRay.rayReflections);
-        originRay.rayReflections.clear();
+        for (OriginRay originRay : originRays) {
+            group.getChildren().removeAll(originRay.rayReflections);
+            originRay.rayReflections.clear();
 
-        originRay.simulate();
+            originRay.simulate();
+        }
     }
 
     public void openObjectEdit() {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
+        whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.show();
 
         MirrorMethods.setupObjectEdit();
         isEdited = true;
@@ -104,8 +113,10 @@ public class BeamSource extends Rectangle {
     private void moveToMouse() {
         new Thread(() -> {
             Platform.runLater(() -> {
-                group.getChildren().removeAll(originRay.rayReflections);
-                originRay.rayReflections.clear();
+                for (OriginRay originRay : originRays) {
+                    group.getChildren().removeAll(originRay.rayReflections);
+                    originRay.rayReflections.clear();
+                }
             });
 
             while (isMousePressed) {
@@ -118,11 +129,13 @@ public class BeamSource extends Rectangle {
                 rotate.setPivotX(getCenterX());
                 rotate.setPivotY(getCenterY());
 
-                originRay.setStartX(getCenterX());
-                originRay.setStartY(getCenterY());
+                for (OriginRay originRay : originRays) {
+                    originRay.setStartX(getCenterX());
+                    originRay.setStartY(getCenterY());
 
-                originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * SIZE);
-                originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * SIZE);
+                    originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * SIZE);
+                    originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * SIZE);
+                }
 
                 editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
                 editPoints.get(0).setY(editPoints.get(0).getY() + deltaY);
@@ -144,8 +157,10 @@ public class BeamSource extends Rectangle {
     private void rotateToMouse() {
         new Thread(() -> {
             Platform.runLater(() -> {
-                group.getChildren().removeAll(originRay.rayReflections);
-                originRay.rayReflections.clear();
+                for (OriginRay originRay : originRays) {
+                    group.getChildren().removeAll(originRay.rayReflections);
+                    originRay.rayReflections.clear();
+                }
             });
 
             while (isMousePressed) {
@@ -160,8 +175,10 @@ public class BeamSource extends Rectangle {
                 editPoints.get(1).setX(getCenterX() + Math.cos(angle) * 100 - editPointSize / 2);
                 editPoints.get(1).setY(getCenterY() + Math.sin(angle) * 100 - editPointSize / 2);
 
-                originRay.setEndX(originRay.getStartX() + Math.cos(angle) * SIZE);
-                originRay.setEndY(originRay.getStartY() + Math.sin(angle) * SIZE);
+                for (OriginRay originRay : originRays) {
+                    originRay.setEndX(originRay.getStartX() + Math.cos(angle) * SIZE);
+                    originRay.setEndY(originRay.getStartY() + Math.sin(angle) * SIZE);
+                }
 
                 synchronized (lock) {
                     try {
@@ -181,12 +198,13 @@ public class BeamSource extends Rectangle {
 
     public void closeObjectEdit() {
         wavelengthSlider.hide();
+        whiteLightToggle.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
-        originRay.simulate();
+        originRays.forEach(OriginRay::simulate);
     }
 
     private double getCenterX() {
@@ -200,7 +218,53 @@ public class BeamSource extends Rectangle {
 
     public void setWavelength(double wavelength) {
         this.wavelength = wavelength;
-        originRay.setWavelength(wavelength);
+        for (OriginRay originRay : originRays) {
+            originRay.setWavelength(wavelength);
+        }
+    }
+
+
+    public void setWhiteLight(boolean whiteLight) {
+        group.getChildren().removeAll(originRays);
+        originRays.forEach(originRay -> {
+            group.getChildren().removeAll(originRay.rayReflections);
+            originRay.rayReflections.clear();
+        });
+        originRays.clear();
+        if (whiteLight) {
+            for (int i = 0; i < whiteLightRayCount; i++) {
+                OriginRay originRay = new OriginRay(
+                        getCenterX(),
+                        getCenterY(),
+                        getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
+                        getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(380 + (400.0/whiteLightRayCount*i));
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
+            group.getChildren().addAll(originRays);
+            originRays.forEach(Node::toBack);
+        } else {
+            OriginRay originRay = new  OriginRay(
+                    getCenterX(),
+                    getCenterY(),
+                    getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
+                    getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+            );
+            originRay.setParentSource(this);
+            originRay.setStrokeWidth(globalStrokeWidth);
+            originRay.setWavelength(wavelength);
+            originRay.setBrightness(brightness);
+
+            originRays.add(originRay);
+            group.getChildren().addAll(originRays);
+            originRays.forEach(Node::toBack);
+        }
+        update();
     }
 
 

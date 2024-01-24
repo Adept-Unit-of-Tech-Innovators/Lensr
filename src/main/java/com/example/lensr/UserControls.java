@@ -8,6 +8,7 @@ import javafx.scene.control.Slider;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 import static com.example.lensr.ParameterSlider.*;
+import static com.example.lensr.ParameterToggle.*;
 
 public class UserControls {
 
@@ -88,17 +89,24 @@ public class UserControls {
                 return;
             }
 
-            // Close ray edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
-                    && !beamSource.contains(mousePos) && beamSource.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                beamSource.closeObjectEdit();
-                beamSource.isEditPointClicked.setValue(false);
-                beamSource.isEdited = false;
-                editedShape = null;
-                beamSource.update();
-                return;
+            // Close beam source edit if editing it
+            if (editedShape instanceof Group group) {
+                BeamSource beamSource = group.getChildren().stream()
+                        .filter(node -> node instanceof BeamSource)
+                        .map(node -> (BeamSource) node)
+                        .filter(source -> !source.contains(mousePos) &&
+                                source.editPoints.stream().noneMatch(rectangle -> rectangle.contains(mousePos)))
+                        .findFirst()
+                        .orElse(null);
+                if (beamSource != null) {
+                    beamSource.closeObjectEdit();
+                    beamSource.isEditPointClicked.setValue(false);
+                    beamSource.isEdited = false;
+                    editedShape = null;
+                    beamSource.update();
+                    System.out.println("Closing beam source edit");
+                    return;
+                }
             }
 
             // Open object edit if clicked
@@ -212,6 +220,7 @@ public class UserControls {
                     beamSource.create();
                     if (lightSources.isEmpty()) {
                         wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                        whiteLightToggle = new ParameterToggle(beamSource, ParameterToChange.WhiteLight);
                     }
                     beamSource.openObjectEdit();
                     lightSources.add(beamSource);

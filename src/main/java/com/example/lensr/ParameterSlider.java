@@ -29,7 +29,7 @@ public class ParameterSlider extends JFXSlider {
     enum SliderStyle {
         Primary,
         Secondary,
-        Tertiary
+        Tertiary    
     }
 
     // Local variables

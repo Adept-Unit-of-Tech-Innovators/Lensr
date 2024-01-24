@@ -16,6 +16,7 @@ public class LensrStart extends Application {
     public static final double globalStrokeWidth = 0.5;
     public static final double editPointSize = 8;
     public static final int SIZE = 1000;
+    public static int whiteLightRayCount = 500;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();
@@ -45,6 +46,7 @@ public class LensrStart extends Application {
     public static ParameterSlider reflectivitySlider;
     public static ParameterSlider startPassbandSlider;
     public static ParameterSlider endPassbandSlider;
+    public static ParameterToggle whiteLightToggle;
 
     @Override
     public void start(Stage primaryStage) {

@@ -134,10 +134,11 @@ public class OriginRay extends Ray {
                 if (closestIntersectionMirror instanceof LineMirror mirror) {
                     // Calculate the angle of incidence
                     double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
+                    reflectionAngle += (currentRay.getWavelength()) / 1000;
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
