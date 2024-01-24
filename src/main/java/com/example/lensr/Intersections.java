@@ -1,12 +1,13 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.Ray;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.*;
 
 
 public class Intersections {
 
-    public static Point2D getRayIntersectionPoint(Line ray, Shape object) {
+    public static Point2D getRayIntersectionPoint(Ray ray, Shape object) {
         // holy fucking shit we actually did it
         double intersectionX, intersectionY;
 
@@ -14,7 +15,7 @@ public class Intersections {
         ray.setStrokeWidth(0.01);
         object.setStrokeWidth(0.01);
         Shape intersectionShape = Shape.intersect(ray, object);
-        ray.setStrokeWidth(0.5);
+        ray.setStrokeWidth(LensrStart.globalStrokeWidth);
         object.setStrokeWidth(LensrStart.globalStrokeWidth);
 
         // If intersection shape has negative dimensions there is no intersection
@@ -48,11 +49,12 @@ public class Intersections {
         shape.setStrokeType(StrokeType.OUTSIDE);
         copy.setStrokeType(StrokeType.INSIDE);
 
-        return Shape.subtract(shape, copy);
+        Shape a = Shape.subtract(shape, copy);
+        return a;
     }
 
 
-    public static double getLineReflectionAngle(Line ray, Line mirror) {
+    public static double getLineReflectionAngle(Ray ray, Line mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the mirror line
@@ -62,16 +64,16 @@ public class Intersections {
     }
 
 
-    public static double getEllipseReflectionAngle(Line ray, EllipseMirror ellipseMirror) {
+    public static double getEllipseReflectionAngle(Ray ray, Ellipse mirror) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         // Calculate the angle of the normal vector at the intersection point
         double x = ray.getEndX();
         double y = ray.getEndY();
-        double centerX = ellipseMirror.getCenterX();
-        double centerY = ellipseMirror.getCenterY();
-        double semiMajorAxis = ellipseMirror.getRadiusX();
-        double semiMinorAxis = ellipseMirror.getRadiusY();
+        double centerX = mirror.getCenterX();
+        double centerY = mirror.getCenterY();
+        double semiMajorAxis = mirror.getRadiusX();
+        double semiMinorAxis = mirror.getRadiusY();
 
         // Equation of an ellipse: (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
         // Derivative of the ellipse equation: f'(x) = -((x - h) / a^2) / ((y - k) / b^2)
@@ -126,6 +128,4 @@ public class Intersections {
 
         return refractedAngle;
     }
-
-
 }

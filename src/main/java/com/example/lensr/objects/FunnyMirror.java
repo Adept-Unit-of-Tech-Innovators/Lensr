@@ -1,37 +1,33 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.MutableValue;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.setupEditPoints;
 import static com.example.lensr.MirrorMethods.setupObjectEdit;
 
 public class FunnyMirror extends Polyline {
-    Group group = new Group();
+    public Group group = new Group();
     // The outline of the object for ray intersection
-    List<Rectangle> editPoints = new ArrayList<>();
+    public List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 1;
-    boolean isEdited;
-    MutableValue isEditPointClicked = new MutableValue(false);
+    public double reflectivity = 1;
+    public boolean isEdited;
+    public MutableValue isEditPointClicked = new MutableValue(false);
 
     public FunnyMirror() {
 
     }
 
     public void draw() {
-        setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) openObjectEdit();
-        });
         setStrokeWidth(globalStrokeWidth);
         setStroke(mirrorColor);
         group.getChildren().add(this);
@@ -40,16 +36,13 @@ public class FunnyMirror extends Polyline {
             @Override
             public Void call() throws Exception {
                 List<Double> points = getPoints();
-                int index = 0;
+                // Add initial point
+                points.add(mousePos.getX());
+                points.add(mousePos.getY());
+                int index = 2;
                 while (isMousePressed) {
                     if (isCancelled()) {
                         break;
-                    }
-                    if (index < 2) {
-                        points.add(mousePos.getX());
-                        points.add(mousePos.getY());
-                        index = index + 2;
-                        continue;
                     }
                     if ((Math.abs(points.get(index - 2) - mousePos.getX()) > 10) || (Math.abs(points.get(index - 1) - mousePos.getY()) > 10)) {
                         points.add(mousePos.getX());
@@ -61,7 +54,6 @@ public class FunnyMirror extends Polyline {
             }
         };
         new Thread(task).start();
-
     }
 
     public void setReflectivity(double reflectivity) {
@@ -74,6 +66,7 @@ public class FunnyMirror extends Polyline {
     }
 
     public void openObjectEdit() {
+        reflectivitySlider.show();
         setupObjectEdit();
         isEdited = true;
 
@@ -94,10 +87,12 @@ public class FunnyMirror extends Polyline {
     }
 
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 }

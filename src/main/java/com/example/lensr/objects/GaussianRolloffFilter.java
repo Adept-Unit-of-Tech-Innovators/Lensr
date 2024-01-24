@@ -1,11 +1,12 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.MutableValue;
 import javafx.application.Platform;
+import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
@@ -14,22 +15,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LineMirror extends Line {
-    Group group = new Group();
+public class GaussianRolloffFilter extends Line {
+    public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
     Rectangle hitbox;
-    boolean isMouseOnHitbox;
-    List<Rectangle> editPoints = new ArrayList<>();
+    public boolean isMouseOnHitbox;
+    public List<Rectangle> editPoints = new ArrayList<>();
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.9;
     double rotation = 0;
-    boolean isEdited;
-    MutableValue isEditPointClicked = new MutableValue(false);
+    public boolean isEdited;
+    public MutableValue isEditPointClicked = new MutableValue(false);
+    double passband = 580;
+    double peakTransmission = 0.8;
+    double FWHM = 20;
 
-    public LineMirror(double startX, double startY, double endX, double endY) {
+    public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
         setEndX(endX);
@@ -42,10 +46,6 @@ public class LineMirror extends Line {
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
 
-        setOnMouseClicked(mouseEvent -> {
-            if (isEditMode && !isEdited) openObjectEdit();
-        });
-
         createRectangleHitbox();
 
         group.getChildren().add(this);
@@ -54,6 +54,14 @@ public class LineMirror extends Line {
     }
 
     public void openObjectEdit() {
+        // Setup sliders
+        passbandSlider.setCurrentSource(this);
+        passbandSlider.show();
+        peakTransmissionSlider.setCurrentSource(this);
+        peakTransmissionSlider.show();
+        FWHMSlider.setCurrentSource(this);
+        FWHMSlider.show();
+
         setupObjectEdit();
         isEdited = true;
 
@@ -88,11 +96,17 @@ public class LineMirror extends Line {
 
 
     public void closeObjectEdit() {
+        // Hide sliders
+        passbandSlider.hide();
+        peakTransmissionSlider.hide();
+        FWHMSlider.hide();
+
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(editPoints);
             editPoints.clear();
         }
+        editedShape = null;
     }
 
 
@@ -121,13 +135,13 @@ public class LineMirror extends Line {
         rotate.setAngle(rotation);
     }
 
-    public void setReflectivity(double reflectivity) {
-        this.reflectivity = reflectivity;
+    public void setPeakTransmission(double peakTransmission) {
+        this.peakTransmission = peakTransmission;
     }
 
 
-    public double getReflectivity() {
-        return reflectivity;
+    public double getPeakTransmission() {
+        return peakTransmission;
     }
 
 
@@ -186,24 +200,27 @@ public class LineMirror extends Line {
                     endY = mousePos.getY();
                 }
 
-                this.setStartX(startX);
-                this.setStartY(startY);
-                this.setEndX(endX);
-                this.setEndY(endY);
-
-                // Update editPoints location
-                if (isEditPointClicked.getValue()) {
-                    editPoints.get(0).setX(getStartX() - editPointSize / 2);
-                    editPoints.get(0).setY(getStartY() - editPointSize / 2);
-                    editPoints.get(1).setX(getEndX() - editPointSize / 2);
-                    editPoints.get(1).setY(getEndY() - editPointSize / 2);
-                }
-
-                updateHitbox();
+                double finalStartX = startX;
+                double finalStartY = startY;
+                double finalEndX = endX;
+                double finalEndY = endY;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
-                    // Update UI components or perform other UI-related tasks
+                    this.setStartX(finalStartX);
+                    this.setStartY(finalStartY);
+                    this.setEndX(finalEndX);
+                    this.setEndY(finalEndY);
+
+                    // Update editPoints location
+                    if (isEditPointClicked.getValue()) {
+                        editPoints.get(0).setX(getStartX() - editPointSize / 2);
+                        editPoints.get(0).setY(getStartY() - editPointSize / 2);
+                        editPoints.get(1).setX(getEndX() - editPointSize / 2);
+                        editPoints.get(1).setY(getEndY() - editPointSize / 2);
+                    }
+
+                    updateHitbox();
                 });
 
                 synchronized (lock) {
@@ -215,5 +232,91 @@ public class LineMirror extends Line {
                 }
             }
         }).start();
+    }
+
+
+    public double getPassband() {
+        return passband;
+    }
+
+
+    public void setPassband(double passband) {
+        this.passband = passband;
+
+        double factor;
+        double red;
+        double green;
+        double blue;
+
+        int intensityMax = 255;
+        double Gamma = 0.8;
+
+        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
+        // what
+        if ((passband >= 380) && (passband < 440)) {
+            red = -(passband - 440.0) / (440.0 - 380.0);
+            green = 0.0;
+            blue = 1.0;
+        } else if ((passband >= 440) && (passband < 490)) {
+            red = 0.0;
+            green = (passband - 440.0) / (490.0 - 440.0);
+            blue = 1.0;
+        } else if ((passband >= 490) && (passband < 510)) {
+            red = 0.0;
+            green = 1.0;
+            blue = -(passband - 510.0) / (510.0 - 490.0);
+        } else if ((passband >= 510) && (passband < 580)) {
+            red = (passband - 510.0) / (580.0 - 510.0);
+            green = 1.0;
+            blue = 0.0;
+        } else if ((passband >= 580) && (passband < 645)) {
+            red = 1.0;
+            green = -(passband - 645.0) / (645.0 - 580.0);
+            blue = 0.0;
+        } else if ((passband >= 645) && (passband < 781)) {
+            red = 1.0;
+            green = 0.0;
+            blue = 0.0;
+        } else {
+            red = 0.0;
+            green = 0.0;
+            blue = 0.0;
+        }
+        // Let the intensity fall off near the vision limits
+        if ((passband >= 380) && (passband < 420)) {
+            factor = 0.3 + 0.7 * (passband - 380) / (420 - 380);
+        } else if ((passband >= 420) && (passband < 701)) {
+            factor = 1.0;
+        }
+        else if ((passband >= 701) && (passband < 781)) {
+            factor = 0.3 + 0.7 * (780 - passband) / (780 - 700);
+        } else {
+            factor = 0.0;
+        }
+
+        if (red != 0) {
+            red = Math.round(intensityMax * Math.pow(red * factor, Gamma));
+        }
+
+        if (green != 0) {
+            green = Math.round(intensityMax * Math.pow(green * factor, Gamma));
+        }
+
+        if (blue != 0) {
+            blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
+        }
+        
+
+        setStroke(Color.rgb((int) red, (int) green, (int) blue));
+    }
+
+
+    public double getFWHM() {
+        return FWHM;
+    }
+
+
+    public void setFWHM(double FWHM) {
+        this.FWHM = FWHM;
     }
 }

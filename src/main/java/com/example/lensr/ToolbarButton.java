@@ -3,23 +3,22 @@ package com.example.lensr;
 import com.jfoenix.controls.JFXButton;
 
 public class ToolbarButton extends JFXButton {
-    MutableValue variableToChange;
-    MutableValue[] oppositeVariables;
+    LensrStart.Key valueToSet;
     String label;
 
-    public ToolbarButton(String label, MutableValue variableToChange, MutableValue[] oppositeVariables, int layoutX, int layoutY) {
+    public ToolbarButton(String label, LensrStart.Key valueToSet, int layoutX, int layoutY) {
         this.label = label;
-        this.variableToChange = variableToChange;
-        this.oppositeVariables = oppositeVariables;
+        this.valueToSet = valueToSet;
 
         setText(label);
         setLayoutX(layoutX);
         setLayoutY(layoutY);
         getStyleClass().add("button");
         setOnAction(actionEvent -> {
-            variableToChange.setValueAndCloseEdit(!variableToChange.getValue(), oppositeVariables);
+            LensrStart.keyPressed = valueToSet;
             updateRender();
         });
+        toFront();
     }
 
     public void addToRoot() {
@@ -27,7 +26,7 @@ public class ToolbarButton extends JFXButton {
     }
 
     public void updateRender() {
-        if (variableToChange.getValue()) {
+        if (LensrStart.keyPressed == valueToSet) {
             getStyleClass().add("button-selected");
         } else {
             getStyleClass().remove("button-selected");
