@@ -77,6 +77,16 @@ public class UserControls {
                 return;
             }
 
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter
+                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                filter.closeObjectEdit();
+                filter.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
 
             // Close ray edit if editing it
             if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
@@ -111,6 +121,10 @@ public class UserControls {
                         return;
                     }
                     if (mirror instanceof GaussianRolloffFilter filter && filter.isMouseOnHitbox) {
+                        filter.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof BrickwallFilter filter && filter.isMouseOnHitbox) {
                         filter.openObjectEdit();
                         return;
                     }
@@ -170,27 +184,38 @@ public class UserControls {
                     editedShape = lightEater.group;
                     break;
                 case N:
-                    GaussianRolloffFilter filter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                    filter.create();
+                    GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                    gaussianRolloffFilter.create();
                     if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        passbandSlider = new ParameterSlider(filter, ValueToChange.Passband, SliderStyle.Primary);
-                        peakTransmissionSlider = new ParameterSlider(filter, ValueToChange.PeakTransmission, SliderStyle.Secondary);
-                        FWHMSlider = new ParameterSlider(filter, ValueToChange.FWHM, SliderStyle.Tertiary);
+                        peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                        passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
+                        FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
                     }
-                    filter.scale(mousePos);
-                    mirrors.add(filter);
-                    editedShape = filter.group;
+                    gaussianRolloffFilter.scale(mousePos);
+                    mirrors.add(gaussianRolloffFilter);
+                    editedShape = gaussianRolloffFilter.group;
+                    break;
+                case M:
+                    BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                    brickwallFilter.create();
+                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                        peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
+                        startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
+                        endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
+                    }
+                    brickwallFilter.scale(mousePos);
+                    mirrors.add(brickwallFilter);
+                    editedShape = brickwallFilter.group;
                     break;
                 case C:
                     BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                     beamSource.create();
                     if (lightSources.isEmpty()) {
-                        wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.WaveLength, SliderStyle.Primary);
+                        wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
                     }
                     lightSources.add(beamSource);
                     editedShape = beamSource.group;
                     break;
-
             }
         });
 
@@ -220,6 +245,10 @@ public class UserControls {
                 case N:
                     if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter mirror && !mirror.isEdited) {
                         mirror.openObjectEdit();
+                    }
+                case M:
+                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter && !filter.isEdited) {
+                        filter.openObjectEdit();
                     }
                 case C:
                     if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BeamSource beamSource && !beamSource.isEdited) {
@@ -292,6 +321,14 @@ public class UserControls {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.N;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("M") && isEditMode) {
+                if (keyPressed == Key.M) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.M;
                 }
                 MirrorMethods.closeMirrorsEdit();
             }

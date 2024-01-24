@@ -28,14 +28,14 @@ public class LensrStart extends Application {
         C,
         V,
         B,
-        N
+        N,
+        M
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
-    public static boolean mouseEventHandled = false;
     public static Object editedShape;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
     public static ParameterSlider wavelengthSlider;
@@ -43,6 +43,8 @@ public class LensrStart extends Application {
     public static ParameterSlider peakTransmissionSlider;
     public static ParameterSlider FWHMSlider;
     public static ParameterSlider reflectivitySlider;
+    public static ParameterSlider startPassbandSlider;
+    public static ParameterSlider endPassbandSlider;
 
     @Override
     public void start(Stage primaryStage) {
@@ -53,13 +55,15 @@ public class LensrStart extends Application {
         ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", Key.X, 150, 25);
         ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 275, 25);
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
-        ToolbarButton FilterButton = new ToolbarButton("Filter", Key.N, 525, 25);
-        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 650, 25);
+        ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
+        ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
+        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
         toolbar.add(lightEaterButton);
-        toolbar.add(FilterButton);
+        toolbar.add(gaussianFilterButton);
+        toolbar.add(brickwallFilterButton);
         toolbar.add(rayButton);
 
         for (ToolbarButton button : toolbar) {

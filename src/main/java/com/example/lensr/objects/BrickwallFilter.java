@@ -25,13 +25,12 @@ public class BrickwallFilter extends Line {
     Rectangle hitbox;
     public boolean isMouseOnHitbox;
     public List<Rectangle> editPoints = new ArrayList<>();
-    // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     double rotation = 0;
     public boolean isEdited;
     public MutableValue isEditPointClicked = new MutableValue(false);
     double startPassband = 480;
     double endPassband = 680;
-    double transmission = 0.9;
+    double transmission = 0.8;
 
     public BrickwallFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -55,12 +54,12 @@ public class BrickwallFilter extends Line {
 
     public void openObjectEdit() {
         // Setup sliders
-        passbandSlider.setCurrentSource(this);
-        passbandSlider.show();
         peakTransmissionSlider.setCurrentSource(this);
         peakTransmissionSlider.show();
-        FWHMSlider.setCurrentSource(this);
-        FWHMSlider.show();
+        startPassbandSlider.setCurrentSource(this);
+        startPassbandSlider.show();
+        endPassbandSlider.setCurrentSource(this);
+        endPassbandSlider.show();
 
         setupObjectEdit();
         isEdited = true;
@@ -97,9 +96,9 @@ public class BrickwallFilter extends Line {
 
     public void closeObjectEdit() {
         // Hide sliders
-        passbandSlider.hide();
         peakTransmissionSlider.hide();
-        FWHMSlider.hide();
+        startPassbandSlider.hide();
+        endPassbandSlider.hide();
 
         isEdited = false;
         if (editPoints != null && editedShape instanceof Group editedGroup) {
@@ -223,6 +222,75 @@ public class BrickwallFilter extends Line {
     }
 
 
+    private void setWavelengthColor(double passband) {
+        double factor;
+        double red;
+        double green;
+        double blue;
+
+        int intensityMax = 255;
+        double Gamma = 0.8;
+
+        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
+        // what
+        if ((passband >= 380) && (passband < 440)) {
+            red = -(passband - 440.0) / (440.0 - 380.0);
+            green = 0.0;
+            blue = 1.0;
+        } else if ((passband >= 440) && (passband < 490)) {
+            red = 0.0;
+            green = (passband - 440.0) / (490.0 - 440.0);
+            blue = 1.0;
+        } else if ((passband >= 490) && (passband < 510)) {
+            red = 0.0;
+            green = 1.0;
+            blue = -(passband - 510.0) / (510.0 - 490.0);
+        } else if ((passband >= 510) && (passband < 580)) {
+            red = (passband - 510.0) / (580.0 - 510.0);
+            green = 1.0;
+            blue = 0.0;
+        } else if ((passband >= 580) && (passband < 645)) {
+            red = 1.0;
+            green = -(passband - 645.0) / (645.0 - 580.0);
+            blue = 0.0;
+        } else if ((passband >= 645) && (passband < 781)) {
+            red = 1.0;
+            green = 0.0;
+            blue = 0.0;
+        } else {
+            red = 0.0;
+            green = 0.0;
+            blue = 0.0;
+        }
+        // Let the intensity fall off near the vision limits
+        if ((passband >= 380) && (passband < 420)) {
+            factor = 0.3 + 0.7 * (passband - 380) / (420 - 380);
+        } else if ((passband >= 420) && (passband < 701)) {
+            factor = 1.0;
+        }
+        else if ((passband >= 701) && (passband < 781)) {
+            factor = 0.3 + 0.7 * (780 - passband) / (780 - 700);
+        } else {
+            factor = 0.0;
+        }
+
+        if (red != 0) {
+            red = Math.round(intensityMax * Math.pow(red * factor, Gamma));
+        }
+
+        if (green != 0) {
+            green = Math.round(intensityMax * Math.pow(green * factor, Gamma));
+        }
+
+        if (blue != 0) {
+            blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
+        }
+
+
+        setStroke(Color.rgb((int) red, (int) green, (int) blue));
+    }
+
+
     public void setTransmission(double transmission) {
         this.transmission = transmission;
     }
@@ -235,6 +303,7 @@ public class BrickwallFilter extends Line {
 
     public void setStartPassband(double startPassband) {
         this.startPassband = startPassband;
+        setWavelengthColor((startPassband + endPassband) / 2);
     }
 
 
@@ -245,6 +314,7 @@ public class BrickwallFilter extends Line {
 
     public void setEndPassband(double endPassband) {
         this.endPassband = endPassband;
+        setWavelengthColor((startPassband + endPassband) / 2);
     }
 
 

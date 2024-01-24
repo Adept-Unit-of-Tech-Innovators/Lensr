@@ -4,7 +4,6 @@ import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.TextField;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.root;
@@ -13,10 +12,13 @@ import static com.example.lensr.LensrStart.toolbar;
 public class ParameterSlider extends JFXSlider {
 
     enum ValueToChange {
-        WaveLength,
-        Passband,
+        Wavelength,
         PeakTransmission,
+        Passband,
         FWHM,
+        Transmission,
+        StartPassband,
+        EndPassband,
         Reflectivity
     }
 
@@ -51,50 +53,59 @@ public class ParameterSlider extends JFXSlider {
                 break;
         }
 
-        double minVal = -100;
-        double maxVal = -1;
-        double startingVal = -100;
+        double minVal = 0;
+        double maxVal = 1;
+        double startingVal = 0.5;
 
-        if (valueToChange == ValueToChange.WaveLength && source instanceof BeamSource beamSource) {
+        if (valueToChange == ValueToChange.Wavelength && source instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
             label.setText("Wavelength");
         }
+        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof GaussianRolloffFilter filter) {
+            startingVal = filter.getPeakTransmission();
+            label.setText("Peak transmission");
+        }
         else if (valueToChange == ValueToChange.Passband && source instanceof GaussianRolloffFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getPassband();
-            filter.setPassband(startingVal); // temp for coloring the filter at the start
+            filter.setPassband(startingVal);
             label.setText("Passband");
         }
-        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof GaussianRolloffFilter filter) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = filter.getPeakTransmission();
-            label.setText("Peak transmission");
-        }
         else if (valueToChange == ValueToChange.FWHM && source instanceof GaussianRolloffFilter filter) {
-            minVal = 0;
             maxVal = 400;
             startingVal = filter.getFWHM();
             label.setText("FWHM");
         }
+        else if (valueToChange == ValueToChange.Transmission && source instanceof BrickwallFilter filter) {
+            startingVal = filter.getTransmission();
+            label.setText("Transmission");
+        }
+        else if (valueToChange == ValueToChange.StartPassband && source instanceof BrickwallFilter filter) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = filter.getStartPassband();
+            filter.setStartPassband(startingVal);
+            label.setText("Start passband");
+        }
+        else if (valueToChange == ValueToChange.EndPassband && source instanceof BrickwallFilter filter) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = filter.getEndPassband();
+            filter.setEndPassband(startingVal);
+            label.setText("End passband");
+        }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof LineMirror lineMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = lineMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof EllipseMirror ellipseMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = ellipseMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && source instanceof FunnyMirror funnyMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
         }
@@ -134,20 +145,32 @@ public class ParameterSlider extends JFXSlider {
         valueProperty().addListener((observable, oldValue, newValue) -> {
             double roundedValue = Math.round(newValue.doubleValue() * 100.0) / 100.0;
             textField.setText(String.valueOf(roundedValue));
-            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.WaveLength) {
+            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
                 beamSource.setWavelength(roundedValue);
-                return;
-            }
-            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
-                filter.setPassband(roundedValue);
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
                 return;
             }
+            if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
+                filter.setPassband(roundedValue);
+                return;
+            }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
                 filter.setFWHM(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
+                filter.setTransmission(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.StartPassband) {
+                filter.setStartPassband(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.EndPassband) {
+                filter.setEndPassband(roundedValue);
                 return;
             }
             if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
