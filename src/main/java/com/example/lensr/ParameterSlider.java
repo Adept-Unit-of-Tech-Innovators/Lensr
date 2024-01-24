@@ -28,13 +28,28 @@ public class ParameterSlider extends JFXSlider {
         Tertiary
     }
 
+    // Local variables
+    SliderStyle sliderStyle;
+    ValueToChange valueToChange;
+    double minVal = getMin();
+    double maxVal = getMax();
+    double startingVal = getValue();
     Object currentSource;
+
+    // GUI elements
     TextField textField = new TextField();
     Text label = new Text();
     HBox hBox = new HBox();
     VBox sliderAndLabel = new VBox();
     VBox inputField = new VBox();
+
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
+        this.valueToChange = valueToChange;
+        this.sliderStyle = sliderStyle;
+        this.currentSource = source;
+        setCorrectValues();
+
+        // Set up the GUI
         sliderAndLabel.getChildren().add(label);
         sliderAndLabel.getChildren().add(this);
         inputField.getChildren().add(textField);
@@ -58,63 +73,11 @@ public class ParameterSlider extends JFXSlider {
                 break;
         }
 
-        double minVal = -100;
-        double maxVal = -1;
-        double startingVal = -100;
-
-        if (valueToChange == ValueToChange.WaveLength && source instanceof BeamSource beamSource) {
-            minVal = 380;
-            maxVal = 780;
-            startingVal = beamSource.getWavelength();
-            label.setText("Wavelength");
-        }
-        else if (valueToChange == ValueToChange.Passband && source instanceof Filter filter) {
-            minVal = 380;
-            maxVal = 780;
-            startingVal = filter.getPassband();
-            filter.setPassband(startingVal); // temp for coloring the filter at the start
-            label.setText("Passband");
-        }
-        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof Filter filter) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = filter.getPeakTransmission();
-            label.setText("Peak transmission");
-        }
-        else if (valueToChange == ValueToChange.FWHM && source instanceof Filter filter) {
-            minVal = 0;
-            maxVal = 400;
-            startingVal = filter.getFWHM();
-            label.setText("FWHM");
-        }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof LineMirror lineMirror) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = lineMirror.getReflectivity();
-            label.setText("Reflectivity");
-        }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof EllipseMirror ellipseMirror) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = ellipseMirror.getReflectivity();
-            label.setText("Reflectivity");
-        }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof FunnyMirror funnyMirror) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = funnyMirror.getReflectivity();
-            label.setText("Reflectivity");
-        }
-
         // Set values for the slider
         this.currentSource = source;
         hBox.setLayoutY(25);
         setPrefHeight(40);
         setPrefWidth(150);
-
-        setMin(minVal);
-        setMax(maxVal);
-        setValue(startingVal);
 
         textField.setLayoutY(32.5);
         textField.setPrefWidth(50);
@@ -174,16 +137,28 @@ public class ParameterSlider extends JFXSlider {
         });
 
         textField.setOnAction(actionEvent -> {
-            double value = Double.parseDouble(textField.getText());
-            setValue(value);
+            try {
+                double value = Double.parseDouble(textField.getText());
+                setValue(value);
+            } catch (NumberFormatException e) {
+                textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0));
+            }
         });
+
     }
 
     public void setCurrentSource (Object source) {
         currentSource = source;
+        setCorrectValues();
     }
 
     public void hide() {
+        // Set the value of the slider to the appropriate value of the text field
+        try { setValue(Double.parseDouble(textField.getText())); }
+        catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0)); }
+        textField.setFocusTraversable(false);
+
+        // Update UI
         hBox.setVisible(false);
         hBox.setDisable(true);
         toolbar.forEach(button -> {
@@ -193,9 +168,59 @@ public class ParameterSlider extends JFXSlider {
     }
 
     public void show() {
+        // Update UI
         toFront();
         hBox.setVisible(true);
         hBox.setDisable(false);
         toolbar.forEach(button -> button.setVisible(false));
+    }
+
+    private void setCorrectValues () {
+        if (valueToChange == ValueToChange.WaveLength && currentSource instanceof BeamSource beamSource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = beamSource.getWavelength();
+            label.setText("Wavelength");
+        }
+        else if (valueToChange == ValueToChange.Passband && currentSource instanceof Filter filter) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = filter.getPassband();
+            filter.setPassband(startingVal); // temp for coloring the filter at the start
+            label.setText("Passband");
+        }
+        else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof Filter filter) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = filter.getPeakTransmission();
+            label.setText("Peak transmission");
+        }
+        else if (valueToChange == ValueToChange.FWHM && currentSource instanceof Filter filter) {
+            minVal = 0;
+            maxVal = 400;
+            startingVal = filter.getFWHM();
+            label.setText("FWHM");
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = lineMirror.getReflectivity();
+            label.setText("Reflectivity");
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = ellipseMirror.getReflectivity();
+            label.setText("Reflectivity");
+        }
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof FunnyMirror funnyMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = funnyMirror.getReflectivity();
+            label.setText("Reflectivity");
+        }
+        setMin(minVal);
+        setMax(maxVal);
+        setValue(startingVal);
     }
 }
