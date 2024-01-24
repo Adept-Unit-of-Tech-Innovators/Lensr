@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import javafx.geometry.Bounds;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
