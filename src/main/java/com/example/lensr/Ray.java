@@ -28,6 +28,7 @@ public class Ray extends Line {
     Group group = new Group();
     MutableValue isEditPointClicked = new MutableValue(false);
     List<Ray> rayReflections = new ArrayList<>();
+    Object objectRayComesThrough = null;
 
     public Ray(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -118,9 +119,7 @@ public class Ray extends Line {
 
                     if(element instanceof SphericalLens.LensArc arc)
                     {
-                        System.out.println(arc.getBounds() == null);
                         shape = arc.getBounds();
-
                     }
                     else shape = element;
 
@@ -257,6 +256,7 @@ public class Ray extends Line {
         }
         else if (closestIntersectionObject instanceof SphericalLens.LensLine line)
         {
+            line.switchHasRay();
             double refractionAngle = getLineRefractionAngle(this, line, 1.5, true);
 
             reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
@@ -482,4 +482,8 @@ public class Ray extends Line {
         // Calculate the Euclidean distance from the start position to the bounds
         return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
     }
+//    public boolean isRayComingThroughObject(Object object)
+//    {
+//        return objectsRayComesThrough.contains(object);
+//    }
 }

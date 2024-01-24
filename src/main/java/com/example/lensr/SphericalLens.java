@@ -15,7 +15,17 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens {
-    public class LensLine extends Line{}
+    boolean hasRay;
+    public class LensLine extends Line{
+        public void switchHasRay()
+        {
+            hasRay = !hasRay;
+        }
+        public boolean getHasRay()
+        {
+            return hasRay;
+        }
+    }
     public class LensArc extends Arc
     {
         private double thickness;

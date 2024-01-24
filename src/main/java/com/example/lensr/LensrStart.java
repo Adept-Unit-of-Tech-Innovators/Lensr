@@ -33,7 +33,6 @@ public class LensrStart extends Application {
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
     public static Object editedShape;
-    public static Shape test;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
 
     @Override
@@ -90,7 +89,6 @@ public class LensrStart extends Application {
         SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 20);
         testLens.addToRoot();
         lenses.add(testLens);
-        test = Shape.subtract(Intersections.getObjectOutline(testLens.getSecondArc()), testLens.getSecondArc().getChord());
     }
 
 
