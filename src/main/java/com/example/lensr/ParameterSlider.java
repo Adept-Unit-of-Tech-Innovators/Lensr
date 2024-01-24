@@ -3,9 +3,10 @@ package com.example.lensr;
 import com.example.lensr.objects.*;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.root;
@@ -31,27 +32,29 @@ public class ParameterSlider extends JFXSlider {
     TextField textField = new TextField();
     Text label = new Text();
     HBox hBox = new HBox();
-    VBox vBox = new VBox();
+    VBox sliderAndLabel = new VBox();
+    VBox inputField = new VBox();
     public ParameterSlider(Object source, ValueToChange valueToChange, SliderStyle sliderStyle) {
-        hBox.getChildren().add(textField);
-        hBox.getChildren().add(this);
-        vBox.getChildren().add(label);
-        vBox.getChildren().add(hBox);
+        sliderAndLabel.getChildren().add(label);
+        sliderAndLabel.getChildren().add(this);
+        inputField.getChildren().add(textField);
+        hBox.getChildren().add(inputField);
+        hBox.getChildren().add(sliderAndLabel);
         show();
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                vBox.setLayoutX(50);
+                hBox.setLayoutX(50);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                vBox.setLayoutX(350);
+                hBox.setLayoutX(350);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                vBox.setLayoutX(650);
+                hBox.setLayoutX(650);
                 break;
         }
 
@@ -105,7 +108,7 @@ public class ParameterSlider extends JFXSlider {
 
         // Set values for the slider
         this.currentSource = source;
-        vBox.setLayoutY(25);
+        hBox.setLayoutY(25);
         setPrefHeight(40);
         setPrefWidth(150);
 
@@ -121,7 +124,10 @@ public class ParameterSlider extends JFXSlider {
 
         hBox.setAlignment(javafx.geometry.Pos.CENTER);
         hBox.setSpacing(10);
-        vBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        inputField.setPadding(new Insets(12, 0, 0, 0));
+        inputField.setAlignment(Pos.CENTER);
+        sliderAndLabel.setAlignment(javafx.geometry.Pos.CENTER);
 
 
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
@@ -132,7 +138,7 @@ public class ParameterSlider extends JFXSlider {
         }
 
 
-        root.getChildren().add(vBox);
+        root.getChildren().add(hBox);
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -178,8 +184,8 @@ public class ParameterSlider extends JFXSlider {
     }
 
     public void hide() {
-        vBox.setVisible(false);
-        vBox.setDisable(true);
+        hBox.setVisible(false);
+        hBox.setDisable(true);
         toolbar.forEach(button -> {
             button.setVisible(true);
             button.toFront();
@@ -188,8 +194,8 @@ public class ParameterSlider extends JFXSlider {
 
     public void show() {
         toFront();
-        vBox.setVisible(true);
-        vBox.setDisable(false);
+        hBox.setVisible(true);
+        hBox.setDisable(false);
         toolbar.forEach(button -> button.setVisible(false));
     }
 }
