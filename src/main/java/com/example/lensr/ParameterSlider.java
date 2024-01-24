@@ -190,55 +190,55 @@ public class ParameterSlider extends JFXSlider {
     }
 
     private void setCorrectValues () {
-        if (valueToChange == ValueToChange.Wavelength && source instanceof BeamSource beamSource) {
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
             label.setText("Wavelength");
         }
-        else if (valueToChange == ValueToChange.PeakTransmission && source instanceof GaussianRolloffFilter filter) {
+        else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
             startingVal = filter.getPeakTransmission();
             label.setText("Peak transmission");
         }
-        else if (valueToChange == ValueToChange.Passband && source instanceof GaussianRolloffFilter filter) {
+        else if (valueToChange == ValueToChange.Passband && currentSource instanceof GaussianRolloffFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getPassband();
             filter.setPassband(startingVal);
             label.setText("Passband");
         }
-        else if (valueToChange == ValueToChange.FWHM && source instanceof GaussianRolloffFilter filter) {
+        else if (valueToChange == ValueToChange.FWHM && currentSource instanceof GaussianRolloffFilter filter) {
             maxVal = 400;
             startingVal = filter.getFWHM();
             label.setText("FWHM");
         }
-        else if (valueToChange == ValueToChange.Transmission && source instanceof BrickwallFilter filter) {
+        else if (valueToChange == ValueToChange.Transmission && currentSource instanceof BrickwallFilter filter) {
             startingVal = filter.getTransmission();
             label.setText("Transmission");
         }
-        else if (valueToChange == ValueToChange.StartPassband && source instanceof BrickwallFilter filter) {
+        else if (valueToChange == ValueToChange.StartPassband && currentSource instanceof BrickwallFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getStartPassband();
             filter.setStartPassband(startingVal);
             label.setText("Start passband");
         }
-        else if (valueToChange == ValueToChange.EndPassband && source instanceof BrickwallFilter filter) {
+        else if (valueToChange == ValueToChange.EndPassband && currentSource instanceof BrickwallFilter filter) {
             minVal = 380;
             maxVal = 780;
             startingVal = filter.getEndPassband();
             filter.setEndPassband(startingVal);
             label.setText("End passband");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof LineMirror lineMirror) {
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
             startingVal = lineMirror.getReflectivity();
             label.setText("Reflectivity");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof EllipseMirror ellipseMirror) {
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
             startingVal = ellipseMirror.getReflectivity();
             label.setText("Reflectivity");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && source instanceof FunnyMirror funnyMirror) {
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof FunnyMirror funnyMirror) {
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
         }
