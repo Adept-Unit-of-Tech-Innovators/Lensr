@@ -36,16 +36,13 @@ public class FunnyMirror extends Polyline {
             @Override
             public Void call() throws Exception {
                 List<Double> points = getPoints();
-                int index = 0;
+                // Add initial point
+                points.add(mousePos.getX());
+                points.add(mousePos.getY());
+                int index = 2;
                 while (isMousePressed) {
                     if (isCancelled()) {
                         break;
-                    }
-                    if (index < 2) {
-                        points.add(mousePos.getX());
-                        points.add(mousePos.getY());
-                        index = index + 2;
-                        continue;
                     }
                     if ((Math.abs(points.get(index - 2) - mousePos.getX()) > 10) || (Math.abs(points.get(index - 1) - mousePos.getY()) > 10)) {
                         points.add(mousePos.getX());
@@ -57,10 +54,6 @@ public class FunnyMirror extends Polyline {
             }
         };
         new Thread(task).start();
-        this.setTranslateX(0);
-        this.setTranslateY(0);
-
-
     }
 
     public void setReflectivity(double reflectivity) {
