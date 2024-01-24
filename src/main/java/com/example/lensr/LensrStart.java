@@ -1,5 +1,6 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.SphericalLens;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
@@ -30,7 +31,8 @@ public class LensrStart extends Application {
         V,
         B,
         N,
-        M
+        M,
+        L
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -59,6 +61,7 @@ public class LensrStart extends Application {
         ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
         ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
+        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 900, 25);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -66,6 +69,7 @@ public class LensrStart extends Application {
         toolbar.add(gaussianFilterButton);
         toolbar.add(brickwallFilterButton);
         toolbar.add(rayButton);
+        toolbar.add(lensButton);
 
         for (ToolbarButton button : toolbar) {
             button.setOnAction(actionEvent -> {
@@ -88,10 +92,6 @@ public class LensrStart extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
-
-        SphericalLens testLens = new SphericalLens(100, 100, 500, 500, 20);
-        testLens.addToRoot();
-        lenses.add(testLens);
     }
 
 

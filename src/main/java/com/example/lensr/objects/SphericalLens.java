@@ -1,5 +1,6 @@
-package com.example.lensr;
+package com.example.lensr.objects;
 
+import com.example.lensr.Intersections;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -16,41 +17,43 @@ import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens {
     boolean hasRay;
-    public class LensLine extends Line{
-        public void switchHasRay()
-        {
+
+    public class LensLine extends Line {
+        public void switchHasRay() {
             hasRay = !hasRay;
         }
-        public boolean getHasRay()
-        {
+
+        public boolean getHasRay() {
             return hasRay;
         }
     }
-    public class LensArc extends Arc
-    {
+
+    public class LensArc extends Arc {
         private double thickness;
         private Shape bounds;
 
         public LensArc(double thickness) {
             this.thickness = thickness;
         }
-        public Line getChord()
-        {
+
+        public Line getChord() {
             Line chord = new Line(topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY());
-            if(this == firstArc) chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getStartX(), bottomLine.getStartY());
+            if (this == firstArc)
+                chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getStartX(), bottomLine.getStartY());
             return chord;
         }
-        void updateArcBounds()
-        {
+
+        void updateArcBounds() {
             Shape newBounds = Intersections.getObjectOutline(this);
             Line chord = getChord();
             bounds = Shape.subtract(newBounds, chord);
         }
-        public Shape getBounds()
-        {
+
+        public Shape getBounds() {
             return this.bounds;
         }
     }
+
     private double middleHeight;
     private double middleWidth;
     private double angleOfRotation;
@@ -61,7 +64,7 @@ public class SphericalLens {
     private LensArc secondArc;
     private LensLine topLine;
     private LensLine bottomLine;
-    List<Shape> elements = new ArrayList<>();
+    public List<Shape> elements = new ArrayList<>();
 
     private double refractiveIndex;
     private double focalLength;
@@ -92,31 +95,31 @@ public class SphericalLens {
         resize(lensThickness, middleWidth, middleHeight);
     }
 
-    public static Point2D calculateFocalPoint()
-    {
+    public void create() {
+        root.getChildren().addAll(firstArc, secondArc, topLine, bottomLine);
+    }
+
+    public static Point2D calculateFocalPoint() {
         return null;
     }
-    public double calculateFocalLength()
-    {
+
+    public double calculateFocalLength() {
 
         return 1 / ((refractiveIndex - 1) * (1 / firstArc.getRadiusY() - 1 / secondArc.getRadiusY() + (((refractiveIndex - 1) * middleWidth) / refractiveIndex * firstArc.getRadiusY() * secondArc.getRadiusY())));
     }
 
 
-    public void addToRoot()
-    {
+    public void addToRoot() {
         root.getChildren().addAll(firstArc, secondArc, topLine, bottomLine);
     }
 
-    public void arcAdjust(LensArc arc, double lensThickness, boolean isRightOriented)
-    {
+    public void arcAdjust(LensArc arc, double lensThickness, boolean isRightOriented) {
         arc.setType(ArcType.OPEN);
         arc.setFill(Color.TRANSPARENT);
         arc.setStroke(mirrorColor);
         arc.setStrokeWidth(globalStrokeWidth);
         int multiplier = 1;
-        if(isRightOriented)
-        {
+        if (isRightOriented) {
             multiplier = -1;
         }
 
@@ -124,20 +127,17 @@ public class SphericalLens {
         arc.setRadiusX(radius);
         arc.setRadiusY(radius);
 
-        arc.setCenterX(centerX + (- middleWidth / 2 + radius - lensThickness) * multiplier);
+        arc.setCenterX(centerX + (-middleWidth / 2 + radius - lensThickness) * multiplier);
         arc.setCenterY(centerY);
 
-        double angleInRadians = 2 * Math.asin(middleHeight / (2*radius));
+        double angleInRadians = 2 * Math.asin(middleHeight / (2 * radius));
         double angleInDegrees = Math.toDegrees(angleInRadians);
 
-        System.out.println("Angle: in radians - " + angleInRadians + ", in degrees - " + angleInDegrees);
-
-        arc.setStartAngle(180 - angleInDegrees/2);
-        if(isRightOriented) arc.setStartAngle(-angleInDegrees/2);
+        arc.setStartAngle(180 - angleInDegrees / 2);
+        if (isRightOriented) arc.setStartAngle(-angleInDegrees / 2);
 
         arc.setLength(angleInDegrees);
         arc.updateArcBounds();
-
 
 
 //        System.out.println("Radius: " + radius);
@@ -151,8 +151,7 @@ public class SphericalLens {
 
     }
 
-    public void resize(double lensThickness, double newWidth, double newHeight)
-    {
+    public void resize(double lensThickness, double newWidth, double newHeight) {
         middleHeight = newHeight;
         middleWidth = newWidth;
 

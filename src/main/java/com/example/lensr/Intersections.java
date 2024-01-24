@@ -122,10 +122,6 @@ public class Intersections {
         double normalAngle = Math.atan2((pointX - centerX) * radius, (pointY - centerY) * radius);
         double refractedAngle = Math.asin(1/refractiveIndex * Math.sin(normalAngle - angleOfIncidence));
 
-        System.out.println("Angle of incidence: " + (90 - Math.toDegrees(angleOfIncidence)));
-        System.out.println("Normal angle: " + Math.toDegrees(normalAngle));
-        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
-
         return refractedAngle;
     }
 }

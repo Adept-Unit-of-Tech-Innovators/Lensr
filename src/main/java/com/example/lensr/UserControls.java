@@ -207,6 +207,11 @@ public class UserControls {
                     mirrors.add(brickwallFilter);
                     editedShape = brickwallFilter.group;
                     break;
+                case L:
+                    SphericalLens sphericalLens = new SphericalLens(100, 100, mousePos.getX(), mousePos.getY(), 20);
+                    sphericalLens.create();
+                    lenses.add(sphericalLens);
+                    break;
                 case C:
                     BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                     beamSource.create();
@@ -251,6 +256,7 @@ public class UserControls {
                     if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter && !filter.isEdited) {
                         filter.openObjectEdit();
                     }
+                // TODO: Add lens edit
                 case C:
                     if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BeamSource beamSource && !beamSource.isEdited) {
                         beamSource.openObjectEdit();
@@ -330,6 +336,14 @@ public class UserControls {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.M;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("L") && isEditMode) {
+                if (keyPressed == Key.L) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.L;
                 }
                 MirrorMethods.closeMirrorsEdit();
             }

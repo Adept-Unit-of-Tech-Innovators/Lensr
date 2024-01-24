@@ -35,8 +35,8 @@ public class ParameterSlider extends JFXSlider {
     // Local variables
     SliderStyle sliderStyle;
     ValueToChange valueToChange;
-    double minVal = getMin();
-    double maxVal = getMax();
+    double minVal;
+    double maxVal;
     double startingVal = getValue();
     Object currentSource;
 
@@ -198,6 +198,8 @@ public class ParameterSlider extends JFXSlider {
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = filter.getPeakTransmission();
             label.setText("Peak transmission");
         }
@@ -232,14 +234,20 @@ public class ParameterSlider extends JFXSlider {
             label.setText("End passband");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = lineMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = ellipseMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof FunnyMirror funnyMirror) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
         }
