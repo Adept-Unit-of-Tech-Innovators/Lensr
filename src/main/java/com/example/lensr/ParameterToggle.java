@@ -30,8 +30,6 @@ public class ParameterToggle extends JFXToggleButton {
                 beamSource.setWhiteLight(isSelected());
             }
         });
-
-
     }
 
 

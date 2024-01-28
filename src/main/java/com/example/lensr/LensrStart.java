@@ -5,6 +5,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 public class LensrStart extends Application {
     public static final Object lock = new Object();
     public static final Color mirrorColor = Color.WHITE;
-    public static final double globalStrokeWidth = 0.5;
+    public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
     public static final int SIZE = 1000;
     public static int whiteLightRayCount = 500;
@@ -21,6 +22,7 @@ public class LensrStart extends Application {
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
+    public static List<Rectangle> editPoints = new ArrayList<>();
     public static Point2D mousePos;
     public enum Key {
         None,
@@ -47,6 +49,8 @@ public class LensrStart extends Application {
     public static ParameterSlider startPassbandSlider;
     public static ParameterSlider endPassbandSlider;
     public static ParameterToggle whiteLightToggle;
+    public static final double mouseHitboxSize = 20;
+    public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
 
     @Override
     public void start(Stage primaryStage) {

@@ -1,10 +1,8 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.MutableValue;
+import com.example.lensr.EditPoint;
 import javafx.application.Platform;
-import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
@@ -21,15 +19,12 @@ public class LineMirror extends Line {
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    Rectangle hitbox;
-    public boolean isMouseOnHitbox;
-    public List<Rectangle> editPoints = new ArrayList<>();
-    // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    double reflectivity = 0.9;
+    public Rectangle hitbox;
+    public List<EditPoint> objectEditPoints = new ArrayList<>();
     double rotation = 0;
     public boolean isEdited;
-    public MutableValue isEditPointClicked = new MutableValue(false);
-
+    public boolean hasBeenClicked;
+    double reflectivity = 0.9;
     public LineMirror(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
@@ -51,62 +46,56 @@ public class LineMirror extends Line {
     }
 
     public void openObjectEdit() {
+        reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
-        setupObjectEdit();
+
+        // Defocus the text field
+        root.requestFocus();
+
+        hasBeenClicked = true;
         isEdited = true;
 
         // Place edit points
-        editPoints.add(new Rectangle(getStartX() - editPointSize / 2, getStartY() - editPointSize / 2, editPointSize,editPointSize));
-        editPoints.add(new Rectangle(getEndX() - editPointSize / 2, getEndY() - editPointSize / 2, editPointSize, editPointSize));
+        objectEditPoints.add(new EditPoint(getStartX(), getStartY()));
+        objectEditPoints.add(new EditPoint(getEndX(), getEndY()));
 
-        setupEditPoints(editPoints, isEditPointClicked);
-        for (Rectangle editPoint : editPoints) {
-            editPoint.setOnMousePressed(this::handleEditPointPressed);
-            editPoint.setOnMouseReleased(this::executeEditPointRelease);
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
+                scale(oppositeEditPoint.getCenter());
+            });
         }
-        group.getChildren().addAll(editPoints);
+
+        editPoints.addAll(objectEditPoints);
+        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
-    }
-
-
-    private void handleEditPointPressed(MouseEvent event) {
-        isMousePressed = true;
-        isEditPointClicked.setValue(true);
-        scene.setCursor(Cursor.CLOSED_HAND);
-
-        // Scale the mirror with the opposite edit point as an anchor
-        //noinspection SuspiciousMethodCalls (it's very sussy)
-        Rectangle oppositeEditPoint = editPoints.get(1 - editPoints.indexOf(event.getSource()));
-        scale(new Point2D(oppositeEditPoint.getX() + editPointSize / 2, oppositeEditPoint.getY() + editPointSize / 2));
-    }
-
-    private void executeEditPointRelease(MouseEvent event) {
-        handleEditPointReleased(event, isEditPointClicked, editPoints);
     }
 
 
     public void closeObjectEdit() {
         reflectivitySlider.hide();
+
         isEdited = false;
-        if (editPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(editPoints);
-            editPoints.clear();
+        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectEditPoints);
+            editPoints.removeAll(objectEditPoints);
+            objectEditPoints.clear();
         }
         editedShape = null;
+        updateLightSources();
     }
 
 
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
-        hitbox.setHeight(30);
+        hitbox.setHeight(mouseHitboxSize);
         hitbox.setFill(Color.TRANSPARENT);
         hitbox.setStroke(Color.BLACK);
         hitbox.setStrokeWidth(0);
         hitbox.toBack();
         hitbox.getTransforms().add(rotate);
-        hitbox.setOnMouseClicked(this.getOnMouseClicked());
-        hitbox.setOnMouseEntered(mouseEvent -> isMouseOnHitbox = true);
-        hitbox.setOnMouseExited(mouseEvent -> isMouseOnHitbox = false);
         updateHitbox();
     }
 
@@ -144,7 +133,7 @@ public class LineMirror extends Line {
             double startX, startY, endX, endY;
 
             while (isMousePressed) {
-                // Resizing standard based on Photoshop and MS Paint :)
+
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();
@@ -199,11 +188,11 @@ public class LineMirror extends Line {
                     this.setEndY(finalEndY);
 
                     // Update editPoints location
-                    if (isEditPointClicked.getValue()) {
-                        editPoints.get(0).setX(getStartX() - editPointSize / 2);
-                        editPoints.get(0).setY(getStartY() - editPointSize / 2);
-                        editPoints.get(1).setX(getEndX() - editPointSize / 2);
-                        editPoints.get(1).setY(getEndY() - editPointSize / 2);
+                    if (!objectEditPoints.isEmpty()) {
+                        objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
                     }
 
                     updateHitbox();
@@ -218,5 +207,16 @@ public class LineMirror extends Line {
                 }
             }
         }).start();
+    }
+
+    public boolean isMouseOnHitbox() {
+        // Get the mouse position in the scene's coordinate system
+        Point2D mousePosInScene = mousePos;
+
+        // Transform the mouse position to the rectangle's local coordinate system
+        Point2D mousePosInRectangle = hitbox.sceneToLocal(mousePosInScene);
+
+        // Check if the transformed mouse position is within the rectangle's bounds
+        return hitbox.getBoundsInLocal().contains(mousePosInRectangle);
     }
 }

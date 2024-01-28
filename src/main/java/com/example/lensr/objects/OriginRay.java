@@ -26,7 +26,13 @@ public class OriginRay extends Ray {
     public void simulate() {
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
-        if (getEndX() > SIZE || getEndX() < 0 || getEndY() > SIZE || getEndY() < 0) {
+        if (getEndX() != SIZE || getEndY() != SIZE) {
+            // Extend the ray to or past the edge of the canvas while following the same angle
+            double originalEndX = getEndX();
+            double originalEndY = getEndY();
+            setEndX(originalEndX + SIZE * Math.cos(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+            setEndY(originalEndY + SIZE * Math.sin(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+
             Point2D intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, SIZE, 0));
             if (intersectionPoint == null) {
                 intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, 0, SIZE));
