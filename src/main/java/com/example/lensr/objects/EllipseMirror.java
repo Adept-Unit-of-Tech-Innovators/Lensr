@@ -1,15 +1,12 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.MutableValue;
+import com.example.lensr.EditPoint;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
-import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeType;
 
@@ -24,13 +21,10 @@ public class EllipseMirror extends Ellipse {
     public Group group = new Group();
     // The outline of the object for ray intersection
     public Shape outline = getObjectOutline(this);
-    List<Rectangle> editPoints = new ArrayList<>();
-    // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    public double reflectivity = 1;
+    List<EditPoint> objectsEditPoints = new ArrayList<>();
     public boolean isEdited;
-    public MutableValue isEditPointClicked = new MutableValue(false);
-
-
+    public boolean hasBeenClicked;
+    public double reflectivity = 1;
 
     public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
         setCenterX(centerX);
@@ -53,52 +47,47 @@ public class EllipseMirror extends Ellipse {
 
 
     public void openObjectEdit() {
+        reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
-        setupObjectEdit();
+
+        // Defocus the text field
+        root.requestFocus();
+
+        hasBeenClicked = true;
         isEdited = true;
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
+        objectsEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
+        objectsEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
+        objectsEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
+        objectsEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
 
-        setupEditPoints(editPoints, isEditPointClicked);
-        for (Rectangle editPoint : editPoints) {
-            editPoint.setOnMousePressed(this::handleEditPointPressed);
-            editPoint.setOnMouseReleased(this::executeEditPointRelease);
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectsEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectsEditPoints.get(((objectsEditPoints.indexOf(editPoint)) + 2)  % 4);
+                scale(oppositeEditPoint.getCenter());
+            });
         }
-        group.getChildren().addAll(editPoints);
+
+        editPoints.addAll(objectsEditPoints);
+        group.getChildren().addAll(objectsEditPoints);
         editedShape = group;
-    }
-
-
-    private void handleEditPointPressed(MouseEvent event) {
-        isMousePressed = true;
-        isEditPointClicked.setValue(true);
-        scene.setCursor(Cursor.CLOSED_HAND);
-
-        // Scale the mirror with the opposite edit point as an anchor
-        //noinspection SuspiciousMethodCalls (it's very sussy)
-        Rectangle oppositeEditPoint = editPoints.get(( (editPoints.indexOf(event.getSource()) + 2)  % 4));
-        scale(new Point2D(oppositeEditPoint.getX() + editPointSize / 2, oppositeEditPoint.getY() + editPointSize / 2));
-    }
-
-
-    private void executeEditPointRelease(MouseEvent event) {
-        handleEditPointReleased(event, isEditPointClicked, editPoints);
     }
 
 
     public void closeObjectEdit() {
         reflectivitySlider.hide();
         isEdited = false;
-        if (editPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(editPoints);
-            editPoints.clear();
+        if (objectsEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectsEditPoints);
+            editPoints.removeAll(objectsEditPoints);
+            objectsEditPoints.clear();
         }
         editedShape = null;
+        updateLightSources();
     }
 
 
@@ -165,17 +154,14 @@ public class EllipseMirror extends Ellipse {
                     setRadiusY(finalRadiusY);
 
                     // Update editPoints location
-                    if (isEditPointClicked.getValue()) {
-                        Bounds mirrorBounds = getLayoutBounds();
-                        int offset = -4;
+                    Bounds mirrorBounds = getLayoutBounds();
 
-                        for (int i = 0; i < editPoints.size(); i++) {
-                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
-                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+                    for (int i = 0; i < objectsEditPoints.size(); i++) {
+                        double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
-                            editPoints.get(i).setX(x + offset);
-                            editPoints.get(i).setY(y + offset);
-                        }
+                        objectsEditPoints.get(i).setCenterX(x);
+                        objectsEditPoints.get(i).setCenterY(y);
                     }
 
                     updateOutline();

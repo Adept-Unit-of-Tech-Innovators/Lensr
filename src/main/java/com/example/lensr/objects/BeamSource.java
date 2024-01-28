@@ -1,10 +1,10 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.MirrorMethods;
-import com.example.lensr.MutableValue;
+import com.example.lensr.EditPoint;
 import javafx.application.Platform;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
@@ -16,14 +16,14 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 
 public class BeamSource extends Rectangle {
-    public OriginRay originRay = new OriginRay(mousePos.getX(), mousePos.getY(), SIZE, mousePos.getY());
-    public MutableValue isEditPointClicked = new MutableValue(false);
-    public List<Rectangle> editPoints = new ArrayList<>();
+    public List<OriginRay> originRays = new ArrayList<>();
+    public List<EditPoint> objectEditPoints = new ArrayList<>();
     public Rotate rotate = new Rotate();
     public Group group = new Group();
+    public boolean hasBeenClicked;
+    public boolean isEdited;
     public double wavelength = 580;
     public double brightness = 1.0;
-    public boolean isEdited;
 
     public BeamSource(double x, double y) {
         setX(x);
@@ -39,18 +39,22 @@ public class BeamSource extends Rectangle {
 
         double angle = Math.toRadians(getRotate()); // Get the current rotation of in radians
 
+        OriginRay originRay = new OriginRay(
+                getCenterX() + Math.cos(angle) * getWidth() / 2,
+                getCenterY() + Math.sin(angle) * getWidth() / 2,
+                getCenterX() + Math.cos(angle) * SIZE,
+                getCenterY() + Math.sin(angle) * SIZE
+        );
         originRay.setParentSource(this);
-        originRay.setStartX(getCenterX());
-        originRay.setStartY(getCenterY());
-        originRay.setEndX(getCenterX() + SIZE * Math.cos(angle));
-        originRay.setEndY(getCenterY() + SIZE * Math.sin(angle));
         originRay.setStrokeWidth(globalStrokeWidth);
         originRay.setWavelength(wavelength);
         originRay.setBrightness(brightness);
 
-        group.getChildren().add(originRay);
+        originRays.add(originRay);
+
+        group.getChildren().addAll(originRays);
         root.getChildren().add(group);
-        originRay.toBack();
+        originRays.forEach(Node::toBack);
         update();
     }
 
@@ -59,58 +63,56 @@ public class BeamSource extends Rectangle {
             return;
         }
 
-        group.getChildren().removeAll(originRay.rayReflections);
-        originRay.rayReflections.clear();
+        for (OriginRay originRay : originRays) {
+            group.getChildren().removeAll(originRay.rayReflections);
+            originRay.rayReflections.clear();
 
-        originRay.simulate();
+            originRay.simulate();
+        }
     }
 
     public void openObjectEdit() {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
+        whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.show();
 
-        MirrorMethods.setupObjectEdit();
+        // Defocus the text fields
+        root.requestFocus();
+
+        hasBeenClicked = true;
         isEdited = true;
 
         // Place edit points
-        editPoints.add(new Rectangle(getCenterX() - editPointSize / 2, getCenterY() - editPointSize / 2, editPointSize,editPointSize));
-        editPoints.add(new Rectangle(
-                getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 100 - editPointSize / 2,
-                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100 - editPointSize / 2,
-                editPointSize, editPointSize
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.add(new EditPoint(
+                getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 100,
+                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100
         ));
 
-        editPoints.get(0).setOnMousePressed(mouseEvent -> {
-            isMousePressed = true;
-            isEditPointClicked.setValue(true);
-            moveToMouse();
-        });
-        editPoints.get(1).setOnMousePressed(mouseEvent -> {
-            isMousePressed = true;
-            isEditPointClicked.setValue(true);
-            rotateToMouse();
-        });
-        editPoints.get(0).setOnMouseReleased(this::executeEditPointRelease);
-        editPoints.get(1).setOnMouseReleased(this::executeEditPointRelease);
+        // Define what happens when an edit point is clicked
+        objectEditPoints.get(0).setOnClickEvent(event -> moveToMouse());
+        objectEditPoints.get(1).setOnClickEvent(event -> rotateToMouse());
 
-        editPoints.get(0).toFront();
-        editPoints.get(1).toFront();
-
-        MirrorMethods.setupEditPoints(editPoints, isEditPointClicked);
-        group.getChildren().addAll(editPoints);
+        editPoints.addAll(objectEditPoints);
+        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
     private void moveToMouse() {
         new Thread(() -> {
             Platform.runLater(() -> {
-                group.getChildren().removeAll(originRay.rayReflections);
-                originRay.rayReflections.clear();
+                for (OriginRay originRay : originRays) {
+                    group.getChildren().removeAll(originRay.rayReflections);
+                    originRay.rayReflections.clear();
+                }
             });
 
+            Point2D prevMousePos = mousePos;
+
             while (isMousePressed) {
-                double deltaX = mousePos.getX() - getCenterX();
-                double deltaY = mousePos.getY() - getCenterY();
+                double deltaX = mousePos.getX() - prevMousePos.getX();
+                double deltaY = mousePos.getY() - prevMousePos.getY();
 
                 setX(getX() + deltaX);
                 setY(getY() + deltaY);
@@ -118,16 +120,20 @@ public class BeamSource extends Rectangle {
                 rotate.setPivotX(getCenterX());
                 rotate.setPivotY(getCenterY());
 
-                originRay.setStartX(getCenterX());
-                originRay.setStartY(getCenterY());
+                for (OriginRay originRay : originRays) {
+                    originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+                    originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
 
-                originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * SIZE);
-                originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * SIZE);
+                    originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+                    originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+                }
 
-                editPoints.get(0).setX(editPoints.get(0).getX() + deltaX);
-                editPoints.get(0).setY(editPoints.get(0).getY() + deltaY);
-                editPoints.get(1).setX(editPoints.get(1).getX() + deltaX);
-                editPoints.get(1).setY(editPoints.get(1).getY() + deltaY);
+                objectEditPoints.get(0).setX(objectEditPoints.get(0).getX() + deltaX);
+                objectEditPoints.get(0).setY(objectEditPoints.get(0).getY() + deltaY);
+                objectEditPoints.get(1).setX(objectEditPoints.get(1).getX() + deltaX);
+                objectEditPoints.get(1).setY(objectEditPoints.get(1).getY() + deltaY);
+
+                prevMousePos = mousePos;
 
                 synchronized (lock) {
                     try {
@@ -144,8 +150,10 @@ public class BeamSource extends Rectangle {
     private void rotateToMouse() {
         new Thread(() -> {
             Platform.runLater(() -> {
-                group.getChildren().removeAll(originRay.rayReflections);
-                originRay.rayReflections.clear();
+                for (OriginRay originRay : originRays) {
+                    group.getChildren().removeAll(originRay.rayReflections);
+                    originRay.rayReflections.clear();
+                }
             });
 
             while (isMousePressed) {
@@ -157,11 +165,15 @@ public class BeamSource extends Rectangle {
                 rotate.setPivotY(getCenterY());
 
                 // Adjust the ray and edit point positions
-                editPoints.get(1).setX(getCenterX() + Math.cos(angle) * 100 - editPointSize / 2);
-                editPoints.get(1).setY(getCenterY() + Math.sin(angle) * 100 - editPointSize / 2);
+                objectEditPoints.get(1).setCenterX(getCenterX() + Math.cos(angle) * 100);
+                objectEditPoints.get(1).setCenterY(getCenterY() + Math.sin(angle) * 100);
 
-                originRay.setEndX(originRay.getStartX() + Math.cos(angle) * SIZE);
-                originRay.setEndY(originRay.getStartY() + Math.sin(angle) * SIZE);
+                for (OriginRay originRay : originRays) {
+                    originRay.setStartX(getCenterX() + Math.cos(angle) * this.getWidth() / 2);
+                    originRay.setStartY(getCenterY() + Math.sin(angle) * this.getWidth() / 2);
+                    originRay.setEndX(originRay.getStartX() + Math.cos(angle) * 4 * SIZE);
+                    originRay.setEndY(originRay.getStartY() + Math.sin(angle) * 4 * SIZE);
+                }
 
                 synchronized (lock) {
                     try {
@@ -174,19 +186,18 @@ public class BeamSource extends Rectangle {
         }).start();
     }
 
-    private void executeEditPointRelease(MouseEvent event) {
-        MirrorMethods.handleEditPointReleased(event, isEditPointClicked, editPoints);
-    }
-
 
     public void closeObjectEdit() {
         wavelengthSlider.hide();
+        whiteLightToggle.hide();
         isEdited = false;
-        if (editPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(editPoints);
-            editPoints.clear();
+        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectEditPoints);
+            editPoints.removeAll(objectEditPoints);
+            objectEditPoints.clear();
         }
-        originRay.simulate();
+        editedShape = null;
+        update();
     }
 
     private double getCenterX() {
@@ -200,7 +211,38 @@ public class BeamSource extends Rectangle {
 
     public void setWavelength(double wavelength) {
         this.wavelength = wavelength;
-        originRay.setWavelength(wavelength);
+        for (OriginRay originRay : originRays) {
+            originRay.setWavelength(wavelength);
+        }
+    }
+
+
+    public void setWhiteLight(boolean whiteLight) {
+        group.getChildren().removeAll(originRays);
+        originRays.forEach(originRay -> {
+            group.getChildren().removeAll(originRay.rayReflections);
+            originRay.rayReflections.clear();
+        });
+        originRays.clear();
+
+        int rayCount = whiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < rayCount; i++) {
+            OriginRay originRay = new OriginRay(
+                    getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                    getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                    getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
+                    getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+            );
+            originRay.setParentSource(this);
+            originRay.setStrokeWidth(globalStrokeWidth);
+            originRay.setWavelength(whiteLight ? 380 + (400.0/whiteLightRayCount*i) : wavelength);
+            originRay.setBrightness(brightness);
+
+            originRays.add(originRay);
+        }
+        group.getChildren().addAll(originRays);
+        originRays.forEach(Node::toBack);
+        update();
     }
 
 

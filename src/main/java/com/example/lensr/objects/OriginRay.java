@@ -26,7 +26,13 @@ public class OriginRay extends Ray {
     public void simulate() {
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
-        if (getEndX() > SIZE || getEndX() < 0 || getEndY() > SIZE || getEndY() < 0) {
+        if (getEndX() != SIZE || getEndY() != SIZE) {
+            // Extend the ray to or past the edge of the canvas while following the same angle
+            double originalEndX = getEndX();
+            double originalEndY = getEndY();
+            setEndX(originalEndX + SIZE * Math.cos(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+            setEndY(originalEndY + SIZE * Math.sin(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+
             Point2D intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, SIZE, 0));
             if (intersectionPoint == null) {
                 intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, 0, SIZE));
@@ -134,10 +140,11 @@ public class OriginRay extends Ray {
                 if (closestIntersectionMirror instanceof LineMirror mirror) {
                     // Calculate the angle of incidence
                     double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
+                    reflectionAngle += (currentRay.getWavelength()) / 1000;
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
