@@ -44,8 +44,8 @@ public class Intersections {
         // Copying shape in a cursed way
         Shape copy = Shape.union(shape, shape);
 
-        copy.setStrokeWidth(LensrStart.globalStrokeWidth);
-        shape.setStrokeWidth(LensrStart.globalStrokeWidth);
+        copy.setStrokeWidth(1);
+        shape.setStrokeWidth(1);
         shape.setStrokeType(StrokeType.OUTSIDE);
         copy.setStrokeType(StrokeType.INSIDE);
 
@@ -89,8 +89,7 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
-    public static double getLineRefractionAngle(Line ray, Line lens, double refractiveIndex, boolean isInLens)
-    {
+    public static double getLineRefractionAngle(Line ray, Line lens, double refractiveIndex, boolean isInLens) {
         double angleOfIncidence = Math.PI/2 - Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double lensAngle = Math.atan2(lens.getEndY() - lens.getStartY(), lens.getEndX() - lens.getStartX());
         double normalAngle = lensAngle + Math.PI/2;
@@ -109,19 +108,22 @@ public class Intersections {
         return Math.PI/2 - refractedAngle;
     }
 
-    public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex)
-    {
-        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+    public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex) {
+
+        // 6 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
+        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
 
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
-        double radius = arc.getRadiusX();
 
-        double normalAngle = Math.atan2((pointX - centerX) * radius, (pointY - centerY) * radius);
-        double refractedAngle = Math.asin(1/refractiveIndex * Math.sin(normalAngle - angleOfIncidence));
+        double normalAngle = -Math.atan2((pointY - centerY) , (pointX - centerX));
+        double reversedNormalAngle = -Math.atan2((centerY - pointY) , (centerX - pointX));
 
-        return refractedAngle;
+        double refractedAngle = (reversedNormalAngle + Math.asin(1/refractiveIndex * Math.sin(angleOfIncidence - normalAngle)));
+
+
+        return (refractedAngle);
     }
 }

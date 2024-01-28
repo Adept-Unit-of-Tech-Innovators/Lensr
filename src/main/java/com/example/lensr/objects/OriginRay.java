@@ -28,7 +28,13 @@ public class OriginRay extends Ray {
     public void simulate() {
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
-        if (getEndX() > SIZE || getEndX() < 0 || getEndY() > SIZE || getEndY() < 0) {
+        if (getEndX() != SIZE || getEndY() != SIZE) {
+            // Extend the ray to or past the edge of the canvas while following the same angle
+            double originalEndX = getEndX();
+            double originalEndY = getEndY();
+            setEndX(originalEndX + SIZE * Math.cos(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+            setEndY(originalEndY + SIZE * Math.sin(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
+
             Point2D intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, SIZE, 0));
             if (intersectionPoint == null) {
                 intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, 0, SIZE));
@@ -47,6 +53,7 @@ public class OriginRay extends Ray {
         new Thread(() -> {
             int recursiveDepth = 0;
             Ray currentRay = this;
+            Point2D previousIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
             while (true) {
                 double shortestIntersectionDistance = Double.MAX_VALUE;
                 Object closestIntersectionObject = null;
@@ -77,7 +84,6 @@ public class OriginRay extends Ray {
                     );
 
                     // If the intersection point is the same as the previous intersection point, skip it
-                    Point2D previousIntersectionPoint = new Point2D(currentRay.getStartX(), currentRay.getStartY());
                     if (previousIntersectionPoint.equals(intersectionPoint)) continue;
 
                     // If this is the closest intersection point so far, set it as the closest intersection point
@@ -100,11 +106,12 @@ public class OriginRay extends Ray {
                     Shape currObject = null;
                     if (lens instanceof SphericalLens currentSphericalLens) {
                         double minimalDistance = Double.MAX_VALUE;
-                        Shape shape;
+                        Shape shape = null;
                         for (Shape element : currentSphericalLens.elements) {
                             if (element instanceof SphericalLens.LensArc arc) {
                                 shape = arc.getBounds();
                             } else shape = element;
+
 
                             double currDistance = getMinimalDistanceToBounds(shape.getLayoutBounds());
 
@@ -115,7 +122,6 @@ public class OriginRay extends Ray {
 
                             }
                         }
-
                         if (minimalDistance > shortestIntersectionDistance || intersectionPoint == null) continue;
 
                         // Round the intersection point to 2 decimal places
@@ -125,7 +131,6 @@ public class OriginRay extends Ray {
                         );
 
                         // If the intersection point is the same as the previous intersection point, skip it
-                        Point2D previousIntersectionPoint = new Point2D(getStartX(), getStartY());
                         if (previousIntersectionPoint.equals(intersectionPoint)) continue;
 
                         // If this is the closest intersection point so far, set it as the closest intersection point
@@ -196,7 +201,7 @@ public class OriginRay extends Ray {
                     nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
-                } else if (closestIntersectionObject instanceof EllipseMirror mirror) {
+                }  else if (closestIntersectionObject instanceof EllipseMirror mirror) {
                     // Calculate the angle of incidence
                     double reflectionAngle = getEllipseReflectionAngle(currentRay, mirror);
 
@@ -275,23 +280,24 @@ public class OriginRay extends Ray {
                     double refractionAngle = getArcRefractionAngle(this, arc, 1.5);
 
                     // Calculate the reflected ray's endpoint based on the refraction angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos((refractionAngle));
+                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin((refractionAngle));
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos((refractionAngle)));
+                    nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin((refractionAngle)));
                 } else if (closestIntersectionObject instanceof SphericalLens.LensLine line) {
                     line.switchHasRay();
                     double refractionAngle = getLineRefractionAngle(this, line, 1.5, true);
 
                     // Calculate the reflected ray's endpoint based on the refraction angle
                     reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(refractionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(refractionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(refractionAngle));
                 } else if (closestIntersectionObject instanceof LightEater) {
                     return;
                 }
@@ -301,6 +307,7 @@ public class OriginRay extends Ray {
 
                 recursiveDepth++;
                 currentRay = nextRay;
+                previousIntersectionPoint = closestIntersectionPoint;
             }
         }).start();
     }
