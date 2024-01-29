@@ -14,7 +14,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LightEater extends Circle {
+public class LightEater extends Circle implements Editable{
     public Group group = new Group();
     public List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
@@ -37,7 +37,7 @@ public class LightEater extends Circle {
         root.getChildren().add(group);
     }
 
-
+    @Override
     public void openObjectEdit() {
         hasBeenClicked = true;
         isEdited = true;
@@ -63,7 +63,7 @@ public class LightEater extends Circle {
         editedShape = group;
     }
 
-
+    @Override
     public void closeObjectEdit() {
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
@@ -125,5 +125,20 @@ public class LightEater extends Circle {
                 }
             }
         }).start();
+    }
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }

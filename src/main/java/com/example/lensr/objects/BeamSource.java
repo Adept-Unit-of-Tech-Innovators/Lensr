@@ -7,6 +7,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 
-public class BeamSource extends Rectangle {
+public class BeamSource extends Rectangle implements Editable{
     public List<OriginRay> originRays = new ArrayList<>();
     public List<EditPoint> objectEditPoints = new ArrayList<>();
     public Rotate rotate = new Rotate();
@@ -25,14 +26,15 @@ public class BeamSource extends Rectangle {
     public double wavelength = 580;
     public double brightness = 1.0;
 
-    public BeamSource(double x, double y) {
-        setX(x);
-        setY(y);
+    public BeamSource(double centerX, double centerY) {
+        setCenterX(centerX);
+        setCenterY(centerY);
         setWidth(100);
         setHeight(50);
         setFill(Color.GRAY);
         getTransforms().add(rotate);
     }
+
 
     public void create() {
         group.getChildren().add(this);
@@ -71,6 +73,8 @@ public class BeamSource extends Rectangle {
         }
     }
 
+
+    @Override
     public void openObjectEdit() {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
@@ -147,7 +151,7 @@ public class BeamSource extends Rectangle {
     }
 
 
-    private void rotateToMouse() {
+    public void rotateToMouse() {
         new Thread(() -> {
             Platform.runLater(() -> {
                 for (OriginRay originRay : originRays) {
@@ -165,8 +169,11 @@ public class BeamSource extends Rectangle {
                 rotate.setPivotY(getCenterY());
 
                 // Adjust the ray and edit point positions
-                objectEditPoints.get(1).setCenterX(getCenterX() + Math.cos(angle) * 100);
-                objectEditPoints.get(1).setCenterY(getCenterY() + Math.sin(angle) * 100);
+                if (!objectEditPoints.isEmpty()) {
+                    objectEditPoints.get(1).setCenterX(getCenterX() + Math.cos(angle) * 100);
+                    objectEditPoints.get(1).setCenterY(getCenterY() + Math.sin(angle) * 100);
+                }
+
 
                 for (OriginRay originRay : originRays) {
                     originRay.setStartX(getCenterX() + Math.cos(angle) * this.getWidth() / 2);
@@ -186,7 +193,7 @@ public class BeamSource extends Rectangle {
         }).start();
     }
 
-
+    @Override
     public void closeObjectEdit() {
         wavelengthSlider.hide();
         whiteLightToggle.hide();
@@ -248,5 +255,32 @@ public class BeamSource extends Rectangle {
 
     public double getWavelength() {
         return wavelength;
+    }
+
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+
+    private void setCenterY(double centerY) {
+        setY(centerY + getHeight() / 2);
+    }
+
+    private void setCenterX(double centerX) {
+        setX(centerX + getWidth() / 2);
+    }
+
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }

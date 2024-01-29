@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LineMirror extends Line {
+public class LineMirror extends Line implements Editable {
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
@@ -45,6 +46,7 @@ public class LineMirror extends Line {
         root.getChildren().add(group);
     }
 
+    @Override
     public void openObjectEdit() {
         reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
@@ -73,7 +75,7 @@ public class LineMirror extends Line {
         editedShape = group;
     }
 
-
+    @Override
     public void closeObjectEdit() {
         reflectivitySlider.hide();
 
@@ -209,14 +211,18 @@ public class LineMirror extends Line {
         }).start();
     }
 
-    public boolean isMouseOnHitbox() {
-        // Get the mouse position in the scene's coordinate system
-        Point2D mousePosInScene = mousePos;
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
 
-        // Transform the mouse position to the rectangle's local coordinate system
-        Point2D mousePosInRectangle = hitbox.sceneToLocal(mousePosInScene);
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
 
-        // Check if the transformed mouse position is within the rectangle's bounds
-        return hitbox.getBoundsInLocal().contains(mousePosInRectangle);
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }

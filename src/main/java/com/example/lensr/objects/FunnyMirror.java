@@ -5,6 +5,7 @@ import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
+import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class FunnyMirror extends Polyline {
+public class FunnyMirror extends Polyline implements Editable{
     public Group group = new Group();
     // The outline of the object for ray intersection
     public List<EditPoint> objectEditPoints = new ArrayList<>();
@@ -30,9 +31,9 @@ public class FunnyMirror extends Polyline {
         setStroke(mirrorColor);
         group.getChildren().add(this);
         root.getChildren().add(group);
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 List<Double> points = getPoints();
                 // Add initial point
                 points.add(mousePos.getX());
@@ -46,6 +47,18 @@ public class FunnyMirror extends Polyline {
                         points.add(mousePos.getX());
                         points.add(mousePos.getY());
                         index = index + 2;
+                    }
+                    if (!objectEditPoints.isEmpty()) {
+                        // Update editPoints location
+                        Bounds mirrorBounds = getLayoutBounds();
+
+                        for (int i = 0; i < objectEditPoints.size(); i++) {
+                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                            objectEditPoints.get(i).setCenterX(x);
+                            objectEditPoints.get(i).setCenterY(y);
+                        }
                     }
                 }
                 return null;
@@ -63,6 +76,7 @@ public class FunnyMirror extends Polyline {
         return reflectivity;
     }
 
+    @Override
     public void openObjectEdit() {
         reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
@@ -92,6 +106,7 @@ public class FunnyMirror extends Polyline {
         editedShape = group;
     }
 
+    @Override
     public void closeObjectEdit() {
         reflectivitySlider.hide();
         isEdited = false;
@@ -101,5 +116,20 @@ public class FunnyMirror extends Polyline {
         }
         editedShape = null;
         updateLightSources();
+    }
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }

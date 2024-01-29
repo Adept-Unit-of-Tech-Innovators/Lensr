@@ -17,11 +17,11 @@ import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class EllipseMirror extends Ellipse {
+public class EllipseMirror extends Ellipse implements Editable {
     public Group group = new Group();
     // The outline of the object for ray intersection
     public Shape outline = getObjectOutline(this);
-    List<EditPoint> objectsEditPoints = new ArrayList<>();
+    List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
     public boolean hasBeenClicked;
     public double reflectivity = 1;
@@ -45,7 +45,7 @@ public class EllipseMirror extends Ellipse {
         root.getChildren().add(group);
     }
 
-
+    @Override
     public void openObjectEdit() {
         reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
@@ -58,33 +58,33 @@ public class EllipseMirror extends Ellipse {
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        objectsEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
-        objectsEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
-        objectsEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
-        objectsEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
 
         // Define what happens when an edit point is clicked
-        for (EditPoint editPoint : objectsEditPoints) {
+        for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
                 // Scale the mirror with the opposite edit point as an anchor
-                EditPoint oppositeEditPoint = objectsEditPoints.get(((objectsEditPoints.indexOf(editPoint)) + 2)  % 4);
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
                 scale(oppositeEditPoint.getCenter());
             });
         }
 
-        editPoints.addAll(objectsEditPoints);
-        group.getChildren().addAll(objectsEditPoints);
+        editPoints.addAll(objectEditPoints);
+        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
-
+    @Override
     public void closeObjectEdit() {
         reflectivitySlider.hide();
         isEdited = false;
-        if (objectsEditPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(objectsEditPoints);
-            editPoints.removeAll(objectsEditPoints);
-            objectsEditPoints.clear();
+        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectEditPoints);
+            editPoints.removeAll(objectEditPoints);
+            objectEditPoints.clear();
         }
         editedShape = null;
         updateLightSources();
@@ -156,12 +156,12 @@ public class EllipseMirror extends Ellipse {
                     // Update editPoints location
                     Bounds mirrorBounds = getLayoutBounds();
 
-                    for (int i = 0; i < objectsEditPoints.size(); i++) {
+                    for (int i = 0; i < objectEditPoints.size(); i++) {
                         double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
                         double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
-                        objectsEditPoints.get(i).setCenterX(x);
-                        objectsEditPoints.get(i).setCenterY(y);
+                        objectEditPoints.get(i).setCenterX(x);
+                        objectEditPoints.get(i).setCenterY(y);
                     }
 
                     updateOutline();
@@ -177,5 +177,20 @@ public class EllipseMirror extends Ellipse {
             }
 
         }).start();
+    }
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }
