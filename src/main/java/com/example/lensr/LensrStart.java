@@ -51,6 +51,7 @@ public class LensrStart extends Application {
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
+    public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
 
     @Override
     public void start(Stage primaryStage) {
@@ -86,6 +87,9 @@ public class LensrStart extends Application {
             button.addToRoot();
             button.disableProperty().setValue(true);
         }
+
+
+        root.getChildren().add(rayCanvas);
 
         UserControls.setUserControls();
 

@@ -57,7 +57,6 @@ public class BeamSource extends Rectangle implements Editable{
         group.getChildren().addAll(originRays);
         root.getChildren().add(group);
         originRays.forEach(Node::toBack);
-        update();
     }
 
     public void update() {
@@ -83,6 +82,7 @@ public class BeamSource extends Rectangle implements Editable{
 
         // Defocus the text fields
         root.requestFocus();
+        rayCanvas.clear();
 
         hasBeenClicked = true;
         isEdited = true;
