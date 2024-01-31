@@ -2,8 +2,7 @@ package com.example.lensr.objects;
 
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +32,13 @@ public class OriginRay extends Ray {
             setEndX(originalEndX + SIZE * Math.cos(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
             setEndY(originalEndY + SIZE * Math.sin(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
 
-            Point2D intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, SIZE, 0));
+            Point2D intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, 0, SIZE, 0));
             if (intersectionPoint == null) {
-                intersectionPoint = getRayIntersectionPoint(this, new Line(0, 0, 0, SIZE));
+                intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, 0, 0, SIZE));
                 if (intersectionPoint == null) {
-                    intersectionPoint = getRayIntersectionPoint(this, new Line(0, SIZE, SIZE, SIZE));
+                    intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, SIZE, SIZE, SIZE));
                     if (intersectionPoint == null) {
-                        intersectionPoint = getRayIntersectionPoint(this, new Line(SIZE, 0, SIZE, SIZE));
+                        intersectionPoint = getRayLineIntersectionPoint(this, new Line(SIZE, 0, SIZE, SIZE));
                     }
                 }
             }
@@ -59,30 +58,22 @@ public class OriginRay extends Ray {
                 for (Object mirror : mirrors) {
                     Point2D intersectionPoint = null;
 
-                    if (mirror instanceof Shape currentMirror) {
-                        // If the minimal distance to object bounds is higher than current shortest distance, this will not be the first object the ray intersects
-                        double minimalPossibleDistance = currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds());
-                        if (minimalPossibleDistance > shortestIntersectionDistance) continue;
-
-                        if (currentMirror instanceof EllipseMirror ellipseMirror) {
-                            intersectionPoint = getRayIntersectionPoint(currentRay, ellipseMirror.outline);
+                    if (mirror instanceof Shape currentMirror && currentRay.getMinimalDistanceToBounds(currentMirror.getLayoutBounds()) < shortestIntersectionDistance) {
+                        if (currentMirror instanceof Ellipse ellipse) {
+                            intersectionPoint = getRayEllipseIntersectionPoint(currentRay, ellipse);
+                        }
+                        else if (currentMirror instanceof Circle circle) {
+                            intersectionPoint = getRayEllipseIntersectionPoint(currentRay, new Ellipse(circle.getCenterX(), circle.getCenterY(), circle.getRadius(), circle.getRadius()));
+                        }
+                        else if (currentMirror instanceof Line line) {
+                            intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                         }
                         else {
-                            intersectionPoint = getRayIntersectionPoint(currentRay, currentMirror);
+                            System.exit(2137);
                         }
                     }
 
                     if (intersectionPoint == null) continue;
-
-                    // Round the intersection point to 2 decimal places
-                    intersectionPoint = new Point2D(
-                            Math.round(intersectionPoint.getX() * 100.0) / 100.0,
-                            Math.round(intersectionPoint.getY() * 100.0) / 100.0
-                    );
-
-                    // If the intersection point is the same as the previous intersection point, skip it
-                    Point2D previousIntersectionPoint = new Point2D(currentRay.getStartX(), currentRay.getStartY());
-                    if (previousIntersectionPoint.equals(intersectionPoint)) continue;
 
                     // If this is the closest intersection point so far, set it as the closest intersection point
                     double intersectionDistance = Math.sqrt(
@@ -97,6 +88,7 @@ public class OriginRay extends Ray {
                     }
 
                 }
+
 
                 // I hate that you have to do this
                 Ray finalCurrentRay = currentRay;
@@ -125,7 +117,7 @@ public class OriginRay extends Ray {
                 currentRay.setEndY(finalClosestIntersectionPoint.getY());
 
                 // Limit recursive depth
-                if (recursiveDepth >= 500) break;
+                if (recursiveDepth >= 5000) break;
 
                 // If the ray is so dim, its basically invisible
                 if (currentRay.getBrightness() < 0.001) break;
@@ -146,8 +138,8 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.01 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.01 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                 }
@@ -155,13 +147,21 @@ public class OriginRay extends Ray {
                     // Calculate the angle of incidence
                     double reflectionAngle = getEllipseReflectionAngle(currentRay, mirror);
 
+                    // If the ellipse radius is 0, the ellipse is a line
+                    if (mirror.getRadiusX() == 0) {
+                        reflectionAngle = getLineReflectionAngle(currentRay, new Line(mirror.getCenterX(), mirror.getCenterY() - mirror.getRadiusY(), mirror.getCenterX(), mirror.getCenterY() + mirror.getRadiusY())) + Math.PI;
+                    }
+                    else if (mirror.getRadiusY() == 0) {
+                        reflectionAngle = getLineReflectionAngle(currentRay, new Line(mirror.getCenterX() - mirror.getRadiusX(), mirror.getCenterY(), mirror.getCenterX() + mirror.getRadiusX(), mirror.getCenterY())) + Math.PI;
+                    }
+
                     // Calculate the end point of the reflected ray
                     reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
                     reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() - Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() - Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() - 0.01 *  Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() - 0.01 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                 }
@@ -183,8 +183,8 @@ public class OriginRay extends Ray {
                         reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                        nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
-                        nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.01 * Math.cos(reflectionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + 0.01 * Math.sin(reflectionAngle));
 
                         nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                     }
@@ -198,8 +198,8 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.01 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.01 * Math.sin(reflectionAngle));
 
                     // Set the brightness of the ray for the Gaussian filter profile (standard for bandpass filters)
                     if (filter.getFWHM() == 0 && filter.getPassband() == nextRay.getWavelength()) {
@@ -221,8 +221,8 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.01 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.01 *  Math.sin(reflectionAngle));
 
                     // Set the brightness of the ray for the brickwall filter profile (standard for bandpass filters)
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
@@ -244,7 +244,6 @@ public class OriginRay extends Ray {
             }
         }).start();
     }
-
 
     public void setParentSource(Object parentSource) {
         this.parentSource = parentSource;

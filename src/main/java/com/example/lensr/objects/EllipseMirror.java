@@ -13,14 +13,12 @@ import javafx.scene.shape.StrokeType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.lensr.Intersections.getObjectOutline;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
 public class EllipseMirror extends Ellipse implements Editable {
     public Group group = new Group();
     // The outline of the object for ray intersection
-    public Shape outline = getObjectOutline(this);
     List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
     public boolean hasBeenClicked;
@@ -38,10 +36,9 @@ public class EllipseMirror extends Ellipse implements Editable {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
-        setStrokeType(StrokeType.OUTSIDE);
+        setStrokeType(StrokeType.CENTERED);
 
         group.getChildren().add(this);
-        group.getChildren().add(outline);
         root.getChildren().add(group);
     }
 
@@ -88,15 +85,6 @@ public class EllipseMirror extends Ellipse implements Editable {
         }
         editedShape = null;
         updateLightSources();
-    }
-
-
-    private void updateOutline() {
-        Ellipse ellipse = new Ellipse(this.getCenterX(), this.getCenterY(), this.getRadiusX(), this.getRadiusY());
-        ellipse.setFill(Color.TRANSPARENT);
-        ellipse.setStroke(Color.BLACK);
-        outline = getObjectOutline(ellipse);
-        outline.setStrokeWidth(1);
     }
 
 
@@ -163,8 +151,6 @@ public class EllipseMirror extends Ellipse implements Editable {
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
-
-                    updateOutline();
                 });
 
                 synchronized (lock) {
