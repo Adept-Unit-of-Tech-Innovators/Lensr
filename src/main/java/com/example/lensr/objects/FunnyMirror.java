@@ -21,6 +21,7 @@ public class FunnyMirror extends Polyline implements Editable{
     public boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
+    LineMirror closestIntersectionSegment;
 
     public FunnyMirror() {
 
@@ -116,6 +117,14 @@ public class FunnyMirror extends Polyline implements Editable{
         }
         editedShape = null;
         updateLightSources();
+    }
+
+    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
+        this.closestIntersectionSegment = closestIntersectionSegment;
+    }
+
+    public LineMirror getClosestIntersectionSegment() {
+        return closestIntersectionSegment;
     }
 
     @Override
