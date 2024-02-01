@@ -1,11 +1,14 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
+import javafx.scene.transform.Scale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,25 +35,60 @@ public class FunnyMirror extends Polyline implements Editable{
         setStroke(mirrorColor);
         group.getChildren().add(this);
         root.getChildren().add(group);
-        Task<Void> task = new Task<>() {
-            @Override
-            public Void call() {
-                List<Double> points = getPoints();
-                // Add initial point
-                points.add(mousePos.getX());
-                points.add(mousePos.getY());
-                int index = 2;
-                while (isMousePressed) {
-                    if (isCancelled()) {
-                        break;
+        taskPool.execute(() -> {
+            getPoints().addAll(mousePos.getX(), mousePos.getY());
+            int index = 2;
+            while (isMousePressed) {
+                if ((Math.abs(getPoints().get(index - 2) - mousePos.getX()) > 10) || (Math.abs(getPoints().get(index - 1) - mousePos.getY()) > 10)) {
+                    getPoints().addAll(mousePos.getX(), mousePos.getY());
+                    index = index + 2;
+                }
+                if (!objectEditPoints.isEmpty()) {
+                    // Update editPoints location
+                    Bounds mirrorBounds = getLayoutBounds();
+
+                    for (int i = 0; i < objectEditPoints.size(); i++) {
+                        double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                        objectEditPoints.get(i).setCenterX(x);
+                        objectEditPoints.get(i).setCenterY(y);
                     }
-                    if ((Math.abs(points.get(index - 2) - mousePos.getX()) > 10) || (Math.abs(points.get(index - 1) - mousePos.getY()) > 10)) {
-                        points.add(mousePos.getX());
-                        points.add(mousePos.getY());
-                        index = index + 2;
-                    }
-                    if (!objectEditPoints.isEmpty()) {
-                        // Update editPoints location
+                }
+            }
+        });
+    }
+
+    public void scale(EditPoint anchorPoint) {
+        taskPool.execute(() -> {
+            while (isMousePressed) {
+                List<Double> newPoints = new ArrayList<>();
+                double originalWidth = getLayoutBounds().getWidth();
+                double originalHeight = getLayoutBounds().getHeight();
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                for (int i = 0; i < getPoints().size(); i+=2) {
+                    double pointX = getPoints().get(i);
+                    double pointY = getPoints().get(i + 1);
+
+                    // Calculate adjusted point's coordinates using proportions
+                    double newPointX = anchorPoint.getX() + ((pointX - anchorPoint.getX()) * Math.abs(anchorPoint.getX() - mousePos.getX()) / originalWidth);
+                    double newPointY = anchorPoint.getY() + ((pointY - anchorPoint.getY()) * Math.abs(anchorPoint.getY() - mousePos.getY()) / originalHeight);
+
+                    int finalI = i;
+                    Platform.runLater(() -> {
+                        getPoints().set(finalI, newPointX);
+                        getPoints().set(finalI + 1, newPointY);
+                    });
+                }
+
+                if (!objectEditPoints.isEmpty()) {
+                    // Update editPoints location
+                    Platform.runLater(() -> {
                         Bounds mirrorBounds = getLayoutBounds();
 
                         for (int i = 0; i < objectEditPoints.size(); i++) {
@@ -60,12 +98,10 @@ public class FunnyMirror extends Polyline implements Editable{
                             objectEditPoints.get(i).setCenterX(x);
                             objectEditPoints.get(i).setCenterY(y);
                         }
-                    }
+                    });
                 }
-                return null;
             }
-        };
-        new Thread(task).start();
+        });
     }
 
     public void setReflectivity(double reflectivity) {
@@ -98,7 +134,15 @@ public class FunnyMirror extends Polyline implements Editable{
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
-                // TODO: Implement FunnyMirror scaling
+                if (editPoint == objectEditPoints.get(0)) {
+                    scale(objectEditPoints.get(2));
+                } else if (editPoint == objectEditPoints.get(1)) {
+                    scale(objectEditPoints.get(3));
+                } else if (editPoint == objectEditPoints.get(2)) {
+                    scale(objectEditPoints.get(0));
+                } else if (editPoint == objectEditPoints.get(3)) {
+                    scale(objectEditPoints.get(1));
+                }
             });
        }
 
