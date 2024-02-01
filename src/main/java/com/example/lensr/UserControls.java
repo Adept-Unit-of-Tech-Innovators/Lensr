@@ -2,181 +2,147 @@ package com.example.lensr;
 
 import com.example.lensr.objects.*;
 import javafx.geometry.Point2D;
-import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Slider;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 import static com.example.lensr.ParameterSlider.*;
-import static com.example.lensr.ParameterToggle.*;
 
 public class UserControls {
+
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
             if (!isEditMode) return;
-
             isMousePressed = true;
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
-            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
 
-            if (editedShape == null && keyPressed != Key.None) {
-                // If no object is being edited, place a new object and reset the hasBeenClicked variable
-                placeNewObject();
-                resetHasBeenClicked();
+            // Close line mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
+                    && !mirror.isMouseOnHitbox && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+
                 return;
             }
 
-            // Get all clickable objects
-            // Priority is given to edit points, then light sources, then other objects
-            List<Object> clickableObjects = new ArrayList<>();
-            clickableObjects.addAll(editPoints);
-            clickableObjects.addAll(lightSources);
-            clickableObjects.addAll(mirrors);
-
-            for (Object clickableObject : clickableObjects) {
-                if (clickableObject instanceof EditPoint editPoint && !editPoint.hasBeenClicked && editPoint.intersects(mouseHitbox.getLayoutBounds())) {
-                    editPoint.handleMousePressed();
-                    return;
-                }
-                else if (clickableObject instanceof Editable editable && !editable.getHasBeenClicked() && editable.intersectsMouseHitbox()) {
-                    closeCurrentEdit();
-                    editable.openObjectEdit();
-                    return;
-                }
+            // Close ellipse mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
+                    && !group.getLayoutBounds().contains(mousePos))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
             }
 
-            // If no clickable object was found, close the current edit and reset the hasBeenClicked variable
-            closeCurrentEdit();
-            resetHasBeenClicked();
-        });
+            // Close funny mirror edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror
+                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
 
-        scene.setOnMouseDragged(mouseEvent -> {
-            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
-            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
+            // Close light eater edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror
+                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                mirror.closeObjectEdit();
+                mirror.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
 
-            // If mouse is on an edit point, change cursor to hand
-            editPoints.stream()
-                    .filter(editPoint -> editPoint.intersects(mouseHitbox.getLayoutBounds()))
-                    .findFirst()
-                    .ifPresentOrElse(editPoint -> scene.setCursor(Cursor.HAND), () -> scene.setCursor(Cursor.DEFAULT));
-        });
 
-        scene.setOnMouseReleased(mouseEvent -> {
-            isMousePressed = false;
-            scene.setCursor(Cursor.DEFAULT);
-        });
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter filter
+                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                filter.closeObjectEdit();
+                filter.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
 
-        scene.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode().toString().equals("E")) {
-                // If mode was switched during an edit, finish the edit
+            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter
+                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                filter.closeObjectEdit();
+                filter.isEditPointClicked.setValue(false);
+                editedShape = null;
+                updateLightSources();
+                return;
+            }
 
-                keyPressed = Key.None;
+            // Close ray edit if editing it
+            if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
+                    && !beamSource.contains(mousePos) && beamSource.editPoints.stream().noneMatch(rectangle ->
+                    rectangle.contains(mousePos)))
+            {
+                beamSource.closeObjectEdit();
+                beamSource.isEditPointClicked.setValue(false);
+                beamSource.isEdited = false;
+                editedShape = null;
+                beamSource.update();
+                return;
+            }
 
-                if (isEditMode) {
-                    for (ToolbarButton button : toolbar) {
-                        button.disableProperty().setValue(true);
+            // Open object edit if clicked
+            if (!mirrors.isEmpty()) {
+                for (Object mirror : mirrors) {
+                    if (mirror instanceof LineMirror lineMirror && lineMirror.isMouseOnHitbox) {
+                        lineMirror.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof EllipseMirror ellipseMirror && ellipseMirror.contains(mousePos)) {
+                        ellipseMirror.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof FunnyMirror funnyMirror && funnyMirror.contains(mousePos)) {
+                        funnyMirror.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof LightEater lightEater && lightEater.contains(mousePos)) {
+                        lightEater.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof GaussianRolloffFilter filter && filter.isMouseOnHitbox) {
+                        filter.openObjectEdit();
+                        return;
+                    }
+                    if (mirror instanceof BrickwallFilter filter && filter.isMouseOnHitbox) {
+                        filter.openObjectEdit();
+                        return;
                     }
                 }
-                else {
-                    for (ToolbarButton button : toolbar) {
-                        button.disableProperty().setValue(false);
+            }
+            // Same for light sources
+            if (!lightSources.isEmpty()) {
+                for (Object lightSource : lightSources) {
+                    if (lightSource instanceof BeamSource beamSource && beamSource.contains(mousePos) && !beamSource.isEdited) {
+                        beamSource.openObjectEdit();
+                        return;
                     }
                 }
-
-                isEditMode = !isEditMode;
             }
 
-            if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
-                shiftPressed = true;
+            if (editedShape != null) {
+                return;
             }
-            if (keyEvent.getCode().toString().equals("ALT") && isEditMode) {
-                altPressed = true;
-            }
-            if (keyEvent.getCode().toString().equals("X") && isEditMode) {
-                if (keyPressed == Key.X) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.X;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
-                if (keyPressed == Key.Z) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.Z;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
-                if (keyPressed == Key.V) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.V;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("B") && isEditMode) {
-                if (keyPressed == Key.B) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.B;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("N") && isEditMode) {
-                if (keyPressed == Key.N) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.N;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("M") && isEditMode) {
-                if (keyPressed == Key.M) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.M;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
-                if (keyPressed == Key.C) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.C;
-                }
-                closeCurrentEdit();
-            }
-            toolbar.forEach(ToolbarButton::updateRender);
-        });
-
-        scene.setOnKeyReleased(keyEvent -> {
-            if (keyEvent.getCode().toString().equals("SHIFT")) {
-                shiftPressed = false;
-            }
-            if (keyEvent.getCode().toString().equals("ALT")) {
-                altPressed = false;
-            }
-        });
-
-        scene.setOnMouseMoved(mouseEvent -> {
-            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
-            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
-            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
-
-            // If mouse is on an edit point, change cursor to hand
-            editPoints.stream()
-                    .filter(editPoint -> editPoint.intersects(mouseHitbox.getLayoutBounds()))
-                    .findFirst()
-                    .ifPresentOrElse(editPoint -> scene.setCursor(Cursor.HAND), () -> scene.setCursor(Cursor.DEFAULT));
-        });
-    }
 
 
     public static void placeNewObject() {
@@ -260,33 +226,107 @@ public class UserControls {
                 lightSources.add(beamSource);
                 editedShape = beamSource.group;
                 break;
+            case L:
+                SphericalLens sphericalLens = new SphericalLens(100, 100, mousePos.getX(), mousePos.getY(), 20);
+                sphericalLens.create();
+                lenses.add(sphericalLens);
+                break;
         }
     }
 
+                keyPressed = Key.None;
+                MirrorMethods.closeMirrorsEdit();
 
-    public static void closeCurrentEdit() {
-        if (editedShape instanceof Group group) {
-            group.getChildren().stream()
-                    .filter(node -> node instanceof Editable)
-                    .map(node -> (Editable) node)
-                    .findFirst()
-                    .ifPresent(Editable::closeObjectEdit);
-        }
-    }
+                if (isEditMode) {
+                    for (ToolbarButton button : toolbar) {
+                        button.disableProperty().setValue(true);
+                    }
+                }
+                else {
+                    for (ToolbarButton button : toolbar) {
+                        button.disableProperty().setValue(false);
+                    }
+                }
 
-
-    public static void resetHasBeenClicked() {
-        List<Object> clickableObjects = new ArrayList<>();
-        clickableObjects.addAll(editPoints);
-        clickableObjects.addAll(lightSources);
-        clickableObjects.addAll(mirrors);
-
-        for (Object clickableObject : clickableObjects) {
-            if (clickableObject instanceof EditPoint editPoint) {
-                editPoint.hasBeenClicked = false;
-            } else if (clickableObject instanceof Editable editable) {
-                editable.setHasBeenClicked(false);
+                isEditMode = !isEditMode;
             }
-        }
+
+            if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
+                shiftPressed = true;
+            }
+            if (keyEvent.getCode().toString().equals("ALT") && isEditMode) {
+                altPressed = true;
+            }
+            if (keyEvent.getCode().toString().equals("X") && isEditMode) {
+                if (keyPressed == Key.X) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.X;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
+                if (keyPressed == Key.Z) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.Z;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
+                if (keyPressed == Key.V) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.V;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("B") && isEditMode) {
+                if (keyPressed == Key.B) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.B;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("N") && isEditMode) {
+                if (keyPressed == Key.N) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.N;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("M") && isEditMode) {
+                if (keyPressed == Key.M) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.M;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
+                if (keyPressed == Key.C) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.C;
+                }
+                MirrorMethods.closeMirrorsEdit();
+            }
+            toolbar.forEach(ToolbarButton::updateRender);
+        });
+
+        scene.setOnKeyReleased(keyEvent -> {
+            if (keyEvent.getCode().toString().equals("SHIFT")) {
+                shiftPressed = false;
+            }
+            if (keyEvent.getCode().toString().equals("ALT")) {
+                altPressed = false;
+            }
+        });
+
+        scene.setOnMouseMoved(mouseEvent -> {
+            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+        });
     }
 }

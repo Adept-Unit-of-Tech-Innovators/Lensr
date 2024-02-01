@@ -205,4 +205,42 @@ public class Intersections {
 
         return 2 * normalAngle - angleOfIncidence;
     }
+
+    public static double getLineRefractionAngle(Line ray, Line lens, double refractiveIndex, boolean isInLens) {
+        double angleOfIncidence = Math.PI/2 - Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double lensAngle = Math.atan2(lens.getEndY() - lens.getStartY(), lens.getEndX() - lens.getStartX());
+        double normalAngle = lensAngle + Math.PI/2;
+//        if(lensAngle > Math.PI) normalAngle += Math.PI;
+
+        if(true)
+        {
+            refractiveIndex = 1/refractiveIndex;
+        }
+        double refractedAngle = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
+
+//        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
+//        System.out.println("Angle of lens: " + Math.toDegrees(lensAngle));
+//        System.out.println("Normal angle: " + Math.toDegrees(normalAngle));
+//        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
+        return Math.PI/2 - refractedAngle;
+    }
+
+    public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex) {
+
+        // 6 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
+        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
+
+        double centerX = arc.getCenterX();
+        double centerY = arc.getCenterY();
+        double pointX = ray.getEndX();
+        double pointY = ray.getEndY();
+
+        double normalAngle = -Math.atan2((pointY - centerY) , (pointX - centerX));
+        double reversedNormalAngle = -Math.atan2((centerY - pointY) , (centerX - pointX));
+
+        double refractedAngle = (reversedNormalAngle + Math.asin(1/refractiveIndex * Math.sin(angleOfIncidence - normalAngle)));
+
+
+        return (refractedAngle);
+    }
 }
