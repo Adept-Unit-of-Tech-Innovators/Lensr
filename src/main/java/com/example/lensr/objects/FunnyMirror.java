@@ -1,27 +1,27 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.MutableValue;
+import com.example.lensr.EditPoint;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.setupEditPoints;
-import static com.example.lensr.MirrorMethods.setupObjectEdit;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class FunnyMirror extends Polyline {
+public class FunnyMirror extends Polyline implements Editable{
     public Group group = new Group();
     // The outline of the object for ray intersection
-    public List<Rectangle> editPoints = new ArrayList<>();
+    public List<EditPoint> objectEditPoints = new ArrayList<>();
+    public boolean isEdited;
+    public boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
-    public boolean isEdited;
-    public MutableValue isEditPointClicked = new MutableValue(false);
+    LineMirror closestIntersectionSegment;
 
     public FunnyMirror() {
 
@@ -32,9 +32,9 @@ public class FunnyMirror extends Polyline {
         setStroke(mirrorColor);
         group.getChildren().add(this);
         root.getChildren().add(group);
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 List<Double> points = getPoints();
                 // Add initial point
                 points.add(mousePos.getX());
@@ -48,6 +48,18 @@ public class FunnyMirror extends Polyline {
                         points.add(mousePos.getX());
                         points.add(mousePos.getY());
                         index = index + 2;
+                    }
+                    if (!objectEditPoints.isEmpty()) {
+                        // Update editPoints location
+                        Bounds mirrorBounds = getLayoutBounds();
+
+                        for (int i = 0; i < objectEditPoints.size(); i++) {
+                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                            objectEditPoints.get(i).setCenterX(x);
+                            objectEditPoints.get(i).setCenterY(y);
+                        }
                     }
                 }
                 return null;
@@ -65,34 +77,68 @@ public class FunnyMirror extends Polyline {
         return reflectivity;
     }
 
+    @Override
     public void openObjectEdit() {
+        reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
-        setupObjectEdit();
+
+        // Defocus the text field
+        root.requestFocus();
+
+        hasBeenClicked = true;
         isEdited = true;
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
 
-        setupEditPoints(editPoints, isEditPointClicked);
-//        for (Rectangle editPoint : editPoints) {
-//            editPoint.setOnMousePressed(this::handleEditPointPressed);
-//            editPoint.setOnMouseReleased(this::executeEditPointRelease);
-//        }
-        group.getChildren().addAll(editPoints);
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // TODO: Implement FunnyMirror scaling
+            });
+       }
+
+        editPoints.addAll(objectEditPoints);
+        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
+    @Override
     public void closeObjectEdit() {
         reflectivitySlider.hide();
         isEdited = false;
-        if (editPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(editPoints);
-            editPoints.clear();
+        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectEditPoints);
+            objectEditPoints.clear();
         }
         editedShape = null;
+        updateLightSources();
+    }
+
+    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
+        this.closestIntersectionSegment = closestIntersectionSegment;
+    }
+
+    public LineMirror getClosestIntersectionSegment() {
+        return closestIntersectionSegment;
+    }
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }

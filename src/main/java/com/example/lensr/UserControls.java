@@ -2,266 +2,73 @@ package com.example.lensr;
 
 import com.example.lensr.objects.*;
 import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Slider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.updateLightSources;
 import static com.example.lensr.ParameterSlider.*;
+import static com.example.lensr.ParameterToggle.*;
 
 public class UserControls {
-
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
             if (!isEditMode) return;
+
             isMousePressed = true;
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
+            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
 
-            // Close line mirror edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror
-                    && !mirror.isMouseOnHitbox && mirror.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                mirror.closeObjectEdit();
-                mirror.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-
+            if (editedShape == null && keyPressed != Key.None) {
+                // If no object is being edited, place a new object and reset the hasBeenClicked variable
+                placeNewObject();
+                resetHasBeenClicked();
                 return;
             }
 
-            // Close ellipse mirror edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror
-                    && !group.getLayoutBounds().contains(mousePos))
-            {
-                mirror.closeObjectEdit();
-                mirror.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-                return;
-            }
+            // Get all clickable objects
+            // Priority is given to edit points, then light sources, then other objects
+            List<Object> clickableObjects = new ArrayList<>();
+            clickableObjects.addAll(editPoints);
+            clickableObjects.addAll(lightSources);
+            clickableObjects.addAll(mirrors);
 
-            // Close funny mirror edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror
-                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                mirror.closeObjectEdit();
-                mirror.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-                return;
-            }
-
-            // Close light eater edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror
-                    && !mirror.contains(mousePos) && mirror.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                mirror.closeObjectEdit();
-                mirror.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-                return;
-            }
-
-
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter filter
-                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                filter.closeObjectEdit();
-                filter.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-                return;
-            }
-
-            if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter
-                    && !filter.contains(mousePos) && filter.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                filter.closeObjectEdit();
-                filter.isEditPointClicked.setValue(false);
-                editedShape = null;
-                updateLightSources();
-                return;
-            }
-
-            // Close ray edit if editing it
-            if (editedShape instanceof Group group && group.getChildren().get(1) instanceof BeamSource beamSource
-                    && !beamSource.contains(mousePos) && beamSource.editPoints.stream().noneMatch(rectangle ->
-                    rectangle.contains(mousePos)))
-            {
-                beamSource.closeObjectEdit();
-                beamSource.isEditPointClicked.setValue(false);
-                beamSource.isEdited = false;
-                editedShape = null;
-                beamSource.update();
-                return;
-            }
-
-            // Open object edit if clicked
-            if (!mirrors.isEmpty()) {
-                for (Object mirror : mirrors) {
-                    if (mirror instanceof LineMirror lineMirror && lineMirror.isMouseOnHitbox) {
-                        lineMirror.openObjectEdit();
-                        return;
-                    }
-                    if (mirror instanceof EllipseMirror ellipseMirror && ellipseMirror.contains(mousePos)) {
-                        ellipseMirror.openObjectEdit();
-                        return;
-                    }
-                    if (mirror instanceof FunnyMirror funnyMirror && funnyMirror.contains(mousePos)) {
-                        funnyMirror.openObjectEdit();
-                        return;
-                    }
-                    if (mirror instanceof LightEater lightEater && lightEater.contains(mousePos)) {
-                        lightEater.openObjectEdit();
-                        return;
-                    }
-                    if (mirror instanceof GaussianRolloffFilter filter && filter.isMouseOnHitbox) {
-                        filter.openObjectEdit();
-                        return;
-                    }
-                    if (mirror instanceof BrickwallFilter filter && filter.isMouseOnHitbox) {
-                        filter.openObjectEdit();
-                        return;
-                    }
+            for (Object clickableObject : clickableObjects) {
+                if (clickableObject instanceof EditPoint editPoint && !editPoint.hasBeenClicked && editPoint.intersects(mouseHitbox.getLayoutBounds())) {
+                    editPoint.handleMousePressed();
+                    return;
                 }
-            }
-            // Same for light sources
-            if (!lightSources.isEmpty()) {
-                for (Object lightSource : lightSources) {
-                    if (lightSource instanceof BeamSource beamSource && beamSource.contains(mousePos) && !beamSource.isEdited) {
-                        beamSource.openObjectEdit();
-                        return;
-                    }
+                else if (clickableObject instanceof Editable editable && !editable.getHasBeenClicked() && editable.intersectsMouseHitbox()) {
+                    closeCurrentEdit();
+                    editable.openObjectEdit();
+                    return;
                 }
             }
 
-            if (editedShape != null) {
-                return;
-            }
-
-
-            // Place objects
-            switch (keyPressed) {
-                case X:
-                    EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
-                    ellipseMirror.create();
-                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        reflectivitySlider = new ParameterSlider(ellipseMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                    }
-                    ellipseMirror.scale(mousePos);
-                    mirrors.add(ellipseMirror);
-                    editedShape = ellipseMirror.group;
-                    break;
-                case Z:
-                    LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                    lineMirror.create();
-                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                    }
-                    lineMirror.scale(mousePos);
-                    mirrors.add(lineMirror);
-                    editedShape = lineMirror.group;
-                    break;
-                case V:
-                    FunnyMirror funnyMirror = new FunnyMirror();
-                    funnyMirror.draw();
-                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        reflectivitySlider = new ParameterSlider(funnyMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                    }
-                    mirrors.add(funnyMirror);
-                    editedShape = funnyMirror.group;
-                    break;
-                case B:
-                    LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
-                    lightEater.create();
-                    lightEater.scale(mousePos);
-                    mirrors.add(lightEater);
-                    editedShape = lightEater.group;
-                    break;
-                case N:
-                    GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                    gaussianRolloffFilter.create();
-                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Transmission, SliderStyle.Primary);
-                        passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
-                        FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
-                    }
-                    gaussianRolloffFilter.scale(mousePos);
-                    mirrors.add(gaussianRolloffFilter);
-                    editedShape = gaussianRolloffFilter.group;
-                    break;
-                case M:
-                    BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                    brickwallFilter.create();
-                    if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                        peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
-                        startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
-                        endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
-                    }
-                    brickwallFilter.scale(mousePos);
-                    mirrors.add(brickwallFilter);
-                    editedShape = brickwallFilter.group;
-                    break;
-                case L:
-                    SphericalLens sphericalLens = new SphericalLens(100, 100, mousePos.getX(), mousePos.getY(), 20);
-                    sphericalLens.create();
-                    lenses.add(sphericalLens);
-                    break;
-                case C:
-                    BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
-                    beamSource.create();
-                    if (lightSources.isEmpty()) {
-                        wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
-                    }
-                    beamSource.openObjectEdit();
-                    lightSources.add(beamSource);
-                    editedShape = beamSource.group;
-                    break;
-            }
+            // If no clickable object was found, close the current edit and reset the hasBeenClicked variable
+            closeCurrentEdit();
+            resetHasBeenClicked();
         });
 
-        scene.setOnMouseDragged(mouseEvent -> mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY()));
+        scene.setOnMouseDragged(mouseEvent -> {
+            mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
+            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
+
+            // If mouse is on an edit point, change cursor to hand
+            editPoints.stream()
+                    .filter(editPoint -> editPoint.intersects(mouseHitbox.getLayoutBounds()))
+                    .findFirst()
+                    .ifPresentOrElse(editPoint -> scene.setCursor(Cursor.HAND), () -> scene.setCursor(Cursor.DEFAULT));
+        });
 
         scene.setOnMouseReleased(mouseEvent -> {
             isMousePressed = false;
-            if (editedShape == null) return;
-
-            switch (keyPressed) {
-                case X:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof EllipseMirror mirror && !mirror.isEdited) {
-                        mirror.openObjectEdit();
-                    }
-                case Z:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LineMirror mirror && !mirror.isEdited) {
-                        mirror.openObjectEdit();
-                    }
-                case V:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof FunnyMirror mirror && !mirror.isEdited) {
-                        mirror.openObjectEdit();
-                    }
-                case B:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof LightEater mirror && !mirror.isEdited) {
-                        mirror.openObjectEdit();
-                    }
-                case N:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof GaussianRolloffFilter mirror && !mirror.isEdited) {
-                        mirror.openObjectEdit();
-                    }
-                case M:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BrickwallFilter filter && !filter.isEdited) {
-                        filter.openObjectEdit();
-                    }
-                // TODO: Add lens edit
-                case C:
-                    if (editedShape instanceof Group group && group.getChildren().get(0) instanceof BeamSource beamSource && !beamSource.isEdited) {
-                        beamSource.openObjectEdit();
-                    }
-            }
+            scene.setCursor(Cursor.DEFAULT);
         });
 
         scene.setOnKeyPressed(keyEvent -> {
@@ -269,7 +76,6 @@ public class UserControls {
                 // If mode was switched during an edit, finish the edit
 
                 keyPressed = Key.None;
-                MirrorMethods.closeMirrorsEdit();
 
                 if (isEditMode) {
                     for (ToolbarButton button : toolbar) {
@@ -297,7 +103,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.X;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
                 if (keyPressed == Key.Z) {
@@ -305,7 +111,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.Z;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
                 if (keyPressed == Key.V) {
@@ -313,7 +119,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.V;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("B") && isEditMode) {
                 if (keyPressed == Key.B) {
@@ -321,7 +127,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.B;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("N") && isEditMode) {
                 if (keyPressed == Key.N) {
@@ -329,7 +135,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.N;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("M") && isEditMode) {
                 if (keyPressed == Key.M) {
@@ -337,15 +143,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.M;
                 }
-                MirrorMethods.closeMirrorsEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("L") && isEditMode) {
-                if (keyPressed == Key.L) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.L;
-                }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 if (keyPressed == Key.C) {
@@ -353,7 +151,7 @@ public class UserControls {
                 } else {
                     keyPressed = Key.C;
                 }
-                MirrorMethods.closeMirrorsEdit();
+                closeCurrentEdit();
             }
             toolbar.forEach(ToolbarButton::updateRender);
         });
@@ -369,6 +167,126 @@ public class UserControls {
 
         scene.setOnMouseMoved(mouseEvent -> {
             mousePos = new Point2D(mouseEvent.getX(), mouseEvent.getY());
+            mouseHitbox.setX(mousePos.getX() - mouseHitbox.getWidth() / 2);
+            mouseHitbox.setY(mousePos.getY() - mouseHitbox.getHeight() / 2);
+
+            // If mouse is on an edit point, change cursor to hand
+            editPoints.stream()
+                    .filter(editPoint -> editPoint.intersects(mouseHitbox.getLayoutBounds()))
+                    .findFirst()
+                    .ifPresentOrElse(editPoint -> scene.setCursor(Cursor.HAND), () -> scene.setCursor(Cursor.DEFAULT));
         });
+    }
+
+
+    public static void placeNewObject() {
+        // Place objects
+        switch (keyPressed) {
+            case X:
+                EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
+                ellipseMirror.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(ellipseMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                ellipseMirror.openObjectEdit();
+                ellipseMirror.scale(mousePos);
+                mirrors.add(ellipseMirror);
+                editedShape = ellipseMirror.group;
+                break;
+            case Z:
+                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lineMirror.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                lineMirror.openObjectEdit();
+                lineMirror.scale(mousePos);
+                mirrors.add(lineMirror);
+                editedShape = lineMirror.group;
+                break;
+            case V:
+                FunnyMirror funnyMirror = new FunnyMirror();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(funnyMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                funnyMirror.openObjectEdit();
+                funnyMirror.draw();
+                mirrors.add(funnyMirror);
+                editedShape = funnyMirror.group;
+                break;
+            case B:
+                LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
+                lightEater.create();
+                lightEater.openObjectEdit();
+                lightEater.scale(mousePos);
+                mirrors.add(lightEater);
+                editedShape = lightEater.group;
+                break;
+            case N:
+                GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                gaussianRolloffFilter.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                    passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
+                    FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
+                }
+                gaussianRolloffFilter.openObjectEdit();
+                gaussianRolloffFilter.scale(mousePos);
+                mirrors.add(gaussianRolloffFilter);
+                editedShape = gaussianRolloffFilter.group;
+                break;
+            case M:
+                BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                brickwallFilter.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
+                    startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
+                    endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
+                }
+                brickwallFilter.openObjectEdit();
+                brickwallFilter.scale(mousePos);
+                mirrors.add(brickwallFilter);
+                editedShape = brickwallFilter.group;
+                break;
+            case C:
+                BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
+                beamSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(beamSource, ParameterToChange.WhiteLight);
+                }
+                beamSource.openObjectEdit();
+                beamSource.rotateToMouse();
+                lightSources.add(beamSource);
+                editedShape = beamSource.group;
+                break;
+        }
+    }
+
+
+    public static void closeCurrentEdit() {
+        if (editedShape instanceof Group group) {
+            group.getChildren().stream()
+                    .filter(node -> node instanceof Editable)
+                    .map(node -> (Editable) node)
+                    .findFirst()
+                    .ifPresent(Editable::closeObjectEdit);
+        }
+    }
+
+
+    public static void resetHasBeenClicked() {
+        List<Object> clickableObjects = new ArrayList<>();
+        clickableObjects.addAll(editPoints);
+        clickableObjects.addAll(lightSources);
+        clickableObjects.addAll(mirrors);
+
+        for (Object clickableObject : clickableObjects) {
+            if (clickableObject instanceof EditPoint editPoint) {
+                editPoint.hasBeenClicked = false;
+            } else if (clickableObject instanceof Editable editable) {
+                editable.setHasBeenClicked(false);
+            }
+        }
     }
 }

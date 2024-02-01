@@ -1,12 +1,10 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.MutableValue;
+import com.example.lensr.EditPoint;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
-import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
@@ -16,12 +14,11 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LightEater extends Circle {
+public class LightEater extends Circle implements Editable{
     public Group group = new Group();
-    public List<Rectangle> editPoints = new ArrayList<>();
+    public List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
-    public MutableValue isEditPointClicked = new MutableValue(false);
-
+    public boolean hasBeenClicked;
 
     public LightEater(double centerX, double centerY, double radius) {
         setCenterX(centerX);
@@ -34,58 +31,48 @@ public class LightEater extends Circle {
         setFill(Color.BLACK);
         setStroke(Color.BLACK);
         setStrokeWidth(globalStrokeWidth);
-        setStrokeType(StrokeType.OUTSIDE);
+        setStrokeType(StrokeType.INSIDE);
 
         group.getChildren().add(this);
         root.getChildren().add(group);
     }
 
-
+    @Override
     public void openObjectEdit() {
-        setupObjectEdit();
+        hasBeenClicked = true;
         isEdited = true;
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMinY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMaxX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
-        editPoints.add(new Rectangle(mirrorBounds.getMinX() - editPointSize / 2, mirrorBounds.getMaxY() - editPointSize / 2, editPointSize, editPointSize));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
 
-        setupEditPoints(editPoints, isEditPointClicked);
-        for (Rectangle editPoint : editPoints) {
-            editPoint.setOnMousePressed(this::handleEditPointPressed);
-            editPoint.setOnMouseReleased(this::executeEditPointRelease);
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint) + 2) % 4));
+                scale(oppositeEditPoint.getCenter());
+            });
         }
-        group.getChildren().addAll(editPoints);
+
+        editPoints.addAll(objectEditPoints);
+        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
-
-    private void handleEditPointPressed(MouseEvent event) {
-        isMousePressed = true;
-        isEditPointClicked.setValue(true);
-        scene.setCursor(Cursor.CLOSED_HAND);
-
-        // Scale the mirror with the opposite edit point as an anchor
-        //noinspection SuspiciousMethodCalls (it's very sussy)
-        Rectangle oppositeEditPoint = editPoints.get(( (editPoints.indexOf(event.getSource()) + 2)  % 4));
-        scale(new Point2D(oppositeEditPoint.getX() + editPointSize / 2, oppositeEditPoint.getY() + editPointSize / 2));
-    }
-
-
-    private void executeEditPointRelease(MouseEvent event) {
-        handleEditPointReleased(event, isEditPointClicked, editPoints);
-    }
-
-
+    @Override
     public void closeObjectEdit() {
         isEdited = false;
-        if (editPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(editPoints);
-            editPoints.clear();
+        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
+            editedGroup.getChildren().removeAll(objectEditPoints);
+            editPoints.removeAll(objectEditPoints);
+            objectEditPoints.clear();
         }
         editedShape = null;
+        updateLightSources();
     }
 
 
@@ -118,17 +105,14 @@ public class LightEater extends Circle {
                     setRadius(finalRadius);
 
                     // Update editPoints location
-                    if (isEditPointClicked.getValue()) {
-                        Bounds mirrorBounds = getLayoutBounds();
-                        int offset = -4;
+                    Bounds mirrorBounds = getLayoutBounds();
 
-                        for (int i = 0; i < editPoints.size(); i++) {
-                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
-                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+                    for (int i = 0; i < objectEditPoints.size(); i++) {
+                        double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
-                            editPoints.get(i).setX(x + offset);
-                            editPoints.get(i).setY(y + offset);
-                        }
+                        objectEditPoints.get(i).setCenterX(x);
+                        objectEditPoints.get(i).setCenterY(y);
                     }
                 });
 
@@ -141,5 +125,20 @@ public class LightEater extends Circle {
                 }
             }
         }).start();
+    }
+
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
 }
