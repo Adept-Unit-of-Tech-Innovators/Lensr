@@ -61,48 +61,64 @@ public class FunnyMirror extends Polyline implements Editable{
 
     public void scale(EditPoint anchorPoint) {
         taskPool.execute(() -> {
+            double threshold = 1.0; // We only want to scale the object if the mouse has moved more than 1 pixel
             while (isMousePressed) {
-                List<Double> newPoints = new ArrayList<>();
                 double originalWidth = getLayoutBounds().getWidth();
                 double originalHeight = getLayoutBounds().getHeight();
+                double widthToHeightRatio = originalWidth / originalHeight;
+
+                double deltaX, deltaY;
+                double tempDeltaX = Math.abs(mousePos.getX() - anchorPoint.getCenterX());
+                double tempDeltaY = Math.abs(mousePos.getY() - anchorPoint.getCenterY());
+
+                deltaX = (shiftPressed && widthToHeightRatio < 1) ? tempDeltaY * widthToHeightRatio : tempDeltaX;
+                deltaY = (shiftPressed && widthToHeightRatio > 1) ? tempDeltaX / widthToHeightRatio : tempDeltaY;
+
+
+                if (deltaX > threshold || deltaY > threshold) {
+                    for (int i = 0; i < getPoints().size(); i += 2) {
+                        double pointX = getPoints().get(i);
+                        double pointY = getPoints().get(i + 1);
+
+                        // Calculate adjusted point's coordinates using proportions
+                        double newPointX = anchorPoint.getCenterX() + ((pointX - anchorPoint.getCenterX()) * deltaX / originalWidth);
+                        double newPointY = anchorPoint.getCenterY() + ((pointY - anchorPoint.getCenterY()) * deltaY / originalHeight);
+
+                        // Update the point's coordinates
+                        int finalI = i;
+                        Platform.runLater(() -> {
+                            getPoints().set(finalI, newPointX);
+                            getPoints().set(finalI + 1, newPointY);
+                        });
+                    }
+
+                    // Update the editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        Platform.runLater(() -> {
+                            Bounds mirrorBounds = getLayoutBounds();
+
+                            for (int i = 0; i < objectEditPoints.size(); i++) {
+                                if (objectEditPoints.get(i).equals(anchorPoint)) continue;
+                                double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                                double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                                objectEditPoints.get(i).setCenterX(x);
+                                objectEditPoints.get(i).setCenterY(y);
+                            }
+                        });
+                    }
+                }
+
+                // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(20);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
-                }
-
-                for (int i = 0; i < getPoints().size(); i+=2) {
-                    double pointX = getPoints().get(i);
-                    double pointY = getPoints().get(i + 1);
-
-                    // Calculate adjusted point's coordinates using proportions
-                    double newPointX = anchorPoint.getX() + ((pointX - anchorPoint.getX()) * Math.abs(anchorPoint.getX() - mousePos.getX()) / originalWidth);
-                    double newPointY = anchorPoint.getY() + ((pointY - anchorPoint.getY()) * Math.abs(anchorPoint.getY() - mousePos.getY()) / originalHeight);
-
-                    int finalI = i;
-                    Platform.runLater(() -> {
-                        getPoints().set(finalI, newPointX);
-                        getPoints().set(finalI + 1, newPointY);
-                    });
-                }
-
-                if (!objectEditPoints.isEmpty()) {
-                    // Update editPoints location
-                    Platform.runLater(() -> {
-                        Bounds mirrorBounds = getLayoutBounds();
-
-                        for (int i = 0; i < objectEditPoints.size(); i++) {
-                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
-                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
-
-                            objectEditPoints.get(i).setCenterX(x);
-                            objectEditPoints.get(i).setCenterY(y);
-                        }
-                    });
                 }
             }
         });
     }
+
 
     public void setReflectivity(double reflectivity) {
         this.reflectivity = reflectivity;
