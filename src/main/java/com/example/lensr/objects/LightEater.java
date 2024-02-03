@@ -31,7 +31,7 @@ public class LightEater extends Circle implements Editable{
         setFill(Color.BLACK);
         setStroke(Color.BLACK);
         setStrokeWidth(globalStrokeWidth);
-        setStrokeType(StrokeType.OUTSIDE);
+        setStrokeType(StrokeType.INSIDE);
 
         group.getChildren().add(this);
         root.getChildren().add(group);

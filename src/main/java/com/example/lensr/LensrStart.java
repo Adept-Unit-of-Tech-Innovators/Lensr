@@ -10,6 +10,8 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LensrStart extends Application {
     public static final Object lock = new Object();
@@ -51,6 +53,8 @@ public class LensrStart extends Application {
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
+    public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
+    public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
 
     @Override
     public void start(Stage primaryStage) {
@@ -86,6 +90,10 @@ public class LensrStart extends Application {
             button.addToRoot();
             button.disableProperty().setValue(true);
         }
+
+
+        root.getChildren().add(rayCanvas);
+        rayCanvas.toBack();
 
         UserControls.setUserControls();
 

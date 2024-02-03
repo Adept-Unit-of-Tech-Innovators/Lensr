@@ -1,11 +1,14 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
+import javafx.scene.transform.Scale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +24,7 @@ public class FunnyMirror extends Polyline implements Editable{
     public boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
+    LineMirror closestIntersectionSegment;
 
     public FunnyMirror() {
 
@@ -31,41 +35,90 @@ public class FunnyMirror extends Polyline implements Editable{
         setStroke(mirrorColor);
         group.getChildren().add(this);
         root.getChildren().add(group);
-        Task<Void> task = new Task<>() {
-            @Override
-            public Void call() {
-                List<Double> points = getPoints();
-                // Add initial point
-                points.add(mousePos.getX());
-                points.add(mousePos.getY());
-                int index = 2;
-                while (isMousePressed) {
-                    if (isCancelled()) {
-                        break;
-                    }
-                    if ((Math.abs(points.get(index - 2) - mousePos.getX()) > 10) || (Math.abs(points.get(index - 1) - mousePos.getY()) > 10)) {
-                        points.add(mousePos.getX());
-                        points.add(mousePos.getY());
-                        index = index + 2;
-                    }
-                    if (!objectEditPoints.isEmpty()) {
-                        // Update editPoints location
-                        Bounds mirrorBounds = getLayoutBounds();
+        taskPool.execute(() -> {
+            getPoints().addAll(mousePos.getX(), mousePos.getY());
+            int index = 2;
+            while (isMousePressed) {
+                if ((Math.abs(getPoints().get(index - 2) - mousePos.getX()) > 10) || (Math.abs(getPoints().get(index - 1) - mousePos.getY()) > 10)) {
+                    getPoints().addAll(mousePos.getX(), mousePos.getY());
+                    index = index + 2;
+                }
+                if (!objectEditPoints.isEmpty()) {
+                    // Update editPoints location
+                    Bounds mirrorBounds = getLayoutBounds();
 
-                        for (int i = 0; i < objectEditPoints.size(); i++) {
-                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
-                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+                    for (int i = 0; i < objectEditPoints.size(); i++) {
+                        double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
-                            objectEditPoints.get(i).setCenterX(x);
-                            objectEditPoints.get(i).setCenterY(y);
-                        }
+                        objectEditPoints.get(i).setCenterX(x);
+                        objectEditPoints.get(i).setCenterY(y);
                     }
                 }
-                return null;
             }
-        };
-        new Thread(task).start();
+        });
     }
+
+    public void scale(EditPoint anchorPoint) {
+        taskPool.execute(() -> {
+            double threshold = 1.0; // We only want to scale the object if the mouse has moved more than 1 pixel
+            while (isMousePressed) {
+                double originalWidth = getLayoutBounds().getWidth();
+                double originalHeight = getLayoutBounds().getHeight();
+                double widthToHeightRatio = originalWidth / originalHeight;
+
+                double deltaX, deltaY;
+                double tempDeltaX = Math.abs(mousePos.getX() - anchorPoint.getCenterX());
+                double tempDeltaY = Math.abs(mousePos.getY() - anchorPoint.getCenterY());
+
+                deltaX = (shiftPressed && widthToHeightRatio < 1) ? tempDeltaY * widthToHeightRatio : tempDeltaX;
+                deltaY = (shiftPressed && widthToHeightRatio > 1) ? tempDeltaX / widthToHeightRatio : tempDeltaY;
+
+
+                if (deltaX > threshold || deltaY > threshold) {
+                    for (int i = 0; i < getPoints().size(); i += 2) {
+                        double pointX = getPoints().get(i);
+                        double pointY = getPoints().get(i + 1);
+
+                        // Calculate adjusted point's coordinates using proportions
+                        double newPointX = anchorPoint.getCenterX() + ((pointX - anchorPoint.getCenterX()) * deltaX / originalWidth);
+                        double newPointY = anchorPoint.getCenterY() + ((pointY - anchorPoint.getCenterY()) * deltaY / originalHeight);
+
+                        // Update the point's coordinates
+                        int finalI = i;
+                        Platform.runLater(() -> {
+                            getPoints().set(finalI, newPointX);
+                            getPoints().set(finalI + 1, newPointY);
+                        });
+                    }
+
+                    // Update the editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        Platform.runLater(() -> {
+                            Bounds mirrorBounds = getLayoutBounds();
+
+                            for (int i = 0; i < objectEditPoints.size(); i++) {
+                                if (objectEditPoints.get(i).equals(anchorPoint)) continue;
+                                double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                                double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                                objectEditPoints.get(i).setCenterX(x);
+                                objectEditPoints.get(i).setCenterY(y);
+                            }
+                        });
+                    }
+                }
+
+                // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
 
     public void setReflectivity(double reflectivity) {
         this.reflectivity = reflectivity;
@@ -97,7 +150,15 @@ public class FunnyMirror extends Polyline implements Editable{
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
-                // TODO: Implement FunnyMirror scaling
+                if (editPoint == objectEditPoints.get(0)) {
+                    scale(objectEditPoints.get(2));
+                } else if (editPoint == objectEditPoints.get(1)) {
+                    scale(objectEditPoints.get(3));
+                } else if (editPoint == objectEditPoints.get(2)) {
+                    scale(objectEditPoints.get(0));
+                } else if (editPoint == objectEditPoints.get(3)) {
+                    scale(objectEditPoints.get(1));
+                }
             });
        }
 
@@ -116,6 +177,14 @@ public class FunnyMirror extends Polyline implements Editable{
         }
         editedShape = null;
         updateLightSources();
+    }
+
+    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
+        this.closestIntersectionSegment = closestIntersectionSegment;
+    }
+
+    public LineMirror getClosestIntersectionSegment() {
+        return closestIntersectionSegment;
     }
 
     @Override
