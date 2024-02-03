@@ -22,7 +22,6 @@ public class OriginRay extends Ray {
     }
 
     public void simulate() {
-        long startTime = System.nanoTime();
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
         if (getEndX() != SIZE || getEndY() != SIZE) {
@@ -235,14 +234,7 @@ public class OriginRay extends Ray {
                 recursiveDepth++;
                 currentRay = nextRay;
             }
-            long simTime = System.nanoTime();
             rayCanvas.drawRays(rayReflections);
-            long drawTime = System.nanoTime();
-            System.out.println("====================================");
-            System.out.println("Rays drawn: " + rayReflections.size());
-            System.out.println("Sim time: " + (simTime - startTime) / 1000000.0 + "ms" + " Draw time: " + (drawTime - simTime) / 1000000.0 + "ms");
-            System.out.println("Average: " + (drawTime - startTime) / 1000000.0 / rayReflections.size() + "ms");
-            System.out.println("Total time: " + (drawTime - startTime) / 1000000.0 + "ms");
         }).start();
     }
 
