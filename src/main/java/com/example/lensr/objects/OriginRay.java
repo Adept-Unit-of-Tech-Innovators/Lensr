@@ -216,7 +216,7 @@ public class OriginRay extends Ray {
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.000001 * Math.cos(reflectionAngle));
                     nextRay.setStartY(closestIntersectionPoint.getY() + 0.000001 *  Math.sin(reflectionAngle));
 
-                    // Set the brightness of the ray for the brickwall filter profile (standard for bandpass filters)
+                    // Set the brightness of the ray for the brickwall filter profile
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
                         nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
                     }

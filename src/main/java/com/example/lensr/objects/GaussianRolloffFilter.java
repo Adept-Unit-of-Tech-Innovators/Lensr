@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.Graph;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -23,6 +24,7 @@ public class GaussianRolloffFilter extends Line implements Editable{
     // Extended hitbox for easier editing
     Rectangle hitbox;
     public List<EditPoint> objectEditPoints = new ArrayList<>();
+    public Graph graph;
     double rotation = 0;
     public boolean isEdited;
     public boolean hasBeenClicked;
@@ -44,9 +46,12 @@ public class GaussianRolloffFilter extends Line implements Editable{
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
+        graph = new Graph(700, 100, 200, 150);
+        graph.setDataSource(this);
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
+        group.getChildren().add(graph.group);
         root.getChildren().add(group);
     }
 
@@ -59,6 +64,9 @@ public class GaussianRolloffFilter extends Line implements Editable{
         peakTransmissionSlider.show();
         passbandSlider.show();
         FWHMSlider.show();
+
+        graph.drawGraph();
+        graph.show();
 
         // Defocus the text field
         root.requestFocus();
@@ -89,6 +97,9 @@ public class GaussianRolloffFilter extends Line implements Editable{
         passbandSlider.hide();
         peakTransmissionSlider.hide();
         FWHMSlider.hide();
+
+        graph.clear();
+        graph.hide();
 
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {

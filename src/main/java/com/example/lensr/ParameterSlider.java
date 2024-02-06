@@ -117,26 +117,32 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
                 filter.setPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
                 filter.setFWHM(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
                 filter.setTransmission(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.StartPassband) {
                 filter.setStartPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.EndPassband) {
                 filter.setEndPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
