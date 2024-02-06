@@ -226,7 +226,7 @@ public class UserControls {
                 GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 gaussianRolloffFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
                     passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
                     FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
                 }
@@ -239,7 +239,7 @@ public class UserControls {
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 brickwallFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.Transmission, SliderStyle.Primary);
                     startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
                     endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
                 }
