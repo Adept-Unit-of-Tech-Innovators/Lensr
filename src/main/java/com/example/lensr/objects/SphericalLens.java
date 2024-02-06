@@ -1,38 +1,49 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.Intersections;
 import javafx.geometry.Point2D;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
-import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.lensr.Intersections.rotatePointAroundOtherByAngle;
 import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens {
-    boolean hasRay;
 
     public class LensLine extends Line {
-        public void switchHasRay() {
-            hasRay = !hasRay;
+        private SphericalLens parentLens;
+
+        public LensLine(SphericalLens parentLens) {
+            this.parentLens = parentLens;
         }
 
-        public boolean getHasRay() {
-            return hasRay;
+        public SphericalLens getParentLens() {
+            return parentLens;
+        }
+        public void rotateAroundPointByAngle(Point2D staticPoint, double angle)
+        {
+            Point2D startPoint = rotatePointAroundOtherByAngle(new Point2D(getStartX(), getStartY()), staticPoint, angle);
+            Point2D endPoint = rotatePointAroundOtherByAngle(new Point2D(getEndX(), getEndY()), staticPoint, angle);
+
+            setStartX(startPoint.getX());
+            setStartY(startPoint.getY());
+            setEndX(endPoint.getX());
+            setEndY(endPoint.getY());
         }
     }
 
     public class LensArc extends Arc {
         private double thickness;
-        private Shape bounds;
 
-        public LensArc(double thickness) {
+        private SphericalLens parentLens;
+
+        public LensArc(SphericalLens parentLens, double thickness) {
+            this.parentLens = parentLens;
             this.thickness = thickness;
         }
 
@@ -42,15 +53,21 @@ public class SphericalLens {
                 chord = new Line(topLine.getStartX(), topLine.getStartY(), bottomLine.getStartX(), bottomLine.getStartY());
             return chord;
         }
-
-        void updateArcBounds() {
-            Shape newBounds = Intersections.getObjectOutline(this);
-            Line chord = getChord();
-            bounds = Shape.subtract(newBounds, chord);
+        public Point2D getMiddle()
+        {
+            return new Point2D(getCenterX(), getCenterY());
         }
+        public SphericalLens getParentLens() {
+            return parentLens;
+        }
+        public void rotateAroundPointByAngle(Point2D staticPoint, double angle)
+        {
+            Point2D centerPoint = rotatePointAroundOtherByAngle(new Point2D(getCenterX(), getCenterY()), staticPoint, angle);
 
-        public Shape getBounds() {
-            return this.bounds;
+            setCenterX(centerPoint.getX());
+            setCenterY(centerPoint.getY());
+
+            setStartAngle(getStartAngle() + Math.toDegrees(angle));
         }
     }
 
@@ -73,20 +90,20 @@ public class SphericalLens {
     private double furtherCurvatureRadius;
 
     private Point2D focalPoint;
-//TO DO:
-    //Calculate arc's rotation angle, position and length depending on middleLength
 
-    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness) {
+    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness, double refractiveIndex) {
+        this.refractiveIndex = refractiveIndex;
+
         this.middleHeight = middleHeight;
         this.middleWidth = middleWidth;
         this.centerX = centerX;
         this.centerY = centerY;
 
-        firstArc = new LensArc(lensThickness);
-        secondArc = new LensArc(lensThickness);
+        firstArc = new LensArc(this, lensThickness);
+        secondArc = new LensArc(this, lensThickness);
 
-        topLine = new LensLine();
-        bottomLine = new LensLine();
+        topLine = new LensLine(this);
+        bottomLine = new LensLine(this);
 
         elements.add(firstArc);
         elements.add(secondArc);
@@ -106,11 +123,6 @@ public class SphericalLens {
     public double calculateFocalLength() {
 
         return 1 / ((refractiveIndex - 1) * (1 / firstArc.getRadiusY() - 1 / secondArc.getRadiusY() + (((refractiveIndex - 1) * middleWidth) / refractiveIndex * firstArc.getRadiusY() * secondArc.getRadiusY())));
-    }
-
-
-    public void addToRoot() {
-        root.getChildren().addAll(firstArc, secondArc, topLine, bottomLine);
     }
 
     public void arcAdjust(LensArc arc, double lensThickness, boolean isRightOriented) {
@@ -137,7 +149,7 @@ public class SphericalLens {
         if (isRightOriented) arc.setStartAngle(-angleInDegrees / 2);
 
         arc.setLength(angleInDegrees);
-        arc.updateArcBounds();
+//        arc.updateArcBounds();
 
 
 //        System.out.println("Radius: " + radius);
@@ -170,7 +182,24 @@ public class SphericalLens {
         bottomLine.setEndY(centerY + (middleHeight / 2));
         bottomLine.setStroke(mirrorColor);
     }
+    public Point2D getCenter()
+    {
+        return new Point2D(centerX, centerY);
+    }
 
+    public void rotate(double angle)
+    {
+        double angleToAdd = angle - angleOfRotation;
+
+        Point2D centerPoint = new Point2D(centerX, centerY);
+
+        topLine.rotateAroundPointByAngle(centerPoint, angleToAdd);
+        bottomLine.rotateAroundPointByAngle(centerPoint, angleToAdd);
+        firstArc.rotateAroundPointByAngle(centerPoint, angleToAdd);
+        secondArc.rotateAroundPointByAngle(centerPoint, angleToAdd);
+
+        angleOfRotation = angle;
+    }
 
     public LensArc getFirstArc() {
         return firstArc;

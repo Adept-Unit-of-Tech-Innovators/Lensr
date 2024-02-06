@@ -206,41 +206,71 @@ public class Intersections {
         return 2 * normalAngle - angleOfIncidence;
     }
 
-    public static double getLineRefractionAngle(Line ray, Line lens, double refractiveIndex, boolean isInLens) {
+    public static double getLineRefractionAngle(Line ray, Line lens, double currrefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.PI/2 - Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double lensAngle = Math.atan2(lens.getEndY() - lens.getStartY(), lens.getEndX() - lens.getStartX());
-        double normalAngle = lensAngle + Math.PI/2;
+//        double normalAngle = lensAngle + Math.PI/2;
 //        if(lensAngle > Math.PI) normalAngle += Math.PI;
 
-        if(true)
-        {
-            refractiveIndex = 1/refractiveIndex;
-        }
-        double refractedAngle = Math.asin(refractiveIndex * Math.sin(angleOfIncidence));
+        double refractedAngle = Math.asin(currrefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence));
 
-//        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
+        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
 //        System.out.println("Angle of lens: " + Math.toDegrees(lensAngle));
 //        System.out.println("Normal angle: " + Math.toDegrees(normalAngle));
 //        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
+        if(angleOfIncidence > Math.PI/2  || angleOfIncidence < -Math.PI/2) return refractedAngle - Math.PI/2;
         return Math.PI/2 - refractedAngle;
     }
 
-    public static double getArcRefractionAngle(Line ray, Arc arc, double refractiveIndex) {
+    public static double getArcRefractionAngle(Line ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex, boolean isConvex) {
 
         // 6 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
-        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(),ray.getEndX() - ray.getStartX());
 
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
 
-        double normalAngle = -Math.atan2((pointY - centerY) , (pointX - centerX));
-        double reversedNormalAngle = -Math.atan2((centerY - pointY) , (centerX - pointX));
+        double normalAngle = Math.atan2((pointY - centerY) , (pointX - centerX));
+        if(normalAngle < 0) normalAngle += 2 * Math.PI;
 
-        double refractedAngle = (reversedNormalAngle + Math.asin(1/refractiveIndex * Math.sin(angleOfIncidence - normalAngle)));
+        double reversedNormalAngle = Math.atan2((centerY - pointY) , (centerX - pointX));
+        if(reversedNormalAngle < 0) reversedNormalAngle += 2 * Math.PI;
 
+        double refractedAngle = reversedNormalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle));
+        if(!isConvex) refractedAngle = normalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - reversedNormalAngle));
 
-        return (refractedAngle);
+        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
+        System.out.print("Normal angle: ");
+        if(isConvex) System.out.println(Math.toDegrees(normalAngle));
+        else System.out.println(Math.toDegrees(reversedNormalAngle));
+        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
+
+        return refractedAngle;
     }
+
+    public static boolean areTwoPointsOnTheSameSideOfALine(Line line, Point2D pointA, Point2D pointB)
+    {
+        double lineSlope = (line.getEndY() - line.getStartY())/(line.getEndX() -  line.getStartX());
+        double lineYIntercept = -lineSlope * line.getStartX() + line.getStartY();
+
+        double fxA = lineSlope * pointA.getX() - pointA.getY() + lineYIntercept;
+        double fxB = lineSlope * pointB.getX() - pointB.getY() + lineYIntercept;
+
+        return fxA * fxB > 0;
+    }
+
+    public static Point2D rotatePointAroundOtherByAngle(Point2D rotatedPoint, Point2D staticPoint, double angle)
+    {
+        double x = rotatedPoint.getX() - staticPoint.getX();
+        double y = rotatedPoint.getY() - staticPoint.getY();
+
+        double newX = x * Math.cos(angle) - y * Math.sin(angle);
+        double newY = x * Math.sin(angle) + y * Math.cos(angle);
+
+        return new Point2D(newX, newY);
+    }
+
+
 }
