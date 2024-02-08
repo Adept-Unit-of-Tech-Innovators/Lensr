@@ -145,6 +145,15 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("K") && isEditMode) {
+                if (keyPressed == Key.K) {
+                    keyPressed = Key.None;
+                }
+                else {
+                    keyPressed = Key.K;
+                }
+                closeCurrentEdit();
+            }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 if (keyPressed == Key.C) {
                     keyPressed = Key.None;
@@ -247,6 +256,14 @@ public class UserControls {
                 brickwallFilter.scale(mousePos);
                 mirrors.add(brickwallFilter);
                 editedShape = brickwallFilter.group;
+                break;
+            case K:
+                LightSensor lightSensor = new LightSensor(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lightSensor.create();
+                lightSensor.openObjectEdit();
+                lightSensor.scale(mousePos);
+                mirrors.add(lightSensor);
+                editedShape = lightSensor.group;
                 break;
             case C:
                 BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());

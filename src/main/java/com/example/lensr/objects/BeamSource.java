@@ -32,6 +32,7 @@ public class BeamSource extends Rectangle implements Editable{
         setWidth(100);
         setHeight(50);
         setFill(Color.GRAY);
+        toBack();
         getTransforms().add(rotate);
     }
 
@@ -53,8 +54,7 @@ public class BeamSource extends Rectangle implements Editable{
         originRay.setBrightness(brightness);
 
         originRays.add(originRay);
-
-        group.getChildren().addAll(originRays);
+        originRays.forEach(ray -> group.getChildren().add(ray.group));
         root.getChildren().add(group);
         originRays.forEach(Node::toBack);
     }
@@ -66,6 +66,13 @@ public class BeamSource extends Rectangle implements Editable{
 
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
+            originRay.getRenderer().clear();
+            mirrors.forEach(mirror -> {
+                if (mirror instanceof LightSensor lightSensor) {
+                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                    lightSensor.getDetectedRays().remove(originRay);
+                }
+            });
             originRay.rayReflections.clear();
 
             originRay.simulate();
@@ -82,7 +89,8 @@ public class BeamSource extends Rectangle implements Editable{
 
         // Defocus the text fields
         root.requestFocus();
-        rayCanvas.clear();
+
+        originRays.forEach(originRay -> originRay.getRenderer().clear());
 
         hasBeenClicked = true;
         isEdited = true;
@@ -225,31 +233,39 @@ public class BeamSource extends Rectangle implements Editable{
 
 
     public void setWhiteLight(boolean whiteLight) {
-        group.getChildren().removeAll(originRays);
-        originRays.forEach(originRay -> {
-            group.getChildren().removeAll(originRay.rayReflections);
-            originRay.rayReflections.clear();
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().removeAll(originRay.rayReflections);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            int rayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < rayCount; i++) {
+                OriginRay originRay = new OriginRay(
+                        getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                        getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                        getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
+                        getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+            update();
         });
-        originRays.clear();
-
-        int rayCount = whiteLight ? whiteLightRayCount : 1;
-        for (int i = 0; i < rayCount; i++) {
-            OriginRay originRay = new OriginRay(
-                    getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                    getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                    getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
-                    getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
-            );
-            originRay.setParentSource(this);
-            originRay.setStrokeWidth(globalStrokeWidth);
-            originRay.setWavelength(whiteLight ? 380 + (400.0/whiteLightRayCount*i) : wavelength);
-            originRay.setBrightness(brightness);
-
-            originRays.add(originRay);
-        }
-        group.getChildren().addAll(originRays);
-        originRays.forEach(Node::toBack);
-        update();
     }
 
 

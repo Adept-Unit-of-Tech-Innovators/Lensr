@@ -2,13 +2,16 @@ package com.example.lensr;
 
 import com.example.lensr.objects.BrickwallFilter;
 import com.example.lensr.objects.GaussianRolloffFilter;
+import com.example.lensr.objects.LightSensor;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
@@ -19,6 +22,8 @@ public class Graph extends Canvas {
     Object dataSource;
     TextField dataStartTextField;
     TextField dataEndTextField;
+    Text yAxisMaxLabel;
+    Text yAxisMinLabel;
     double graphStart = 380;
     double graphEnd = 780;
     public Graph(double x, double y, double width, double height) {
@@ -71,8 +76,17 @@ public class Graph extends Canvas {
             drawGraph();
         });
 
-        group.getChildren().add(dataStartTextField);
-        group.getChildren().add(dataEndTextField);
+        yAxisMinLabel = new Text("0.0");
+        yAxisMinLabel.setFill(Color.WHITE);
+        yAxisMinLabel.setTranslateX(x - 20);
+        yAxisMinLabel.setTranslateY(y + height);
+
+        yAxisMaxLabel = new Text("1.0");
+        yAxisMaxLabel.setFill(Color.WHITE);
+        yAxisMaxLabel.setTranslateX(x - 20);
+        yAxisMaxLabel.setTranslateY(y + 10);
+
+        group.getChildren().addAll(dataStartTextField, dataEndTextField, yAxisMaxLabel, yAxisMinLabel);
         group.getChildren().add(this);
 
         root.requestFocus();
@@ -104,6 +118,19 @@ public class Graph extends Canvas {
         }
     }
 
+    private void getData(LightSensor lightSensor) {
+        data.clear();
+        data = new ArrayList<>((int) getWidth());
+        data.addAll(Collections.nCopies((int) getWidth(), 0.0));
+
+        for (int i = 0; i < lightSensor.getDetectedRays().size(); i++) {
+            int dataIndex = (int) Math.round( (lightSensor.getDetectedRays().get(i).getWavelength() - graphStart) * getWidth() / (graphEnd - graphStart));
+            if (dataIndex < 0 || dataIndex >= getWidth()) continue;
+            data.set(dataIndex, data.get(dataIndex) + lightSensor.getDetectedRays().get(i).getBrightness());
+        }
+
+    }
+
     public void clear() {
         getGraphicsContext2D().clearRect(0, 0, getWidth(), getHeight());
     }
@@ -116,7 +143,7 @@ public class Graph extends Canvas {
         getGraphicsContext2D().setStroke(stroke);
     }
 
-    public void drawGraphGrid() {
+    private void drawGraphGrid(double maxValue) {
         getGraphicsContext2D().setLineWidth(1);
         getGraphicsContext2D().setStroke(Color.GRAY);
         for (int i = 0; i < 10; i++) {
@@ -127,6 +154,7 @@ public class Graph extends Canvas {
             double y = i * getHeight() / 10;
             getGraphicsContext2D().strokeLine(0, y, getWidth(), y);
         }
+        yAxisMaxLabel.setText(String.valueOf(maxValue));
         updateStroke();
     }
 
@@ -138,16 +166,21 @@ public class Graph extends Canvas {
         // Get graph data
         if (dataSource instanceof GaussianRolloffFilter filter) {
             getData(filter);
-            maxValue = 1.0;
+            maxValue = 1;
         }
         else if (dataSource instanceof BrickwallFilter filter) {
             getData(filter);
             maxValue = 1;
         }
+        else if (dataSource instanceof LightSensor lightSensor) {
+            getData(lightSensor);
+            maxValue = data.stream().max(Double::compareTo).orElse(1.0);
+            maxValue = Math.round(maxValue * 100) / 100.0;
+        }
 
         if (data.isEmpty()) return;
 
-        drawGraphGrid();
+        drawGraphGrid(maxValue);
 
         // Draw graph using graphical context
         getGraphicsContext2D().setLineWidth(1);
@@ -162,7 +195,7 @@ public class Graph extends Canvas {
         updateStroke();
     }
 
-    public void setWavelength(double wavelength) {
+    private void setWavelength(double wavelength) {
         double factor;
         double red;
         double green;

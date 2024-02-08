@@ -190,13 +190,17 @@ public class ParameterSlider extends JFXSlider {
 
     public void show() {
         // Update UI
-        toFront();
         hBox.setVisible(true);
         hBox.setDisable(false);
         toolbar.forEach(button -> button.setVisible(false));
+        toFront();
     }
 
     private void setCorrectValues () {
+        // Default values
+        minVal = 0;
+        maxVal = 1;
+
         if (valueToChange == ValueToChange.Wavelength && currentSource instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
@@ -204,8 +208,6 @@ public class ParameterSlider extends JFXSlider {
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = filter.getPeakTransmission();
             label.setText("Peak transmission");
         }
@@ -222,8 +224,6 @@ public class ParameterSlider extends JFXSlider {
             label.setText("FWHM");
         }
         else if (valueToChange == ValueToChange.Transmission && currentSource instanceof BrickwallFilter filter) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = filter.getTransmission();
             label.setText("Transmission");
         }

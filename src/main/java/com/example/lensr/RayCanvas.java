@@ -2,6 +2,7 @@ package com.example.lensr;
 
 import com.example.lensr.objects.Ray;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.paint.Color;
 
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.List;
 public class RayCanvas extends Canvas {
     public RayCanvas(double width, double height) {
         super(width, height);
+        setMouseTransparent(true);
+        setBlendMode(BlendMode.LIGHTEN);
     }
 
     public void drawRays(List<Ray> rays) {

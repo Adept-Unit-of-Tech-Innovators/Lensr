@@ -34,7 +34,8 @@ public class LensrStart extends Application {
         V,
         B,
         N,
-        M
+        M,
+        K
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -53,7 +54,6 @@ public class LensrStart extends Application {
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
-    public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
 
     @Override
@@ -67,6 +67,7 @@ public class LensrStart extends Application {
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
         ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
+        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 25, 75);
         ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
@@ -74,6 +75,7 @@ public class LensrStart extends Application {
         toolbar.add(lightEaterButton);
         toolbar.add(gaussianFilterButton);
         toolbar.add(brickwallFilterButton);
+        toolbar.add(sensorButton);
         toolbar.add(rayButton);
 
         for (ToolbarButton button : toolbar) {
@@ -90,10 +92,6 @@ public class LensrStart extends Application {
             button.addToRoot();
             button.disableProperty().setValue(true);
         }
-
-
-        root.getChildren().add(rayCanvas);
-        rayCanvas.toBack();
 
         UserControls.setUserControls();
 
