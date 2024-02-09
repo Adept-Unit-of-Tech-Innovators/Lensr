@@ -133,7 +133,7 @@ public class OriginRay extends Ray {
                     rayReflections.add(currentRay);
                 }
 
-                // If there's no intersection, return
+                // If there's no intersection, break
                 if (closestIntersectionMirror == null) break;
 
                 currentRay.setEndX(closestIntersectionPoint.getX());
@@ -141,9 +141,6 @@ public class OriginRay extends Ray {
 
                 // Limit recursive depth
                 if (recursiveDepth >= 5000) break;
-
-                // If the ray is so dim, its basically invisible
-                if (currentRay.getBrightness() < 0.001) break;
 
                 Ray nextRay = new Ray(0, 0, 0, 0);
                 nextRay.setStrokeWidth(globalStrokeWidth);
@@ -208,7 +205,6 @@ public class OriginRay extends Ray {
                         double sigma = filter.getFWHM() / (2 * Math.sqrt(2 * Math.log(2)));
                         double exponent = -0.5 * Math.pow( (currentRay.getWavelength() - filter.getPassband()) / sigma, 2);
                         double finalBrightness = currentRay.getBrightness() * filter.getPeakTransmission() * Math.pow(Math.E, exponent);
-                        if (finalBrightness < 0.001) return;
                         nextRay.setBrightness(finalBrightness);
                     }
                 }
@@ -228,7 +224,7 @@ public class OriginRay extends Ray {
                         nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
                     }
                     else {
-                        nextRay.setBrightness(0);
+                        break;
                     }
                 }
                 else if (closestIntersectionMirror instanceof LightSensor sensor) {

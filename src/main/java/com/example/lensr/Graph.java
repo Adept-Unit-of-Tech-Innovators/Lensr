@@ -63,7 +63,7 @@ public class Graph extends Canvas {
 
         dataEndTextField.setOnAction(event -> {
             try {
-                double textFieldValue = Double.parseDouble(dataStartTextField.getText());
+                double textFieldValue = Double.parseDouble(dataEndTextField.getText());
 
                 if (textFieldValue > 780) graphEnd = 780;
                 else if (textFieldValue < graphStart) graphEnd = Math.min(780, graphStart + 1);

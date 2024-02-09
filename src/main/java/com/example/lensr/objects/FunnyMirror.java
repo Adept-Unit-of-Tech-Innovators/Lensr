@@ -60,11 +60,10 @@ public class FunnyMirror extends Polyline implements Editable{
     public void move() {
         taskPool.execute(() -> {
             Point2D prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
-            Point2D prevStartPoint = new Point2D(getPoints().get(0), getPoints().get(1));
 
             while (isMousePressed) {
-                double deltaX = getPoints().get(0) - prevStartPoint.getX() + (mousePos.getX() - prevMousePos.getX());
-                double deltaY = getPoints().get(1) - prevStartPoint.getY() + (mousePos.getY() - prevMousePos.getY());
+                double deltaX = (mousePos.getX() - prevMousePos.getX());
+                double deltaY = (mousePos.getY() - prevMousePos.getY());
 
                 for (int i = 0; i < getPoints().size(); i += 2) {
                     double pointX = getPoints().get(i);
@@ -93,9 +92,7 @@ public class FunnyMirror extends Polyline implements Editable{
                         objectEditPoints.get(4).setCenter(new Point2D(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
                     });
                 }
-
                 prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
-                prevStartPoint = new Point2D(getPoints().get(0), getPoints().get(1));
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
                 try {
