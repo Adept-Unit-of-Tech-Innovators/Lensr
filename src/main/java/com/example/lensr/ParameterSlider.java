@@ -23,7 +23,8 @@ public class ParameterSlider extends JFXSlider {
         Transmission,
         StartPassband,
         EndPassband,
-        Reflectivity
+        Reflectivity,
+        RefractiveIndex
     }
 
     enum SliderStyle {
@@ -150,6 +151,9 @@ public class ParameterSlider extends JFXSlider {
             if (currentSource instanceof FunnyMirror funnyMirror && valueToChange == ValueToChange.Reflectivity) {
                 funnyMirror.setReflectivity(roundedValue);
             }
+            if(currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.RefractiveIndex) {
+                sphericalLens.setRefractiveIndex(roundedValue);
+            }
         });
 
         textField.setOnAction(actionEvent -> {
@@ -250,6 +254,12 @@ public class ParameterSlider extends JFXSlider {
             maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
+        }
+        else if (valueToChange == ValueToChange.RefractiveIndex && currentSource instanceof SphericalLens sphericalLens) {
+            minVal = 0.5;
+            maxVal = 2.5;
+            startingVal = sphericalLens.getRefractiveIndex();
+            label.setText("Refractive index");
         }
         setMin(minVal);
         setMax(maxVal);

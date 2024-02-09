@@ -6,6 +6,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -51,6 +52,7 @@ public class LensrStart extends Application {
     public static ParameterSlider reflectivitySlider;
     public static ParameterSlider startPassbandSlider;
     public static ParameterSlider endPassbandSlider;
+    public static ParameterSlider refractiveIndexSlider;
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
@@ -96,10 +98,13 @@ public class LensrStart extends Application {
 
         root.getChildren().add(rayCanvas);
 
+
         UserControls.setUserControls();
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
+
+
 
         primaryStage.show();
     }

@@ -91,6 +91,8 @@ public class UserControls {
                 isEditMode = !isEditMode;
             }
 
+
+
             if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
                 shiftPressed = true;
             }
@@ -155,6 +157,7 @@ public class UserControls {
             }
             else if(keyEvent.getCode().toString().equals("L") && isEditMode)
             {
+
                 if (keyPressed == Key.L) {
                     keyPressed = Key.None;
                 } else {
@@ -271,9 +274,17 @@ public class UserControls {
                 editedShape = beamSource.group;
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(100, 50, mousePos.getX(), mousePos.getY(), 20, 1.52);
+                SphericalLens sphericalLens = new SphericalLens(0, 0, mousePos.getX(), mousePos.getY(), 20, 1.52);
                 sphericalLens.create();
+                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
+                {
+                    refractiveIndexSlider = new ParameterSlider(sphericalLens, ValueToChange.RefractiveIndex, SliderStyle.Primary);
+                }
+                sphericalLens.openObjectEdit();
+
                 lenses.add(sphericalLens);
+                sphericalLens.scale(mousePos);
+                editedShape = sphericalLens.group;
                 break;
         }
     }
@@ -290,11 +301,13 @@ public class UserControls {
     }
 
 
+
     public static void resetHasBeenClicked() {
         List<Object> clickableObjects = new ArrayList<>();
         clickableObjects.addAll(editPoints);
         clickableObjects.addAll(lightSources);
         clickableObjects.addAll(mirrors);
+        clickableObjects.addAll(lenses);
 
         for (Object clickableObject : clickableObjects) {
             if (clickableObject instanceof EditPoint editPoint) {
