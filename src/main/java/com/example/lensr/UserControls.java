@@ -285,7 +285,7 @@ public class UserControls {
                     whiteLightToggle = new ParameterToggle(beamSource, ParameterToChange.WhiteLight);
                 }
                 beamSource.openObjectEdit();
-                beamSource.rotateToMouse();
+                beamSource.rotate();
                 lightSources.add(beamSource);
                 editedShape = beamSource.group;
                 break;

@@ -109,15 +109,15 @@ public class BeamSource extends Rectangle implements Editable{
         ));
 
         // Define what happens when an edit point is clicked
-        objectEditPoints.get(0).setOnClickEvent(event -> moveToMouse());
-        objectEditPoints.get(1).setOnClickEvent(event -> rotateToMouse());
+        objectEditPoints.get(0).setOnClickEvent(event -> move());
+        objectEditPoints.get(1).setOnClickEvent(event -> rotate());
 
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
-    private void moveToMouse() {
+    private void move() {
         new Thread(() -> {
             Platform.runLater(() -> {
                 for (OriginRay originRay : originRays) {
@@ -165,7 +165,7 @@ public class BeamSource extends Rectangle implements Editable{
     }
 
 
-    public void rotateToMouse() {
+    public void rotate() {
         new Thread(() -> {
             Platform.runLater(() -> {
                 for (OriginRay originRay : originRays) {

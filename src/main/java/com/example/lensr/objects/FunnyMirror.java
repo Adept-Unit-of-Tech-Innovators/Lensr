@@ -2,13 +2,11 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
-import javafx.scene.transform.Scale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +52,56 @@ public class FunnyMirror extends Polyline implements Editable{
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
+                }
+            }
+        });
+    }
+
+    public void move() {
+        taskPool.execute(() -> {
+            Point2D prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
+            Point2D prevStartPoint = new Point2D(getPoints().get(0), getPoints().get(1));
+
+            while (isMousePressed) {
+                double deltaX = getPoints().get(0) - prevStartPoint.getX() + (mousePos.getX() - prevMousePos.getX());
+                double deltaY = getPoints().get(1) - prevStartPoint.getY() + (mousePos.getY() - prevMousePos.getY());
+
+                for (int i = 0; i < getPoints().size(); i += 2) {
+                    double pointX = getPoints().get(i);
+                    double pointY = getPoints().get(i + 1);
+
+                    // Update the point's coordinates
+                    int finalI = i;
+                    Platform.runLater(() -> {
+                        getPoints().set(finalI, pointX + deltaX);
+                        getPoints().set(finalI + 1, pointY + deltaY);
+                    });
+                }
+
+                // Update the editPoints location
+                if (!objectEditPoints.isEmpty()) {
+                    Platform.runLater(() -> {
+                        Bounds mirrorBounds = getLayoutBounds();
+
+                        for (int i = 0; i < objectEditPoints.size(); i++) {
+                            double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                            double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                            objectEditPoints.get(i).setCenterX(x);
+                            objectEditPoints.get(i).setCenterY(y);
+                        }
+                        objectEditPoints.get(4).setCenter(new Point2D(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
+                    });
+                }
+
+                prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
+                prevStartPoint = new Point2D(getPoints().get(0), getPoints().get(1));
+
+                // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -156,17 +204,14 @@ public class FunnyMirror extends Polyline implements Editable{
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
-                if (editPoint == objectEditPoints.get(0)) {
-                    scale(objectEditPoints.get(2));
-                } else if (editPoint == objectEditPoints.get(1)) {
-                    scale(objectEditPoints.get(3));
-                } else if (editPoint == objectEditPoints.get(2)) {
-                    scale(objectEditPoints.get(0));
-                } else if (editPoint == objectEditPoints.get(3)) {
-                    scale(objectEditPoints.get(1));
-                }
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
+                scale(oppositeEditPoint);
             });
-       }
+        }
+
+        objectEditPoints.add(new EditPoint(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
+        objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);

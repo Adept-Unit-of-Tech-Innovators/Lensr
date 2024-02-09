@@ -247,7 +247,7 @@ public class OriginRay extends Ray {
                     nextRay.setBrightness(currentRay.getBrightness());
                 }
                 else if (closestIntersectionMirror instanceof LightEater) {
-                    return;
+                    break;
                 }
 
                 nextRay.setEndX(reflectedX);

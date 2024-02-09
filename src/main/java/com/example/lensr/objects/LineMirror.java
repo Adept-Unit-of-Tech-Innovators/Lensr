@@ -76,6 +76,9 @@ public class LineMirror extends Line implements Editable {
             });
         }
 
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.get(2).setOnClickEvent(event -> move());
+
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
         editedShape = group;
@@ -135,13 +138,52 @@ public class LineMirror extends Line implements Editable {
         );
     }
 
+    private void move() {
+        new Thread(() -> {
+            Point2D prevMousePos = mousePos;
+            Point2D prevStart = new Point2D(getStartX(), getStartY());
+            Point2D prevEnd = new Point2D(getEndX(), getEndY());
+
+            while (isMousePressed) {
+                double deltaX = mousePos.getX() - prevMousePos.getX();
+                double deltaY = mousePos.getY() - prevMousePos.getY();
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    this.setStartX(prevStart.getX() + deltaX);
+                    this.setStartY(prevStart.getY() + deltaY);
+                    this.setEndX(prevEnd.getX() + deltaX);
+                    this.setEndY(prevEnd.getY() + deltaY);
+
+                    // Update editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
+                    }
+
+                    updateHitbox();
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
             double startX, startY, endX, endY;
 
             while (isMousePressed) {
-
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();
@@ -201,6 +243,8 @@ public class LineMirror extends Line implements Editable {
                         objectEditPoints.get(0).setCenterY(getStartY());
                         objectEditPoints.get(1).setCenterX(getEndX());
                         objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
                     }
 
                     updateHitbox();
