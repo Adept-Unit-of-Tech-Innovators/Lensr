@@ -18,8 +18,8 @@ public class LensrStart extends Application {
     public static final Color mirrorColor = Color.WHITE;
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
-    public static final int SIZE = 1000;
-    public static int whiteLightRayCount = 500;
+    public static final int SIZE = 950;
+    public static int whiteLightRayCount = 200;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();

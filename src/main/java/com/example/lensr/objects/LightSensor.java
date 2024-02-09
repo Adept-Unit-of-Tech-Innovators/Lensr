@@ -53,6 +53,12 @@ public class LightSensor extends Line implements Editable{
     }
 
     @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
     public void openObjectEdit() {
         // Defocus the text field
         root.requestFocus();

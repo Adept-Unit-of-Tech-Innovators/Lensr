@@ -55,6 +55,11 @@ public class BrickwallFilter extends Line implements Editable {
         root.getChildren().add(group);
     }
 
+    @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
 
     @Override
     public void openObjectEdit() {

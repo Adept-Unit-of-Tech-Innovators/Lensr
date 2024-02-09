@@ -38,6 +38,12 @@ public class LightEater extends Circle implements Editable{
     }
 
     @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
     public void openObjectEdit() {
         hasBeenClicked = true;
         isEdited = true;

@@ -59,6 +59,12 @@ public class BeamSource extends Rectangle implements Editable{
         originRays.forEach(Node::toBack);
     }
 
+    @Override
+    public void delete() {
+        lightSources.remove(this);
+        root.getChildren().remove(group);
+    }
+
     public void update() {
         if (isEdited) {
             return;

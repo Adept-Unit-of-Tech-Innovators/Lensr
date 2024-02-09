@@ -56,6 +56,12 @@ public class GaussianRolloffFilter extends Line implements Editable{
     }
 
     @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
     public void openObjectEdit() {
         // Setup sliders
         peakTransmissionSlider.setCurrentSource(this);

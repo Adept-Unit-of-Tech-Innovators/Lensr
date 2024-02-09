@@ -97,6 +97,18 @@ public class UserControls {
             if (keyEvent.getCode().toString().equals("ALT") && isEditMode) {
                 altPressed = true;
             }
+            if (keyEvent.getCode().toString().equals("DELETE") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                editable.closeObjectEdit();
+                                editable.delete();
+                            });
+                }
+            }
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 if (keyPressed == Key.X) {
                     keyPressed = Key.None;

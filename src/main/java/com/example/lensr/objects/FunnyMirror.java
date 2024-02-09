@@ -119,6 +119,12 @@ public class FunnyMirror extends Polyline implements Editable{
         });
     }
 
+    @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
 
     public void setReflectivity(double reflectivity) {
         this.reflectivity = reflectivity;
