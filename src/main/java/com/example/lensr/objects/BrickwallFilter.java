@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.Graph;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -59,6 +60,19 @@ public class BrickwallFilter extends Line implements Editable {
     public void delete() {
         mirrors.remove(this);
         root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        BrickwallFilter brickwallFilter = new BrickwallFilter(getStartX(), getStartY(), getEndX(), getEndY());
+        brickwallFilter.setTransmission(transmission);
+        brickwallFilter.setStartPassband(startPassband);
+        brickwallFilter.setEndPassband(endPassband);
+        brickwallFilter.create();
+        brickwallFilter.moveBy(10, 10);
+        mirrors.add(brickwallFilter);
+        UserControls.closeCurrentEdit();
+        brickwallFilter.openObjectEdit();
     }
 
     @Override
@@ -152,6 +166,19 @@ public class BrickwallFilter extends Line implements Editable {
         );
     }
 
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+        updateHitbox();
+    }
 
     private void move() {
         new Thread(() -> {

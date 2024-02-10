@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -50,6 +51,17 @@ public class LineMirror extends Line implements Editable {
     public void delete() {
         mirrors.remove(this);
         root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        LineMirror newMirror = new LineMirror(getStartX(), getStartY(), getEndX(), getEndY());
+        newMirror.setReflectivity(reflectivity);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
+        UserControls.closeCurrentEdit();
+        newMirror.openObjectEdit();
     }
 
     @Override
@@ -136,6 +148,20 @@ public class LineMirror extends Line implements Editable {
                 Math.pow( getEndX() - getStartX(), 2) +
                         Math.pow(getEndY() -getStartY(), 2)
         );
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+        updateHitbox();
     }
 
     private void move() {

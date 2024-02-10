@@ -1,11 +1,11 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Shape;
@@ -47,6 +47,17 @@ public class EllipseMirror extends Ellipse implements Editable {
     public void delete() {
         mirrors.remove(this);
         root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        EllipseMirror newMirror = new EllipseMirror(getCenterX(), getCenterY(), getRadiusX(), getRadiusY());
+        newMirror.setReflectivity(reflectivity);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
+        UserControls.closeCurrentEdit();
+        newMirror.openObjectEdit();
     }
 
     @Override
@@ -105,6 +116,17 @@ public class EllipseMirror extends Ellipse implements Editable {
 
     public double getReflectivity() {
         return reflectivity;
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        setCenterX(getCenterX() + x);
+        setCenterY(getCenterY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
     }
 
 

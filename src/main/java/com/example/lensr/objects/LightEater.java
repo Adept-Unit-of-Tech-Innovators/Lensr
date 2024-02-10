@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -44,6 +45,16 @@ public class LightEater extends Circle implements Editable{
     }
 
     @Override
+    public void copy() {
+        LightEater newLightEater = new LightEater(getCenterX(), getCenterY(), getRadius());
+        newLightEater.create();
+        newLightEater.moveBy(10, 10);
+        mirrors.add(newLightEater);
+        UserControls.closeCurrentEdit();
+        newLightEater.openObjectEdit();
+    }
+
+    @Override
     public void openObjectEdit() {
         hasBeenClicked = true;
         isEdited = true;
@@ -82,6 +93,17 @@ public class LightEater extends Circle implements Editable{
         }
         editedShape = null;
         updateLightSources();
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        setCenterX(getCenterX() + x);
+        setCenterY(getCenterY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
     }
 
     public void move() {

@@ -109,6 +109,68 @@ public class UserControls {
                             });
                 }
             }
+            if (( keyEvent.getCode().toString().equals("ESCAPE") || keyEvent.getCode().toString().equals("ENTER") ) && isEditMode) {
+                closeCurrentEdit();
+            }
+            if (keyEvent.getCode().toString().equals("UP") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(0, -1);
+                                else editable.moveBy(0, -10);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("DOWN") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(0, 1);
+                                else editable.moveBy(0, 10);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("LEFT") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(-1, 0);
+                                else editable.moveBy(-10, 0);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("RIGHT") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(1, 0);
+                                else editable.moveBy(10, 0);
+                            });
+                }
+            }
+
+            if (keyEvent.getCode().toString().equals("D") && keyEvent.isControlDown() && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(Editable::copy);
+                }
+            }
+
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 if (keyPressed == Key.X) {
                     keyPressed = Key.None;
@@ -212,7 +274,6 @@ public class UserControls {
                 ellipseMirror.openObjectEdit();
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
-                editedShape = ellipseMirror.group;
                 break;
             case Z:
                 LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
@@ -223,7 +284,6 @@ public class UserControls {
                 lineMirror.openObjectEdit();
                 lineMirror.scale(mousePos);
                 mirrors.add(lineMirror);
-                editedShape = lineMirror.group;
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
@@ -233,7 +293,6 @@ public class UserControls {
                 funnyMirror.openObjectEdit();
                 funnyMirror.draw();
                 mirrors.add(funnyMirror);
-                editedShape = funnyMirror.group;
                 break;
             case B:
                 LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
@@ -241,7 +300,6 @@ public class UserControls {
                 lightEater.openObjectEdit();
                 lightEater.scale(mousePos);
                 mirrors.add(lightEater);
-                editedShape = lightEater.group;
                 break;
             case N:
                 GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
@@ -254,7 +312,6 @@ public class UserControls {
                 gaussianRolloffFilter.openObjectEdit();
                 gaussianRolloffFilter.scale(mousePos);
                 mirrors.add(gaussianRolloffFilter);
-                editedShape = gaussianRolloffFilter.group;
                 break;
             case M:
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
@@ -267,7 +324,6 @@ public class UserControls {
                 brickwallFilter.openObjectEdit();
                 brickwallFilter.scale(mousePos);
                 mirrors.add(brickwallFilter);
-                editedShape = brickwallFilter.group;
                 break;
             case K:
                 LightSensor lightSensor = new LightSensor(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
@@ -275,7 +331,6 @@ public class UserControls {
                 lightSensor.openObjectEdit();
                 lightSensor.scale(mousePos);
                 mirrors.add(lightSensor);
-                editedShape = lightSensor.group;
                 break;
             case C:
                 BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
@@ -287,7 +342,6 @@ public class UserControls {
                 beamSource.openObjectEdit();
                 beamSource.rotate();
                 lightSources.add(beamSource);
-                editedShape = beamSource.group;
                 break;
         }
     }

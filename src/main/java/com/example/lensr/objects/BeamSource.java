@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -33,11 +34,11 @@ public class BeamSource extends Rectangle implements Editable{
         setHeight(50);
         setFill(Color.GRAY);
         toBack();
-        getTransforms().add(rotate);
     }
 
 
     public void create() {
+        getTransforms().add(rotate);
         group.getChildren().add(this);
 
         double angle = Math.toRadians(getRotate()); // Get the current rotation of in radians
@@ -63,6 +64,45 @@ public class BeamSource extends Rectangle implements Editable{
     public void delete() {
         lightSources.remove(this);
         root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        BeamSource newLightSource = new BeamSource(getCenterX() - getWidth() / 2, getCenterY() - getHeight() / 2);
+        newLightSource.setWavelength(wavelength);
+        newLightSource.rotate.setPivotX(rotate.getPivotX());
+        newLightSource.rotate.setPivotY(rotate.getPivotY());
+        newLightSource.rotate.setAngle(rotate.getAngle());
+        newLightSource.getTransforms().addAll(newLightSource.rotate);
+        // Reset the transformations of the group
+        newLightSource.group.getTransforms().clear();
+
+        originRays.forEach(originRay -> {
+            OriginRay newOriginRay = new OriginRay(
+                    newLightSource.getCenterX() + Math.cos(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
+                    newLightSource.getCenterY() + Math.sin(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
+                    newLightSource.getCenterX() + SIZE * Math.cos(Math.toRadians(newLightSource.rotate.getAngle())),
+                    newLightSource.getCenterY() + SIZE * Math.sin(Math.toRadians(newLightSource.rotate.getAngle()))
+            );
+            newOriginRay.setParentSource(newLightSource);
+            newOriginRay.setStrokeWidth(globalStrokeWidth);
+            newOriginRay.setWavelength(wavelength);
+            newOriginRay.setBrightness(brightness);
+
+            newLightSource.originRays.add(newOriginRay);
+        });
+
+        lightSources.add(newLightSource);
+        newLightSource.group.getChildren().add(newLightSource);
+        newLightSource.originRays.forEach(originRay -> newLightSource.group.getChildren().add(originRay.group));
+        root.getChildren().add(newLightSource.group);
+
+        newLightSource.moveBy(10, 10);
+
+        System.out.println(lightSources.size());
+
+        UserControls.closeCurrentEdit();
+        newLightSource.openObjectEdit();
     }
 
     public void update() {
@@ -115,6 +155,28 @@ public class BeamSource extends Rectangle implements Editable{
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
         editedShape = group;
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        setX(getX() + x);
+        setY(getY() + y);
+
+        rotate.setPivotX(getCenterX());
+        rotate.setPivotY(getCenterY());
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+
+        originRays.forEach(originRay -> {
+            originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+            originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+
+            originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+            originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+        });
     }
 
     private void move() {

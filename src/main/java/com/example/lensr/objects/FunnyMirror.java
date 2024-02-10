@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -52,8 +53,29 @@ public class FunnyMirror extends Polyline implements Editable{
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
+                    objectEditPoints.get(4).setCenter(new Point2D(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
+                    System.out.println(objectEditPoints.get(4).getCenter());
+                }
+
+                // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
+        });
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        for (int i = 0; i < getPoints().size(); i += 2) {
+            getPoints().set(i, getPoints().get(i) + x);
+            getPoints().set(i + 1, getPoints().get(i + 1) + y);
+        }
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
         });
     }
 
@@ -150,6 +172,7 @@ public class FunnyMirror extends Polyline implements Editable{
                                 objectEditPoints.get(i).setCenterX(x);
                                 objectEditPoints.get(i).setCenterY(y);
                             }
+                            objectEditPoints.get(4).setCenter(new Point2D(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
                         });
                     }
                 }
@@ -170,6 +193,22 @@ public class FunnyMirror extends Polyline implements Editable{
         root.getChildren().remove(group);
     }
 
+    @Override
+    public void copy() {
+        FunnyMirror mirror = new FunnyMirror();
+        this.getPoints().forEach(point -> mirror.getPoints().add(point));
+        mirror.setReflectivity(getReflectivity());
+
+        mirror.setStrokeWidth(globalStrokeWidth);
+        mirror.setStroke(mirrorColor);
+        mirror.group.getChildren().add(mirror);
+        root.getChildren().add(mirror.group);
+
+        mirrors.add(mirror);
+        mirror.moveBy(10, 10);
+        UserControls.closeCurrentEdit();
+        mirror.openObjectEdit();
+    }
 
     public void setReflectivity(double reflectivity) {
         this.reflectivity = reflectivity;

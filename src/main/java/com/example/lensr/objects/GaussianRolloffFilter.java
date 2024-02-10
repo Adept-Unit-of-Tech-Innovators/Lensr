@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.Graph;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -59,6 +60,19 @@ public class GaussianRolloffFilter extends Line implements Editable{
     public void delete() {
         mirrors.remove(this);
         root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        GaussianRolloffFilter newMirror = new GaussianRolloffFilter(getStartX(), getStartY(), getEndX(), getEndY());
+        newMirror.setPeakTransmission(peakTransmission);
+        newMirror.setPassband(passband);
+        newMirror.setFWHM(FWHM);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
+        UserControls.closeCurrentEdit();
+        newMirror.openObjectEdit();
     }
 
     @Override
@@ -160,6 +174,19 @@ public class GaussianRolloffFilter extends Line implements Editable{
         );
     }
 
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+        updateHitbox();
+    }
 
     private void move() {
         new Thread(() -> {
