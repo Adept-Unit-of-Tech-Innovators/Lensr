@@ -115,6 +115,10 @@ public class ParameterSlider extends JFXSlider {
                 beamSource.setWavelength(roundedValue);
                 return;
             }
+            if (currentSource instanceof PanelSource panelSource && valueToChange == ValueToChange.Wavelength) {
+                panelSource.setWavelength(roundedValue);
+                return;
+            }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
                 filter.graph.drawGraph();
@@ -178,7 +182,6 @@ public class ParameterSlider extends JFXSlider {
         try { setValue(Double.parseDouble(textField.getText())); }
         catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0)); }
         textField.setFocusTraversable(false);
-
         // Update UI
         hBox.setVisible(false);
         hBox.setDisable(true);
@@ -205,6 +208,12 @@ public class ParameterSlider extends JFXSlider {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
+            label.setText("Wavelength");
+        }
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PanelSource panelSource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = panelSource.getWavelength();
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {

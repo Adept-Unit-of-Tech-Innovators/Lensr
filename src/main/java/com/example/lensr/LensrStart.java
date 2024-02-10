@@ -18,8 +18,9 @@ public class LensrStart extends Application {
     public static final Color mirrorColor = Color.WHITE;
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
-    public static final int SIZE = 950;
+    public static final int SIZE = 1000;
     public static int whiteLightRayCount = 30;
+    public static int panelRayCount = 30;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();
@@ -35,7 +36,8 @@ public class LensrStart extends Application {
         B,
         N,
         M,
-        K
+        K,
+        J
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -67,8 +69,9 @@ public class LensrStart extends Application {
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
         ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
-        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 25, 75);
-        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
+        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 25, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 150, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -76,7 +79,8 @@ public class LensrStart extends Application {
         toolbar.add(gaussianFilterButton);
         toolbar.add(brickwallFilterButton);
         toolbar.add(sensorButton);
-        toolbar.add(rayButton);
+        toolbar.add(beamButton);
+        toolbar.add(panelButton);
 
         for (ToolbarButton button : toolbar) {
             button.setOnAction(actionEvent -> {

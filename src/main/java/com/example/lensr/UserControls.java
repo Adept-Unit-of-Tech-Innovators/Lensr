@@ -236,6 +236,14 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("J") && isEditMode) {
+                if (keyPressed == Key.J) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.J;
+                }
+                closeCurrentEdit();
+            }
             toolbar.forEach(ToolbarButton::updateRender);
         });
 
@@ -342,6 +350,17 @@ public class UserControls {
                 beamSource.openObjectEdit();
                 beamSource.rotate();
                 lightSources.add(beamSource);
+                break;
+            case J:
+                PanelSource panelSource = new PanelSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
+                panelSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(panelSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(panelSource, ParameterToChange.WhiteLight);
+                }
+                panelSource.openObjectEdit();
+                panelSource.scale(mousePos);
+                lightSources.add(panelSource);
                 break;
         }
     }

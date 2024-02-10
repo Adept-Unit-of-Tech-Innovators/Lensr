@@ -99,8 +99,6 @@ public class BeamSource extends Rectangle implements Editable{
 
         newLightSource.moveBy(10, 10);
 
-        System.out.println(lightSources.size());
-
         UserControls.closeCurrentEdit();
         newLightSource.openObjectEdit();
     }
@@ -318,7 +316,7 @@ public class BeamSource extends Rectangle implements Editable{
             int rayCount = whiteLight ? whiteLightRayCount : 1;
             for (int i = 0; i < rayCount; i++) {
                 OriginRay originRay = new OriginRay(
-                        getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                            getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
                         getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
                         getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
                         getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))

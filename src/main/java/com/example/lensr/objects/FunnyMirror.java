@@ -54,7 +54,6 @@ public class FunnyMirror extends Polyline implements Editable{
                         objectEditPoints.get(i).setCenterY(y);
                     }
                     objectEditPoints.get(4).setCenter(new Point2D(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
-                    System.out.println(objectEditPoints.get(4).getCenter());
                 }
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness

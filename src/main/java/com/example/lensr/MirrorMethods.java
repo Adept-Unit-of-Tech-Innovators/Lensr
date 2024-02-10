@@ -9,6 +9,9 @@ public class MirrorMethods {
             if (lightSource instanceof BeamSource beamSource) {
                 beamSource.update();
             }
+            else if (lightSource instanceof PanelSource panelSource) {
+                panelSource.update();
+            }
         }
     }
 }
