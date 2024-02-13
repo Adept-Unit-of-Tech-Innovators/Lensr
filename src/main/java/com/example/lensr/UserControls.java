@@ -53,7 +53,6 @@ public class UserControls {
 
             // If no clickable object was found, close the current edit and reset the hasBeenClicked variable
             closeCurrentEdit();
-            System.out.println("closing");
             resetHasBeenClicked();
         });
 

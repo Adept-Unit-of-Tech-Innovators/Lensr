@@ -97,7 +97,7 @@ public class LensrStart extends Application {
 
 
         root.getChildren().add(rayCanvas);
-
+        rayCanvas.toBack();
 
         UserControls.setUserControls();
 

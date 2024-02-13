@@ -14,10 +14,6 @@ public class ToolbarButton extends JFXButton {
         setLayoutX(layoutX);
         setLayoutY(layoutY);
         getStyleClass().add("button");
-        setOnAction(actionEvent -> {
-            LensrStart.keyPressed = valueToSet;
-            updateRender();
-        });
         toFront();
     }
 
