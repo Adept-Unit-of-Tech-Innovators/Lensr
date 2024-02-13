@@ -23,6 +23,17 @@ public class EditPoint extends Rectangle {
         setStrokeType(StrokeType.INSIDE);
         toFront();
     }
+    public EditPoint(Point2D centerPoint) {
+        setCenterX(centerPoint.getX());
+        setCenterY(centerPoint.getY());
+        setWidth(editPointSize);
+        setHeight(editPointSize);
+        setFill(Color.RED);
+        setStroke(Color.BLACK);
+        setStrokeWidth(1);
+        setStrokeType(StrokeType.INSIDE);
+        toFront();
+    }
 
 
     public void handleMousePressed() {

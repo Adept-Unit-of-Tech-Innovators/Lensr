@@ -36,6 +36,7 @@ public class UserControls {
             clickableObjects.addAll(editPoints);
             clickableObjects.addAll(lightSources);
             clickableObjects.addAll(mirrors);
+            clickableObjects.addAll(lenses);
 
             for (Object clickableObject : clickableObjects) {
                 if (clickableObject instanceof EditPoint editPoint && !editPoint.hasBeenClicked && editPoint.intersects(mouseHitbox.getLayoutBounds())) {
@@ -43,6 +44,7 @@ public class UserControls {
                     return;
                 }
                 else if (clickableObject instanceof Editable editable && !editable.getHasBeenClicked() && editable.intersectsMouseHitbox()) {
+                    System.out.println("object clicked");
                     closeCurrentEdit();
                     editable.openObjectEdit();
                     return;
@@ -51,6 +53,7 @@ public class UserControls {
 
             // If no clickable object was found, close the current edit and reset the hasBeenClicked variable
             closeCurrentEdit();
+            System.out.println("closing");
             resetHasBeenClicked();
         });
 
@@ -80,6 +83,7 @@ public class UserControls {
                 if (isEditMode) {
                     for (ToolbarButton button : toolbar) {
                         button.disableProperty().setValue(true);
+                        closeCurrentEdit();
                     }
                 }
                 else {
@@ -157,7 +161,6 @@ public class UserControls {
             }
             else if(keyEvent.getCode().toString().equals("L") && isEditMode)
             {
-
                 if (keyPressed == Key.L) {
                     keyPressed = Key.None;
                 } else {
@@ -274,24 +277,27 @@ public class UserControls {
                 editedShape = beamSource.group;
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(0, 0, mousePos.getX(), mousePos.getY(), 20, 1.52);
+                SphericalLens sphericalLens = new SphericalLens(0, 0, mousePos.getX(), mousePos.getY(), -20, 1.52);
                 sphericalLens.create();
                 if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
                 {
                     refractiveIndexSlider = new ParameterSlider(sphericalLens, ValueToChange.RefractiveIndex, SliderStyle.Primary);
                 }
                 sphericalLens.openObjectEdit();
-
                 lenses.add(sphericalLens);
                 sphericalLens.scale(mousePos);
-                editedShape = sphericalLens.group;
+                editedShape = sphericalLens;
                 break;
         }
     }
 
 
     public static void closeCurrentEdit() {
-        if (editedShape instanceof Group group) {
+        if (editedShape instanceof Editable) {
+            System.out.println("object");
+            ((Editable) editedShape).closeObjectEdit();
+        }
+        else if (editedShape instanceof Group group) {
             group.getChildren().stream()
                     .filter(node -> node instanceof Editable)
                     .map(node -> (Editable) node)

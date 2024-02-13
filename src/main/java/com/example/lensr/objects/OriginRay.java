@@ -286,22 +286,12 @@ public class OriginRay extends Ray {
                 } else if (closestIntersectionObject instanceof SphericalLens.LensArc arc) {
                     SphericalLens currSphericalLens = arc.getParentLens();
 
-//                    boolean isInTheLens = !intersectors.isEmpty() && intersectors.get(intersectors.size()-1) == currSphericalLens;
                     boolean isInTheLens = intersectors.contains(currSphericalLens);
-                    boolean isArcFacingTheCenter = areTwoPointsOnTheSameSideOfALine(arc.getChord(), arc.getMiddle(), currSphericalLens.getCenter());
+                    boolean isArcFacingTheCenter = arc.getThickness() < 0;
                     boolean isConvex = isInTheLens == isArcFacingTheCenter;
 
                     double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, isInTheLens);
                     double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, isInTheLens);
-
-                    System.out.println("Arc refraction stats:");
-                    System.out.println("Is in the lens: " + isInTheLens);
-                    System.out.println("Is arc facing the center: " + isArcFacingTheCenter);
-                    System.out.println("Is convex: " + isConvex);
-                    System.out.println("Current refractive index: " + currentRefractiveIndex);
-                    System.out.println("New refractive index: " + newRefractiveIndex);
-                    System.out.println();
-
 
                     double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isConvex);
 
@@ -322,12 +312,6 @@ public class OriginRay extends Ray {
 
                     double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, isInTheLens);
                     double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, isInTheLens);
-
-                    System.out.println("Line refraction stats:");
-                    System.out.println("Is in the lens: " + isInTheLens);
-                    System.out.println("Current refractive index: " + currentRefractiveIndex);
-                    System.out.println("New refractive index: " + newRefractiveIndex);
-                    System.out.println();
 
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
 
