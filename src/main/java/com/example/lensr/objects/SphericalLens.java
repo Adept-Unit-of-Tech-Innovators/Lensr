@@ -16,109 +16,9 @@ import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens extends Group implements Editable {
 
-    public class LensLine extends Line {
-        private final SphericalLens parentLens;
-
-        public LensLine(SphericalLens parentLens) {
-            this.parentLens = parentLens;
-        }
-
-        public SphericalLens getParentLens() {
-            return parentLens;
-        }
-        public void adjust()
-        {
-            int multiplier = 1;
-            if(this == bottomLine) multiplier = -1;
-
-            double middleTopX = centerX + (middleHeight/2 * Math.cos(angleOfRotation + Math.PI/2)) * multiplier;
-            double middleTopY = centerY + (middleHeight/2 * Math.sin(angleOfRotation + Math.PI/2)) * multiplier;
-
-            setStartX(middleTopX - middleWidth/2 * Math.cos(angleOfRotation));
-            setStartY(middleTopY - middleWidth/2 * Math.sin(angleOfRotation));
-
-            setEndX(middleTopX + middleWidth/2 * Math.cos(angleOfRotation));
-            setEndY(middleTopY + middleWidth/2 * Math.sin(angleOfRotation));
-        }
-
-        public Point2D getStart()
-        {
-            return new Point2D(getStartX(), getStartY());
-        }
-        public Point2D getEnd()
-        {
-            return new Point2D(getEndX(), getEndY());
-        }
-    }
-
-    public class LensArc extends Arc {
-        private double thickness;
-        private final SphericalLens parentLens;
-
-        public LensArc(SphericalLens parentLens, double thickness) {
-            this.parentLens = parentLens;
-            this.thickness = thickness;
-        }
-
-        public Point2D getVertex()
-        {
-            int multiplier = -1;
-            if (this == secondArc) multiplier = 1;
-
-            return new Point2D(centerX + (middleWidth/2 + thickness) * Math.cos(angleOfRotation) * multiplier, centerY + (middleWidth/2 + thickness) * Math.sin(angleOfRotation) * multiplier);
-        }
-
-        public SphericalLens getParentLens() {
-            return parentLens;
-        }
-        public void adjust()
-        {
-            setType(ArcType.OPEN);
-            setFill(Color.TRANSPARENT);
-
-            int multiplier = 1;
-            if (this == secondArc) multiplier = -1;
-
-            // Calculate radius of the arc (circular segment formula)
-            double radius = Math.pow(middleHeight, 2) / (8 * Math.abs(thickness)) + Math.abs(thickness) / 2;
-
-            setRadiusX(radius);
-            setRadiusY(radius);
-
-            // Calculate the center point of the circle
-            double arcCenterX = centerX + (radius - middleWidth/2 - Math.abs(thickness)) * Math.cos(angleOfRotation) * multiplier;
-            double arcCenterY = centerY + (radius - middleWidth/2 - Math.abs(thickness)) * Math.sin(angleOfRotation) * multiplier;
-
-            if(thickness < 0)
-            {
-                arcCenterX = centerX - (radius + middleWidth / 2 - Math.abs(thickness)) * Math.cos(angleOfRotation) * multiplier;
-                arcCenterY = centerY - (radius + middleWidth / 2 - Math.abs(thickness)) * Math.sin(angleOfRotation) * multiplier;
-            }
-            setCenterX(arcCenterX);
-            setCenterY(arcCenterY);
-
-            // Calculate the ¿central angle?
-            double angleInRadians = 2 * Math.asin(middleHeight / (2 * radius));
-            double angleInDegrees = Math.toDegrees(angleInRadians);
-            if(radius < Math.abs(thickness)) angleInDegrees = 360 - angleInDegrees;
-
-            // Set the angle at which the arc starts
-            double startAngle = 180 - angleInDegrees / 2 - Math.toDegrees(angleOfRotation);
-            if (this == secondArc) startAngle = -angleInDegrees / 2 - Math.toDegrees(angleOfRotation);
-            if(thickness < 0) startAngle += 180;
-
-            setStartAngle(startAngle);
-            System.out.println(thickness);
-            setLength(angleInDegrees);
-        }
-        public double getThickness()
-        {
-            return thickness;
-        }
-    }
-
     List<EditPoint> objectEditPoints = new ArrayList<>();
     List<EditPoint> arcEditPoints = new ArrayList<>();
+    public Shape rotateField;
     public EditPoint rotatePoint;
     public boolean isEdited;
     public boolean hasBeenClicked;
@@ -208,8 +108,11 @@ public class SphericalLens extends Group implements Editable {
         objectEditPoints.add(new EditPoint(bottomLine.getEndX(), bottomLine.getEndY()));
         objectEditPoints.add(new EditPoint(bottomLine.getStartX(), bottomLine.getStartY()));
 
-        rotatePoint = new EditPoint(centerX + (middleHeight + 50) * Math.cos(angleOfRotation - Math.PI/2), centerY + (middleHeight + 50) * Math.sin(angleOfRotation - Math.PI/2));
-        rotatePoint.setFill(Color.PURPLE);
+//        rotatePoint = new EditPoint(centerX + (middleHeight + 50) * Math.cos(angleOfRotation - Math.PI/2), centerY + (middleHeight + 50) * Math.sin(angleOfRotation - Math.PI/2));
+//        rotatePoint.setFill(Color.PURPLE);
+
+        rotateField = createRotateField();
+        root.getChildren().add(rotateField);
 
         arcEditPoints.add(new EditPoint(firstArc.getVertex()));
         arcEditPoints.add(new EditPoint(secondArc.getVertex()));
@@ -225,7 +128,9 @@ public class SphericalLens extends Group implements Editable {
             });
         }
 
-        rotatePoint.setOnClickEvent(event -> rotate());
+//        rotatePoint.setOnClickEvent(event -> rotate());
+
+        rotateField.setOnMouseClicked(mouseEvent -> rotate());
 
         arcEditPoints.get(0).setOnClickEvent(event -> scaleArc(firstArc));
         arcEditPoints.get(1).setOnClickEvent(event -> scaleArc(secondArc));
@@ -233,8 +138,8 @@ public class SphericalLens extends Group implements Editable {
         editPoints.addAll(objectEditPoints);
         getChildren().addAll(objectEditPoints);
 
-        editPoints.add(rotatePoint);
-        getChildren().add(rotatePoint);
+//        editPoints.add(rotatePoint);
+//        getChildren().add(rotatePoint);
 
         editPoints.addAll(arcEditPoints);
         getChildren().addAll(arcEditPoints);
@@ -251,8 +156,8 @@ public class SphericalLens extends Group implements Editable {
             editPoints.removeAll(objectEditPoints);
             objectEditPoints.clear();
 
-            editedGroup.getChildren().remove(rotatePoint);
-            editPoints.remove(rotatePoint);
+//            editedGroup.getChildren().remove(rotatePoint);
+//            editPoints.remove(rotatePoint);
 
             editedGroup.getChildren().removeAll(arcEditPoints);
             editPoints.removeAll(arcEditPoints);
@@ -348,11 +253,13 @@ public class SphericalLens extends Group implements Editable {
         new Thread(() -> {
             double newAngleOfRotation;
 
+            double mouseAngle = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX());
             while (isMousePressed)
             {
                 // Get the angle between center of lens and position of the mouse
-                newAngleOfRotation = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX()) - Math.PI/2;
+//                newAngleOfRotation = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX()) - Math.PI/2;
 
+                newAngleOfRotation = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX()) - mouseAngle;
                 double finalAngleOfRotation = newAngleOfRotation;
 
                 Platform.runLater(() -> {
@@ -377,16 +284,17 @@ public class SphericalLens extends Group implements Editable {
     public void scaleArc(LensArc arc)
     {
         new Thread(() -> {
+            double newThickness;
             while (isMousePressed)
             {
                 // "Unrotate" position of the mouse around the center of the lens, so we can easily get distance between mouse and center on the rotated X axis
                 Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, getCenter(), -angleOfRotation);
-                arc.thickness = (arc == secondArc ? unrotatedMousePos.getX() - centerX + middleWidth/2 : centerX - unrotatedMousePos.getX() - middleWidth * 3/2);
+                newThickness = (arc == secondArc ? unrotatedMousePos.getX() - centerX + middleWidth/2 : centerX - unrotatedMousePos.getX() - middleWidth * 3/2);
 
-                System.out.println(mousePos);
+                double finalThickness = newThickness;
 
                 Platform.runLater(() -> {
-                    arc.adjust();
+                    arc.setThickness(finalThickness);
 
                     alignEditPoints();
                 });
@@ -406,8 +314,10 @@ public class SphericalLens extends Group implements Editable {
     public void alignEditPoints() {alignEditPoints(centerX, centerY, middleHeight, angleOfRotation);}
     public void alignEditPoints(double finalCenterX, double finalCenterY, double finalHeight, double finalAngleOfRotation)
     {
-        rotatePoint.setCenterX(finalCenterX + (finalHeight/2 + 50) * Math.cos(finalAngleOfRotation - Math.PI/2));
-        rotatePoint.setCenterY(finalCenterY + (finalHeight/2 + 50) * Math.sin(finalAngleOfRotation - Math.PI/2));
+//        rotatePoint.setCenterX(finalCenterX + (finalHeight/2 + 50) * Math.cos(finalAngleOfRotation - Math.PI/2));
+//        rotatePoint.setCenterY(finalCenterY + (finalHeight/2 + 50) * Math.sin(finalAngleOfRotation - Math.PI/2));
+
+        rotateField = createRotateField();
 
         objectEditPoints.get(0).setCenter(topLine.getStart());
         objectEditPoints.get(1).setCenter(topLine.getEnd());
@@ -431,9 +341,22 @@ public class SphericalLens extends Group implements Editable {
     @Override
     public boolean intersectsMouseHitbox() {
         Shape bounds = Shape.union(firstArc, secondArc);
-        bounds = Shape.union(bounds, new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY()));
+        bounds = Shape.union(bounds, getMiddleBounds());
 
         return Shape.intersect(bounds, mouseHitbox).getLayoutBounds().getWidth() != -1;
+    }
+    public Shape createRotateField()
+    {
+        Shape middleBounds = getMiddleBounds();
+
+//        middleBounds.setScaleX(1.05);
+        middleBounds.setScaleY(2.05);
+        middleBounds.setFill(Color.TRANSPARENT);
+
+        return Shape.subtract(middleBounds, getMiddleBounds());
+    }
+    public Shape getMiddleBounds() {
+        return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());
     }
 
     public Point2D getCenter()
@@ -447,6 +370,15 @@ public class SphericalLens extends Group implements Editable {
     {
         this.refractiveIndex = refractiveIndex;
     }
+    public LensArc getFirstArc() {return firstArc;}
+    public LensArc getSecondArc() {return secondArc;}
+    public LensLine getTopLine() {return topLine;}
+    public LensLine getBottomLine() {return bottomLine;}
+    public double getAngleOfRotation() {return angleOfRotation;}
+    public double getCenterX() {return centerX;}
+    public double getCenterY() {return centerY;}
+    public double getMiddleHeight() {return middleHeight;}
+    public double getMiddleWidth() {return middleWidth;}
 
 
 }

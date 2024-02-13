@@ -132,11 +132,11 @@ public class OriginRay extends Ray {
                             if(currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) < currDistance && currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) > 0) {
 //                                System.out.println(" - distance is smaller");
 
-                                if (element instanceof SphericalLens.LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
+                                if (element instanceof LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
                                     intersectionPoint = getRayArcIntersectionPoint(currentRay, arc);
                                     currObject = arc;
                                     currDistance = currentRay.getMinimalDistanceToBounds(element.getLayoutBounds());
-                                } else if(element instanceof SphericalLens.LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
+                                } else if(element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
                                     intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                                     currObject = line;
                                     currDistance = currentRay.getMinimalDistanceToBounds(element.getLayoutBounds());
@@ -283,7 +283,7 @@ public class OriginRay extends Ray {
                     }
                 } else if (closestIntersectionObject instanceof LightEater) {
                     return;
-                } else if (closestIntersectionObject instanceof SphericalLens.LensArc arc) {
+                } else if (closestIntersectionObject instanceof LensArc arc) {
                     SphericalLens currSphericalLens = arc.getParentLens();
 
                     boolean isInTheLens = intersectors.contains(currSphericalLens);
@@ -305,7 +305,7 @@ public class OriginRay extends Ray {
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
                     nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
-                } else if (closestIntersectionObject instanceof SphericalLens.LensLine line) {
+                } else if (closestIntersectionObject instanceof LensLine line) {
                     SphericalLens currSphericalLens = line.getParentLens();
 
                     boolean isInTheLens = intersectors.contains(currSphericalLens);
