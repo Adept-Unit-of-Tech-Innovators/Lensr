@@ -44,7 +44,6 @@ public class UserControls {
                     return;
                 }
                 else if (clickableObject instanceof Editable editable && !editable.getHasBeenClicked() && editable.intersectsMouseHitbox()) {
-                    System.out.println("object clicked");
                     closeCurrentEdit();
                     editable.openObjectEdit();
                     return;
@@ -82,7 +81,6 @@ public class UserControls {
                 if (isEditMode) {
                     for (ToolbarButton button : toolbar) {
                         button.disableProperty().setValue(true);
-                        closeCurrentEdit();
                     }
                 }
                 else {
@@ -94,14 +92,86 @@ public class UserControls {
                 isEditMode = !isEditMode;
             }
 
-
-
             if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
                 shiftPressed = true;
             }
             if (keyEvent.getCode().toString().equals("ALT") && isEditMode) {
                 altPressed = true;
             }
+            if (keyEvent.getCode().toString().equals("DELETE") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                editable.closeObjectEdit();
+                                editable.delete();
+                            });
+                }
+            }
+            if (( keyEvent.getCode().toString().equals("ESCAPE") || keyEvent.getCode().toString().equals("ENTER") ) && isEditMode) {
+                closeCurrentEdit();
+            }
+            if (keyEvent.getCode().toString().equals("UP") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(0, -1);
+                                else editable.moveBy(0, -10);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("DOWN") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(0, 1);
+                                else editable.moveBy(0, 10);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("LEFT") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(-1, 0);
+                                else editable.moveBy(-10, 0);
+                            });
+                }
+            }
+            if (keyEvent.getCode().toString().equals("RIGHT") && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(editable -> {
+                                if (shiftPressed) editable.moveBy(1, 0);
+                                else editable.moveBy(10, 0);
+                            });
+                }
+            }
+
+            if (keyEvent.getCode().toString().equals("D") && keyEvent.isControlDown() && isEditMode) {
+                if (editedShape instanceof Group group) {
+                    group.getChildren().stream()
+                            .filter(node -> node instanceof Editable)
+                            .map(node -> (Editable) node)
+                            .findFirst()
+                            .ifPresent(Editable::copy);
+                }
+            }
+
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 if (keyPressed == Key.X) {
                     keyPressed = Key.None;
@@ -150,11 +220,28 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("K") && isEditMode) {
+                if (keyPressed == Key.K) {
+                    keyPressed = Key.None;
+                }
+                else {
+                    keyPressed = Key.K;
+                }
+                closeCurrentEdit();
+            }
             else if (keyEvent.getCode().toString().equals("C") && isEditMode) {
                 if (keyPressed == Key.C) {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.C;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("J") && isEditMode) {
+                if (keyPressed == Key.J) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.J;
                 }
                 closeCurrentEdit();
             }
@@ -168,7 +255,6 @@ public class UserControls {
                 closeCurrentEdit();
             }
             toolbar.forEach(ToolbarButton::updateRender);
-
         });
 
         scene.setOnKeyReleased(keyEvent -> {
@@ -206,7 +292,6 @@ public class UserControls {
                 ellipseMirror.openObjectEdit();
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
-                editedShape = ellipseMirror.group;
                 break;
             case Z:
                 LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
@@ -217,7 +302,6 @@ public class UserControls {
                 lineMirror.openObjectEdit();
                 lineMirror.scale(mousePos);
                 mirrors.add(lineMirror);
-                editedShape = lineMirror.group;
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
@@ -227,7 +311,6 @@ public class UserControls {
                 funnyMirror.openObjectEdit();
                 funnyMirror.draw();
                 mirrors.add(funnyMirror);
-                editedShape = funnyMirror.group;
                 break;
             case B:
                 LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
@@ -235,33 +318,37 @@ public class UserControls {
                 lightEater.openObjectEdit();
                 lightEater.scale(mousePos);
                 mirrors.add(lightEater);
-                editedShape = lightEater.group;
                 break;
             case N:
                 GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 gaussianRolloffFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
                     passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
                     FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
                 }
                 gaussianRolloffFilter.openObjectEdit();
                 gaussianRolloffFilter.scale(mousePos);
                 mirrors.add(gaussianRolloffFilter);
-                editedShape = gaussianRolloffFilter.group;
                 break;
             case M:
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 brickwallFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.Transmission, SliderStyle.Primary);
                     startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
                     endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
                 }
                 brickwallFilter.openObjectEdit();
                 brickwallFilter.scale(mousePos);
                 mirrors.add(brickwallFilter);
-                editedShape = brickwallFilter.group;
+                break;
+            case K:
+                LightSensor lightSensor = new LightSensor(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lightSensor.create();
+                lightSensor.openObjectEdit();
+                lightSensor.scale(mousePos);
+                mirrors.add(lightSensor);
                 break;
             case C:
                 BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
@@ -271,9 +358,19 @@ public class UserControls {
                     whiteLightToggle = new ParameterToggle(beamSource, ParameterToChange.WhiteLight);
                 }
                 beamSource.openObjectEdit();
-                beamSource.rotateToMouse();
+                beamSource.rotate();
                 lightSources.add(beamSource);
-                editedShape = beamSource.group;
+                break;
+            case J:
+                PanelSource panelSource = new PanelSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
+                panelSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(panelSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(panelSource, ParameterToChange.WhiteLight);
+                }
+                panelSource.openObjectEdit();
+                panelSource.scale(mousePos);
+                lightSources.add(panelSource);
                 break;
             case L:
                 SphericalLens sphericalLens = new SphericalLens(0, 0, mousePos.getX(), mousePos.getY(), -20, 1.52);
@@ -304,7 +401,6 @@ public class UserControls {
                     .ifPresent(Editable::closeObjectEdit);
         }
     }
-
 
 
     public static void resetHasBeenClicked() {

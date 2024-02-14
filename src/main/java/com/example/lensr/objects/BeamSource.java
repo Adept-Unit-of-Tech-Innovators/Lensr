@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -32,11 +33,12 @@ public class BeamSource extends Rectangle implements Editable{
         setWidth(100);
         setHeight(50);
         setFill(Color.GRAY);
-        getTransforms().add(rotate);
+        toBack();
     }
 
 
     public void create() {
+        getTransforms().add(rotate);
         group.getChildren().add(this);
 
         double angle = Math.toRadians(getRotate()); // Get the current rotation of in radians
@@ -53,10 +55,52 @@ public class BeamSource extends Rectangle implements Editable{
         originRay.setBrightness(brightness);
 
         originRays.add(originRay);
-
-        group.getChildren().addAll(originRays);
+        originRays.forEach(ray -> group.getChildren().add(ray.group));
         root.getChildren().add(group);
         originRays.forEach(Node::toBack);
+    }
+
+    @Override
+    public void delete() {
+        lightSources.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        BeamSource newLightSource = new BeamSource(getCenterX() - getWidth() / 2, getCenterY() - getHeight() / 2);
+        newLightSource.setWavelength(wavelength);
+        newLightSource.rotate.setPivotX(rotate.getPivotX());
+        newLightSource.rotate.setPivotY(rotate.getPivotY());
+        newLightSource.rotate.setAngle(rotate.getAngle());
+        newLightSource.getTransforms().addAll(newLightSource.rotate);
+        // Reset the transformations of the group
+        newLightSource.group.getTransforms().clear();
+
+        originRays.forEach(originRay -> {
+            OriginRay newOriginRay = new OriginRay(
+                    newLightSource.getCenterX() + Math.cos(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
+                    newLightSource.getCenterY() + Math.sin(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
+                    newLightSource.getCenterX() + SIZE * Math.cos(Math.toRadians(newLightSource.rotate.getAngle())),
+                    newLightSource.getCenterY() + SIZE * Math.sin(Math.toRadians(newLightSource.rotate.getAngle()))
+            );
+            newOriginRay.setParentSource(newLightSource);
+            newOriginRay.setStrokeWidth(globalStrokeWidth);
+            newOriginRay.setWavelength(wavelength);
+            newOriginRay.setBrightness(brightness);
+
+            newLightSource.originRays.add(newOriginRay);
+        });
+
+        lightSources.add(newLightSource);
+        newLightSource.group.getChildren().add(newLightSource);
+        newLightSource.originRays.forEach(originRay -> newLightSource.group.getChildren().add(originRay.group));
+        root.getChildren().add(newLightSource.group);
+
+        newLightSource.moveBy(10, 10);
+
+        UserControls.closeCurrentEdit();
+        newLightSource.openObjectEdit();
     }
 
     public void update() {
@@ -66,6 +110,13 @@ public class BeamSource extends Rectangle implements Editable{
 
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
+            originRay.getRenderer().clear();
+            mirrors.forEach(mirror -> {
+                if (mirror instanceof LightSensor lightSensor) {
+                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                    lightSensor.getDetectedRays().remove(originRay);
+                }
+            });
             originRay.rayReflections.clear();
 
             originRay.simulate();
@@ -82,7 +133,8 @@ public class BeamSource extends Rectangle implements Editable{
 
         // Defocus the text fields
         root.requestFocus();
-        rayCanvas.clear();
+
+        originRays.forEach(originRay -> originRay.getRenderer().clear());
 
         hasBeenClicked = true;
         isEdited = true;
@@ -95,15 +147,37 @@ public class BeamSource extends Rectangle implements Editable{
         ));
 
         // Define what happens when an edit point is clicked
-        objectEditPoints.get(0).setOnClickEvent(event -> moveToMouse());
-        objectEditPoints.get(1).setOnClickEvent(event -> rotateToMouse());
+        objectEditPoints.get(0).setOnClickEvent(event -> move());
+        objectEditPoints.get(1).setOnClickEvent(event -> rotate());
 
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
-    private void moveToMouse() {
+    @Override
+    public void moveBy(double x, double y) {
+        setX(getX() + x);
+        setY(getY() + y);
+
+        rotate.setPivotX(getCenterX());
+        rotate.setPivotY(getCenterY());
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+
+        originRays.forEach(originRay -> {
+            originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+            originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+
+            originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+            originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+        });
+    }
+
+    private void move() {
         new Thread(() -> {
             Platform.runLater(() -> {
                 for (OriginRay originRay : originRays) {
@@ -151,7 +225,7 @@ public class BeamSource extends Rectangle implements Editable{
     }
 
 
-    public void rotateToMouse() {
+    public void rotate() {
         new Thread(() -> {
             Platform.runLater(() -> {
                 for (OriginRay originRay : originRays) {
@@ -225,31 +299,39 @@ public class BeamSource extends Rectangle implements Editable{
 
 
     public void setWhiteLight(boolean whiteLight) {
-        group.getChildren().removeAll(originRays);
-        originRays.forEach(originRay -> {
-            group.getChildren().removeAll(originRay.rayReflections);
-            originRay.rayReflections.clear();
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().removeAll(originRay.rayReflections);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            int rayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < rayCount; i++) {
+                OriginRay originRay = new OriginRay(
+                            getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                        getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
+                        getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
+                        getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+            update();
         });
-        originRays.clear();
-
-        int rayCount = whiteLight ? whiteLightRayCount : 1;
-        for (int i = 0; i < rayCount; i++) {
-            OriginRay originRay = new OriginRay(
-                    getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                    getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                    getCenterX() + SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
-                    getCenterY() + SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
-            );
-            originRay.setParentSource(this);
-            originRay.setStrokeWidth(globalStrokeWidth);
-            originRay.setWavelength(whiteLight ? 380 + (400.0/whiteLightRayCount*i) : wavelength);
-            originRay.setBrightness(brightness);
-
-            originRays.add(originRay);
-        }
-        group.getChildren().addAll(originRays);
-        originRays.forEach(Node::toBack);
-        update();
     }
 
 

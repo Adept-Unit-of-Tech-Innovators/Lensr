@@ -1,6 +1,8 @@
 package com.example.lensr.objects;
 
+import com.example.lensr.RayCanvas;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.shape.*;
 
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import static com.example.lensr.Intersections.*;
 import static com.example.lensr.LensrStart.*;
 
 public class OriginRay extends Ray {
+    public Group group = new Group();
     Object parentSource;
     List<Ray> rayReflections = new ArrayList<>();
     List<SphericalLens> intersectors = new ArrayList<>();
@@ -20,10 +23,11 @@ public class OriginRay extends Ray {
         setStartY(startY);
         setEndX(endX);
         setEndY(endY);
+
+        group.getChildren().add(this);
     }
 
     public void simulate() {
-        long startTime = System.nanoTime();
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
         if (getEndX() != SIZE || getEndY() != SIZE) {
@@ -160,9 +164,6 @@ public class OriginRay extends Ray {
 
                 }
 
-
-
-
                 if (!(currentRay instanceof OriginRay)) {
                     rayReflections.add(currentRay);
                 }
@@ -175,9 +176,6 @@ public class OriginRay extends Ray {
 
                 // Limit recursive depth
                 if (recursiveDepth >= 5000) break;
-
-                // If the ray is so dim, its basically invisible
-                if (currentRay.getBrightness() < 0.001) break;
 
                 Ray nextRay = new Ray(0, 0, 0, 0);
                 nextRay.setStrokeWidth(globalStrokeWidth);
@@ -251,8 +249,8 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.000001 * Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.000001 * Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
                     // Set the brightness of the ray for the Gaussian filter profile (standard for bandpass filters)
                     if (filter.getFWHM() == 0 && filter.getPassband() == nextRay.getWavelength()) {
@@ -261,7 +259,6 @@ public class OriginRay extends Ray {
                         double sigma = filter.getFWHM() / (2 * Math.sqrt(2 * Math.log(2)));
                         double exponent = -0.5 * Math.pow((currentRay.getWavelength() - filter.getPassband()) / sigma, 2);
                         double finalBrightness = currentRay.getBrightness() * filter.getPeakTransmission() * Math.pow(Math.E, exponent);
-                        if (finalBrightness < 0.001) return;
                         nextRay.setBrightness(finalBrightness);
                     }
                 } else if (closestIntersectionObject instanceof BrickwallFilter filter) {
@@ -272,15 +269,30 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.000001 * Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.000001 * Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 *  Math.sin(reflectionAngle));
 
-                    // Set the brightness of the ray for the brickwall filter profile (standard for bandpass filters)
+                    // Set the brightness of the ray for the brickwall filter profile
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
                         nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
                     } else {
-                        nextRay.setBrightness(0);
+                        break;
                     }
+                }
+                else if (closestIntersectionObject instanceof LightSensor sensor) {
+                    sensor.addRay(currentRay);
+
+                    double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
+
+                    // Calculate the reflected ray's endpoint based on the reflection angle
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+
+                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
+
+                    nextRay.setBrightness(currentRay.getBrightness());
                 } else if (closestIntersectionObject instanceof LightEater) {
                     return;
                 } else if (closestIntersectionObject instanceof LensArc arc) {
@@ -327,25 +339,15 @@ public class OriginRay extends Ray {
 
                 }
 
-
                 nextRay.setEndX(reflectedX);
                 nextRay.setEndY(reflectedY);
 
                 recursiveDepth++;
                 currentRay = nextRay;
             }
-            long simTime = System.nanoTime();
-            rayCanvas.drawRays(rayReflections);
-            long drawTime = System.nanoTime();
-            System.out.println("====================================");
-            System.out.println("Rays drawn: " + rayReflections.size());
-            System.out.println("Sim time: " + (simTime - startTime) / 1000000.0 + "ms" + " Draw time: " + (drawTime - simTime) / 1000000.0 + "ms");
-            System.out.println("Average: " + (drawTime - startTime) / 1000000.0 / rayReflections.size() + "ms");
-            System.out.println("Total time: " + (drawTime - startTime) / 1000000.0 + "ms");
+            rayRenderer.drawRays(rayReflections);
         }).start();
     }
-
-
 
     public void setParentSource(Object parentSource) {
         this.parentSource = parentSource;

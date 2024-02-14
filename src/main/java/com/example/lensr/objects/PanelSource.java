@@ -1,11 +1,11 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
-import com.example.lensr.Graph;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
@@ -17,23 +17,21 @@ import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
-import static com.example.lensr.MirrorMethods.*;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class GaussianRolloffFilter extends Line implements Editable{
-    public Group group = new Group();
-    Rotate rotate = new Rotate();
-    // Extended hitbox for easier editing
-    Rectangle hitbox;
+public class PanelSource extends Line implements Editable {
+    public List<OriginRay> originRays = new ArrayList<>();
     public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public Graph graph;
+    public Rotate rotate = new Rotate();
     double rotation = 0;
-    public boolean isEdited;
+    public Rectangle hitbox;
+    public Group group = new Group();
     public boolean hasBeenClicked;
-    double passband = 580;
-    double peakTransmission = 0.8;
-    double FWHM = 20;
+    public boolean isEdited;
+    public double wavelength = 580;
+    public double brightness = 1.0;
 
-    public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {
+    public PanelSource(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
         setEndX(endX);
@@ -42,51 +40,104 @@ public class GaussianRolloffFilter extends Line implements Editable{
 
 
     public void create() {
-        setFill(Color.TRANSPARENT);
-        setStroke(mirrorColor);
-        setStrokeWidth(globalStrokeWidth);
+        setStroke(Color.GRAY);
+        setStrokeWidth(3);
+        toBack();
 
         createRectangleHitbox();
-        graph = new Graph(700, 100, 200, 150);
-        graph.setDataSource(this);
+
+        double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
+        double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+
+        double angle = Math.atan2(getStartX() - getEndX(), getStartY() - getEndY());
+        rotate.setPivotX((getEndX() + getStartX()) / 2);
+        rotate.setPivotY((getEndY() + getStartY()) / 2);
+        rotate.setAngle(Math.toDegrees(angle));
+
+        // Create `panelRayCount` amount of rays distributed evenly across the panel
+        for (int i = 0; i < panelRayCount; i++) {
+            OriginRay originRay = new OriginRay(
+                    getStartX() + dx * i,
+                    getStartY() + dy * i,
+                    getStartX() + dx * i + Math.cos(angle + Math.PI / 2) * SIZE,
+                    getStartY() + dy * i + Math.sin(angle + Math.PI / 2) * SIZE
+                    );
+            originRay.setParentSource(this);
+            originRay.setStrokeWidth(globalStrokeWidth);
+            originRay.setWavelength(wavelength);
+            originRay.setBrightness(brightness);
+            originRays.add(originRay);
+        }
 
         group.getChildren().add(this);
-        group.getChildren().add(hitbox);
-        group.getChildren().add(graph.group);
+        originRays.forEach(ray -> group.getChildren().add(ray.group));
         root.getChildren().add(group);
+        originRays.forEach(Node::toBack);
     }
 
     @Override
     public void delete() {
-        mirrors.remove(this);
+        lightSources.remove(this);
         root.getChildren().remove(group);
     }
 
     @Override
     public void copy() {
-        GaussianRolloffFilter newMirror = new GaussianRolloffFilter(getStartX(), getStartY(), getEndX(), getEndY());
-        newMirror.setPeakTransmission(peakTransmission);
-        newMirror.setPassband(passband);
-        newMirror.setFWHM(FWHM);
-        newMirror.create();
-        newMirror.moveBy(10, 10);
-        mirrors.add(newMirror);
+        // TODO: CHECK OUT WHAT `panelSource.clone()` IS
+        PanelSource newPanelSource = new PanelSource(getStartX(), getStartY(), getEndX(), getEndY());
+        newPanelSource.setStroke(Color.GRAY);
+        newPanelSource.setStrokeWidth(3);
+        newPanelSource.toBack();
+
+        newPanelSource.createRectangleHitbox();
+
+        newPanelSource.setWavelength(wavelength);
+
+        for (OriginRay originRay : originRays) {
+            OriginRay newOriginRay = new OriginRay(originRay.getStartX(), originRay.getStartY(), originRay.getEndX(), originRay.getEndY());
+            newOriginRay.setParentSource(newPanelSource);
+            newOriginRay.setWavelength(originRay.getWavelength());
+            newOriginRay.setStrokeWidth(globalStrokeWidth);
+            newOriginRay.setBrightness(brightness);
+            newPanelSource.originRays.add(newOriginRay);
+        }
+
+        lightSources.add(newPanelSource);
+        newPanelSource.group.getChildren().add(newPanelSource);
+        newPanelSource.originRays.forEach(originRay -> newPanelSource.group.getChildren().add(originRay.group));
+        newPanelSource.originRays.forEach(Node::toBack);
+        root.getChildren().add(newPanelSource.group);
+
+        newPanelSource.moveBy(10, 10);
         UserControls.closeCurrentEdit();
-        newMirror.openObjectEdit();
+        newPanelSource.openObjectEdit();
     }
 
-    @Override
-    public void openObjectEdit() {
-        // Setup sliders
-        peakTransmissionSlider.setCurrentSource(this);
-        passbandSlider.setCurrentSource(this);
-        FWHMSlider.setCurrentSource(this);
-        peakTransmissionSlider.show();
-        passbandSlider.show();
-        FWHMSlider.show();
+    public void update() {
+        if (isEdited) {
+            return;
+        }
 
-        graph.drawGraph();
-        graph.show();
+        for (OriginRay originRay : originRays) {
+            group.getChildren().removeAll(originRay.rayReflections);
+            originRay.getRenderer().clear();
+            mirrors.forEach(mirror -> {
+                if (mirror instanceof LightSensor lightSensor) {
+                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                    lightSensor.getDetectedRays().remove(originRay);
+                }
+            });
+            originRay.rayReflections.clear();
+
+            originRay.simulate();
+        }
+    }
+
+    public void openObjectEdit() {
+        wavelengthSlider.setCurrentSource(this);
+        wavelengthSlider.show();
+        whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.show();
 
         // Defocus the text field
         root.requestFocus();
@@ -115,14 +166,11 @@ public class GaussianRolloffFilter extends Line implements Editable{
         editedShape = group;
     }
 
+
     @Override
     public void closeObjectEdit() {
-        passbandSlider.hide();
-        peakTransmissionSlider.hide();
-        FWHMSlider.hide();
-
-        graph.clear();
-        graph.hide();
+        wavelengthSlider.hide();
+        whiteLightToggle.hide();
 
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
@@ -132,12 +180,13 @@ public class GaussianRolloffFilter extends Line implements Editable{
         }
         editedShape = null;
         updateLightSources();
+        update();
     }
 
 
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
-        hitbox.setHeight(30);
+        hitbox.setHeight(mouseHitboxSize);
         hitbox.setFill(Color.TRANSPARENT);
         hitbox.setStroke(Color.BLACK);
         hitbox.setStrokeWidth(0);
@@ -157,15 +206,6 @@ public class GaussianRolloffFilter extends Line implements Editable{
         rotate.setAngle(rotation);
     }
 
-    public void setPeakTransmission(double peakTransmission) {
-        this.peakTransmission = peakTransmission;
-    }
-
-
-    public double getPeakTransmission() {
-        return peakTransmission;
-    }
-
 
     public double getLength() {
         return Math.sqrt(
@@ -181,11 +221,21 @@ public class GaussianRolloffFilter extends Line implements Editable{
         setEndX(getEndX() + x);
         setEndY(getEndY() + y);
 
+        rotate.setPivotX((getStartX() + getEndX()) / 2);
+        rotate.setPivotY((getStartY() + getEndY()) / 2);
+
         objectEditPoints.forEach(editPoint -> {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+
+        originRays.forEach(originRay -> {
+            originRay.setStartX(originRay.getStartX() + x);
+            originRay.setStartY(originRay.getStartY() + y);
+            originRay.setEndX(originRay.getEndX() + x);
+            originRay.setEndY(originRay.getEndY() + y);
+        });
     }
 
     private void move() {
@@ -205,15 +255,29 @@ public class GaussianRolloffFilter extends Line implements Editable{
                     this.setEndX(prevEnd.getX() + deltaX);
                     this.setEndY(prevEnd.getY() + deltaY);
 
+                    double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+
+                    int i = 0;
+                    for (OriginRay originRay : originRays) {
+                        originRay.setStartX(getStartX() + dx * (i % panelRayCount));
+                        originRay.setStartY(getStartY() + dy * (i % panelRayCount));
+                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        i++;
+                    }
+
                     // Update editPoints location
                     if (!objectEditPoints.isEmpty()) {
-                        objectEditPoints.get(0).setCenterX(getStartX());
+                    objectEditPoints.get(0).setCenterX(getStartX());
                         objectEditPoints.get(0).setCenterY(getStartY());
                         objectEditPoints.get(1).setCenterX(getEndX());
                         objectEditPoints.get(1).setCenterY(getEndY());
                         objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
                         objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
                     }
+
+
 
                     updateHitbox();
                 });
@@ -287,6 +351,18 @@ public class GaussianRolloffFilter extends Line implements Editable{
                     this.setEndX(finalEndX);
                     this.setEndY(finalEndY);
 
+                    double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+
+                    int i = 0;
+                    for (OriginRay originRay : originRays) {
+                        originRay.setStartX(getStartX() + dx * (i % panelRayCount));
+                        originRay.setStartY(getStartY() + dy * (i % panelRayCount));
+                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        i++;
+                    }
+
                     // Update editPoints location
                     if (!objectEditPoints.isEmpty()) {
                         objectEditPoints.get(0).setCenterX(getStartX());
@@ -311,88 +387,57 @@ public class GaussianRolloffFilter extends Line implements Editable{
         }).start();
     }
 
-    public double getPassband() {
-        return passband;
+    public void setWhiteLight(boolean whiteLight) {
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().remove(originRay.group);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
+            double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+            double angle = Math.toRadians(rotate.getAngle());
+
+            int rayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < rayCount; i++) {
+                for (int j = 0; j < panelRayCount; j++) {
+                    OriginRay originRay = new OriginRay(
+                            getStartX() + dx * j,
+                            getStartY() + dy * j,
+                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE,
+                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE
+                    );
+                    originRay.setParentSource(this);
+                    originRay.setStrokeWidth(globalStrokeWidth);
+                    originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setBrightness(brightness);
+
+                    originRays.add(originRay);
+                }
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+            update();
+        });
     }
 
-
-    public void setPassband(double passband) {
-        this.passband = passband;
-
-        double factor;
-        double red;
-        double green;
-        double blue;
-
-        int intensityMax = 255;
-        double Gamma = 0.8;
-
-        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
-        // what
-        if ((passband >= 380) && (passband < 440)) {
-            red = -(passband - 440.0) / (440.0 - 380.0);
-            green = 0.0;
-            blue = 1.0;
-        } else if ((passband >= 440) && (passband < 490)) {
-            red = 0.0;
-            green = (passband - 440.0) / (490.0 - 440.0);
-            blue = 1.0;
-        } else if ((passband >= 490) && (passband < 510)) {
-            red = 0.0;
-            green = 1.0;
-            blue = -(passband - 510.0) / (510.0 - 490.0);
-        } else if ((passband >= 510) && (passband < 580)) {
-            red = (passband - 510.0) / (580.0 - 510.0);
-            green = 1.0;
-            blue = 0.0;
-        } else if ((passband >= 580) && (passband < 645)) {
-            red = 1.0;
-            green = -(passband - 645.0) / (645.0 - 580.0);
-            blue = 0.0;
-        } else if ((passband >= 645) && (passband < 781)) {
-            red = 1.0;
-            green = 0.0;
-            blue = 0.0;
-        } else {
-            red = 0.0;
-            green = 0.0;
-            blue = 0.0;
+    public void setWavelength(double wavelength) {
+        this.wavelength = wavelength;
+        for (OriginRay originRay : originRays) {
+            originRay.setWavelength(wavelength);
         }
-        // Let the intensity fall off near the vision limits
-        if ((passband >= 380) && (passband < 420)) {
-            factor = 0.3 + 0.7 * (passband - 380) / (420 - 380);
-        } else if ((passband >= 420) && (passband < 701)) {
-            factor = 1.0;
-        }
-        else if ((passband >= 701) && (passband < 781)) {
-            factor = 0.3 + 0.7 * (780 - passband) / (780 - 700);
-        } else {
-            factor = 0.0;
-        }
-
-        if (red != 0) {
-            red = Math.round(intensityMax * Math.pow(red * factor, Gamma));
-        }
-
-        if (green != 0) {
-            green = Math.round(intensityMax * Math.pow(green * factor, Gamma));
-        }
-
-        if (blue != 0) {
-            blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
-        }
-        
-
-        setStroke(Color.rgb((int) red, (int) green, (int) blue));
     }
 
-
-    public double getFWHM() {
-        return FWHM;
-    }
-
-    public void setFWHM(double FWHM) {
-        this.FWHM = FWHM;
+    public double getWavelength() {
+        return this.wavelength;
     }
 
     @Override

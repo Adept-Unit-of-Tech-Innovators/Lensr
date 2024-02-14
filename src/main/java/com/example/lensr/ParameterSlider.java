@@ -116,28 +116,38 @@ public class ParameterSlider extends JFXSlider {
                 beamSource.setWavelength(roundedValue);
                 return;
             }
+            if (currentSource instanceof PanelSource panelSource && valueToChange == ValueToChange.Wavelength) {
+                panelSource.setWavelength(roundedValue);
+                return;
+            }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.Passband) {
                 filter.setPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.FWHM) {
                 filter.setFWHM(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
                 filter.setTransmission(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.StartPassband) {
                 filter.setStartPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.EndPassband) {
                 filter.setEndPassband(roundedValue);
+                filter.graph.drawGraph();
                 return;
             }
             if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
@@ -176,7 +186,6 @@ public class ParameterSlider extends JFXSlider {
         try { setValue(Double.parseDouble(textField.getText())); }
         catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0)); }
         textField.setFocusTraversable(false);
-
         // Update UI
         hBox.setVisible(false);
         hBox.setDisable(true);
@@ -188,17 +197,27 @@ public class ParameterSlider extends JFXSlider {
 
     public void show() {
         // Update UI
-        toFront();
         hBox.setVisible(true);
         hBox.setDisable(false);
         toolbar.forEach(button -> button.setVisible(false));
+        toFront();
     }
 
     private void setCorrectValues () {
+        // Default values
+        minVal = 0;
+        maxVal = 1;
+
         if (valueToChange == ValueToChange.Wavelength && currentSource instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
+            label.setText("Wavelength");
+        }
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PanelSource panelSource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = panelSource.getWavelength();
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {

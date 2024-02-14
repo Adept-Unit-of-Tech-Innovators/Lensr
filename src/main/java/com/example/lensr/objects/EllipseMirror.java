@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -43,6 +44,23 @@ public class EllipseMirror extends Ellipse implements Editable {
     }
 
     @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        EllipseMirror newMirror = new EllipseMirror(getCenterX(), getCenterY(), getRadiusX(), getRadiusY());
+        newMirror.setReflectivity(reflectivity);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
+        UserControls.closeCurrentEdit();
+        newMirror.openObjectEdit();
+    }
+
+    @Override
     public void openObjectEdit() {
         reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
@@ -68,6 +86,9 @@ public class EllipseMirror extends Ellipse implements Editable {
                 scale(oppositeEditPoint.getCenter());
             });
         }
+
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
@@ -98,7 +119,56 @@ public class EllipseMirror extends Ellipse implements Editable {
         return reflectivity;
     }
 
+    @Override
+    public void moveBy(double x, double y) {
+        setCenterX(getCenterX() + x);
+        setCenterY(getCenterY() + y);
 
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+    }
+
+
+    public void move() {
+        new Thread(() -> {
+            Point2D prevMousePos = mousePos;
+            Point2D prevCenter = new Point2D(getCenterX(), getCenterY());
+
+            while (isMousePressed) {
+                double x = prevCenter.getX() + (mousePos.getX() - prevMousePos.getX());
+                double y = prevCenter.getY() + (mousePos.getY() - prevMousePos.getY());
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    setCenterX(x);
+                    setCenterY(y);
+
+                    // Update editPoints location
+                    Bounds mirrorBounds = getLayoutBounds();
+
+                    for (int i = 0; i < objectEditPoints.size() - 1; i++) {
+                        double x1 = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
+                        double y1 = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
+
+                        objectEditPoints.get(i).setCenterX(x1);
+                        objectEditPoints.get(i).setCenterY(y1);
+                    }
+                    objectEditPoints.get(4).setCenter(new Point2D(getCenterX(), getCenterY()));
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the wait time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+
+        }).start();
+    }
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
@@ -145,13 +215,15 @@ public class EllipseMirror extends Ellipse implements Editable {
                     // Update editPoints location
                     Bounds mirrorBounds = getLayoutBounds();
 
-                    for (int i = 0; i < objectEditPoints.size(); i++) {
+                    for (int i = 0; i < objectEditPoints.size() - 1; i++) {
                         double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
                         double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
+
+                    objectEditPoints.get(4).setCenter(new Point2D(finalCenterX, finalCenterY));
                 });
 
                 synchronized (lock) {

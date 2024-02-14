@@ -12,6 +12,8 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LensrStart extends Application {
     public static final Object lock = new Object();
@@ -19,7 +21,8 @@ public class LensrStart extends Application {
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
     public static final int SIZE = 1000;
-    public static int whiteLightRayCount = 500;
+    public static int whiteLightRayCount = 30;
+    public static int panelRayCount = 30;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();
@@ -36,6 +39,8 @@ public class LensrStart extends Application {
         B,
         N,
         M,
+        K,
+        J,
         L
     }
     public static Key keyPressed = Key.None;
@@ -56,6 +61,7 @@ public class LensrStart extends Application {
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
+    public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
     public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
 
     @Override
@@ -71,6 +77,9 @@ public class LensrStart extends Application {
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
         ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
         ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 900, 25);
+        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 25, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 150, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -79,6 +88,9 @@ public class LensrStart extends Application {
         toolbar.add(brickwallFilterButton);
         toolbar.add(rayButton);
         toolbar.add(lensButton);
+        toolbar.add(sensorButton);
+        toolbar.add(beamButton);
+        toolbar.add(panelButton);
 
         for (ToolbarButton button : toolbar) {
             button.setOnAction(actionEvent -> {
@@ -103,8 +115,6 @@ public class LensrStart extends Application {
 
         primaryStage.setTitle("rtx 5090ti testing place");
         primaryStage.setScene(scene);
-
-
 
         primaryStage.show();
     }

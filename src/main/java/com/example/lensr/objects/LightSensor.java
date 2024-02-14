@@ -16,24 +16,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.LensrStart.lock;
-import static com.example.lensr.MirrorMethods.*;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class GaussianRolloffFilter extends Line implements Editable{
+public class LightSensor extends Line implements Editable{
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    Rectangle hitbox;
+    public Rectangle hitbox;
     public List<EditPoint> objectEditPoints = new ArrayList<>();
+    List<Ray> detectedRays = new ArrayList<>();
     public Graph graph;
     double rotation = 0;
     public boolean isEdited;
     public boolean hasBeenClicked;
-    double passband = 580;
-    double peakTransmission = 0.8;
-    double FWHM = 20;
 
-    public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {
+    public LightSensor(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
         setEndX(endX);
@@ -64,32 +61,21 @@ public class GaussianRolloffFilter extends Line implements Editable{
 
     @Override
     public void copy() {
-        GaussianRolloffFilter newMirror = new GaussianRolloffFilter(getStartX(), getStartY(), getEndX(), getEndY());
-        newMirror.setPeakTransmission(peakTransmission);
-        newMirror.setPassband(passband);
-        newMirror.setFWHM(FWHM);
-        newMirror.create();
-        newMirror.moveBy(10, 10);
-        mirrors.add(newMirror);
+        LightSensor newSensor = new LightSensor(getStartX(), getStartY(), getEndX(), getEndY());
+        newSensor.create();
+        newSensor.moveBy(10, 10);
+        mirrors.add(newSensor);
         UserControls.closeCurrentEdit();
-        newMirror.openObjectEdit();
+        newSensor.openObjectEdit();
     }
 
     @Override
     public void openObjectEdit() {
-        // Setup sliders
-        peakTransmissionSlider.setCurrentSource(this);
-        passbandSlider.setCurrentSource(this);
-        FWHMSlider.setCurrentSource(this);
-        peakTransmissionSlider.show();
-        passbandSlider.show();
-        FWHMSlider.show();
+        // Defocus the text field
+        root.requestFocus();
 
         graph.drawGraph();
         graph.show();
-
-        // Defocus the text field
-        root.requestFocus();
 
         hasBeenClicked = true;
         isEdited = true;
@@ -117,10 +103,6 @@ public class GaussianRolloffFilter extends Line implements Editable{
 
     @Override
     public void closeObjectEdit() {
-        passbandSlider.hide();
-        peakTransmissionSlider.hide();
-        FWHMSlider.hide();
-
         graph.clear();
         graph.hide();
 
@@ -137,7 +119,7 @@ public class GaussianRolloffFilter extends Line implements Editable{
 
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
-        hitbox.setHeight(30);
+        hitbox.setHeight(mouseHitboxSize);
         hitbox.setFill(Color.TRANSPARENT);
         hitbox.setStroke(Color.BLACK);
         hitbox.setStrokeWidth(0);
@@ -157,21 +139,22 @@ public class GaussianRolloffFilter extends Line implements Editable{
         rotate.setAngle(rotation);
     }
 
-    public void setPeakTransmission(double peakTransmission) {
-        this.peakTransmission = peakTransmission;
-    }
-
-
-    public double getPeakTransmission() {
-        return peakTransmission;
-    }
-
 
     public double getLength() {
         return Math.sqrt(
                 Math.pow( getEndX() - getStartX(), 2) +
                         Math.pow(getEndY() -getStartY(), 2)
         );
+    }
+
+
+    public void addRay(Ray ray) {
+        detectedRays.add(ray);
+    }
+
+
+    public List<Ray> getDetectedRays() {
+        return detectedRays;
     }
 
     @Override
@@ -309,90 +292,6 @@ public class GaussianRolloffFilter extends Line implements Editable{
                 }
             }
         }).start();
-    }
-
-    public double getPassband() {
-        return passband;
-    }
-
-
-    public void setPassband(double passband) {
-        this.passband = passband;
-
-        double factor;
-        double red;
-        double green;
-        double blue;
-
-        int intensityMax = 255;
-        double Gamma = 0.8;
-
-        // adjusting to transform between different colors for example green and yellow with addition of red and absence of blue
-        // what
-        if ((passband >= 380) && (passband < 440)) {
-            red = -(passband - 440.0) / (440.0 - 380.0);
-            green = 0.0;
-            blue = 1.0;
-        } else if ((passband >= 440) && (passband < 490)) {
-            red = 0.0;
-            green = (passband - 440.0) / (490.0 - 440.0);
-            blue = 1.0;
-        } else if ((passband >= 490) && (passband < 510)) {
-            red = 0.0;
-            green = 1.0;
-            blue = -(passband - 510.0) / (510.0 - 490.0);
-        } else if ((passband >= 510) && (passband < 580)) {
-            red = (passband - 510.0) / (580.0 - 510.0);
-            green = 1.0;
-            blue = 0.0;
-        } else if ((passband >= 580) && (passband < 645)) {
-            red = 1.0;
-            green = -(passband - 645.0) / (645.0 - 580.0);
-            blue = 0.0;
-        } else if ((passband >= 645) && (passband < 781)) {
-            red = 1.0;
-            green = 0.0;
-            blue = 0.0;
-        } else {
-            red = 0.0;
-            green = 0.0;
-            blue = 0.0;
-        }
-        // Let the intensity fall off near the vision limits
-        if ((passband >= 380) && (passband < 420)) {
-            factor = 0.3 + 0.7 * (passband - 380) / (420 - 380);
-        } else if ((passband >= 420) && (passband < 701)) {
-            factor = 1.0;
-        }
-        else if ((passband >= 701) && (passband < 781)) {
-            factor = 0.3 + 0.7 * (780 - passband) / (780 - 700);
-        } else {
-            factor = 0.0;
-        }
-
-        if (red != 0) {
-            red = Math.round(intensityMax * Math.pow(red * factor, Gamma));
-        }
-
-        if (green != 0) {
-            green = Math.round(intensityMax * Math.pow(green * factor, Gamma));
-        }
-
-        if (blue != 0) {
-            blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
-        }
-        
-
-        setStroke(Color.rgb((int) red, (int) green, (int) blue));
-    }
-
-
-    public double getFWHM() {
-        return FWHM;
-    }
-
-    public void setFWHM(double FWHM) {
-        this.FWHM = FWHM;
     }
 
     @Override

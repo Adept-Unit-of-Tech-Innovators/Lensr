@@ -1,6 +1,8 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.Graph;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -23,6 +25,7 @@ public class BrickwallFilter extends Line implements Editable {
     // Extended hitbox for easier editing
     Rectangle hitbox;
     public List<EditPoint> objectEditPoints = new ArrayList<>();
+    public Graph graph;
     double rotation = 0;
     public boolean isEdited;
     public boolean hasBeenClicked;
@@ -44,12 +47,33 @@ public class BrickwallFilter extends Line implements Editable {
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
+        graph = new Graph(700, 100, 200, 150);
+        graph.setDataSource(this);
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
+        group.getChildren().add(graph.group);
         root.getChildren().add(group);
     }
 
+    @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        BrickwallFilter brickwallFilter = new BrickwallFilter(getStartX(), getStartY(), getEndX(), getEndY());
+        brickwallFilter.setTransmission(transmission);
+        brickwallFilter.setStartPassband(startPassband);
+        brickwallFilter.setEndPassband(endPassband);
+        brickwallFilter.create();
+        brickwallFilter.moveBy(10, 10);
+        mirrors.add(brickwallFilter);
+        UserControls.closeCurrentEdit();
+        brickwallFilter.openObjectEdit();
+    }
 
     @Override
     public void openObjectEdit() {
@@ -60,6 +84,9 @@ public class BrickwallFilter extends Line implements Editable {
         peakTransmissionSlider.show();
         startPassbandSlider.show();
         endPassbandSlider.show();
+
+        graph.drawGraph();
+        graph.show();
 
         // Defocus the text field
         root.requestFocus();
@@ -80,6 +107,9 @@ public class BrickwallFilter extends Line implements Editable {
             });
         }
 
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.get(2).setOnClickEvent(event -> move());
+
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
         editedShape = group;
@@ -91,6 +121,9 @@ public class BrickwallFilter extends Line implements Editable {
         peakTransmissionSlider.hide();
         startPassbandSlider.hide();
         endPassbandSlider.hide();
+
+        graph.clear();
+        graph.hide();
 
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
@@ -133,13 +166,66 @@ public class BrickwallFilter extends Line implements Editable {
         );
     }
 
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+        updateHitbox();
+    }
+
+    private void move() {
+        new Thread(() -> {
+            Point2D prevMousePos = mousePos;
+            Point2D prevStart = new Point2D(getStartX(), getStartY());
+            Point2D prevEnd = new Point2D(getEndX(), getEndY());
+
+            while (isMousePressed) {
+                double deltaX = mousePos.getX() - prevMousePos.getX();
+                double deltaY = mousePos.getY() - prevMousePos.getY();
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    this.setStartX(prevStart.getX() + deltaX);
+                    this.setStartY(prevStart.getY() + deltaY);
+                    this.setEndX(prevEnd.getX() + deltaX);
+                    this.setEndY(prevEnd.getY() + deltaY);
+
+                    // Update editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
+                    }
+
+                    updateHitbox();
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
             double startX, startY, endX, endY;
 
             while (isMousePressed) {
-                // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();
@@ -155,13 +241,15 @@ public class BrickwallFilter extends Line implements Editable {
                     startY = anchor.getY() - (snappedY - anchor.getY());
                     endX = snappedX;
                     endY = snappedY;
-                } else if (altPressed) {
+                }
+                else if (altPressed) {
                     // Calculate first because funny java threading
                     startX = anchor.getX() - (mousePos.getX() - anchor.getX());
                     startY = anchor.getY() - (mousePos.getY() - anchor.getY());
                     endX = mousePos.getX();
                     endY = mousePos.getY();
-                } else if (shiftPressed) {
+                }
+                else if (shiftPressed) {
                     startX = anchor.getX();
                     startY = anchor.getY();
                     double deltaX = mousePos.getX() - startX;
@@ -171,7 +259,8 @@ public class BrickwallFilter extends Line implements Editable {
                     double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
                     endX = startX + distance * Math.cos(shiftedAngle);
                     endY = startY + distance * Math.sin(shiftedAngle);
-                } else {
+                }
+                else {
                     startX = anchor.getX();
                     startY = anchor.getY();
                     endX = mousePos.getX();
@@ -196,6 +285,8 @@ public class BrickwallFilter extends Line implements Editable {
                         objectEditPoints.get(0).setCenterY(getStartY());
                         objectEditPoints.get(1).setCenterX(getEndX());
                         objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
                     }
 
                     updateHitbox();

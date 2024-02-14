@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -47,6 +48,23 @@ public class LineMirror extends Line implements Editable {
     }
 
     @Override
+    public void delete() {
+        mirrors.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        LineMirror newMirror = new LineMirror(getStartX(), getStartY(), getEndX(), getEndY());
+        newMirror.setReflectivity(reflectivity);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
+        UserControls.closeCurrentEdit();
+        newMirror.openObjectEdit();
+    }
+
+    @Override
     public void openObjectEdit() {
         reflectivitySlider.setCurrentSource(this);
         reflectivitySlider.show();
@@ -69,6 +87,9 @@ public class LineMirror extends Line implements Editable {
                 scale(oppositeEditPoint.getCenter());
             });
         }
+
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.get(2).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);
         group.getChildren().addAll(objectEditPoints);
@@ -129,13 +150,66 @@ public class LineMirror extends Line implements Editable {
         );
     }
 
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setCenterX(editPoint.getCenterX() + x);
+            editPoint.setCenterY(editPoint.getCenterY() + y);
+        });
+        updateHitbox();
+    }
+
+    private void move() {
+        new Thread(() -> {
+            Point2D prevMousePos = mousePos;
+            Point2D prevStart = new Point2D(getStartX(), getStartY());
+            Point2D prevEnd = new Point2D(getEndX(), getEndY());
+
+            while (isMousePressed) {
+                double deltaX = mousePos.getX() - prevMousePos.getX();
+                double deltaY = mousePos.getY() - prevMousePos.getY();
+
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    this.setStartX(prevStart.getX() + deltaX);
+                    this.setStartY(prevStart.getY() + deltaY);
+                    this.setEndX(prevEnd.getX() + deltaX);
+                    this.setEndY(prevEnd.getY() + deltaY);
+
+                    // Update editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
+                    }
+
+                    updateHitbox();
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
             double startX, startY, endX, endY;
 
             while (isMousePressed) {
-
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();
@@ -195,6 +269,8 @@ public class LineMirror extends Line implements Editable {
                         objectEditPoints.get(0).setCenterY(getStartY());
                         objectEditPoints.get(1).setCenterX(getEndX());
                         objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
                     }
 
                     updateHitbox();
