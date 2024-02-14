@@ -126,7 +126,6 @@ public class PanelSource extends Line implements Editable {
                     lightSensor.getDetectedRays().remove(originRay);
                 }
             });
-            originRay.rayReflections.clear();
 
             originRay.simulate();
         }
@@ -141,7 +140,7 @@ public class PanelSource extends Line implements Editable {
         // Defocus the text field
         root.requestFocus();
 
-        rayCanvas.clear();
+        Platform.runLater(() -> rayCanvas.clear());
 
         hasBeenClicked = true;
         isEdited = true;
@@ -181,7 +180,6 @@ public class PanelSource extends Line implements Editable {
         }
         editedShape = null;
         updateLightSources();
-        update();
     }
 
 
@@ -426,8 +424,8 @@ public class PanelSource extends Line implements Editable {
             }
             originRays.forEach(ray -> group.getChildren().add(ray.group));
             originRays.forEach(Node::toBack);
-            update();
         });
+        updateLightSources();
     }
 
     public void setWavelength(double wavelength) {
