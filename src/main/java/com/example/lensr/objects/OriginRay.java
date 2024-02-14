@@ -296,45 +296,78 @@ public class OriginRay extends Ray {
                     SphericalLens currSphericalLens = arc.getParentLens();
 
                     boolean isInTheLens = intersectors.contains(currSphericalLens);
-                    boolean isArcFacingTheCenter = arc.getThickness() < 0;
-                    boolean isConvex = isInTheLens == isArcFacingTheCenter;
+                    boolean isConcave = arc.getThickness() < 0;
 
                     double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, isInTheLens);
                     double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, isInTheLens);
 
-                    double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isInTheLens);
-                    System.out.println(isConvex);
-                    System.out.println(refractionAngle);
+                    // Potentially execute internal reflection;
+                    if (checkInternalReflection(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isInTheLens, isConcave)) {
+                        // Calculate the angle of incidence
+                        double reflectionAngle = getArcReflectionAngle(currentRay, arc);
 
-                    if(isInTheLens) intersectors.remove(currSphericalLens);
-                    else intersectors.add(currSphericalLens);
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
 
-                    // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(refractionAngle);
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
+                    }
 
-                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
+                    // If there is no internal reflection, execute refraction
+                    else {
+                        double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isInTheLens, isConcave);
+                        if (isInTheLens) intersectors.remove(currSphericalLens);
+                        else intersectors.add(currSphericalLens);
+
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+                    }
                 } else if (closestIntersectionObject instanceof LensLine line) {
                     SphericalLens currSphericalLens = line.getParentLens();
 
-                    boolean isInTheLens = intersectors.contains(currSphericalLens);
+                    boolean inLens = intersectors.contains(currSphericalLens);
+                    double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, inLens);
+                    double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, inLens);
 
-                    double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, isInTheLens);
-                    double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, isInTheLens);
+                    // Potentially execute internal reflection;
+                    if (checkInternalReflection(currentRay, line, currentRefractiveIndex, newRefractiveIndex)) {
+                        // Calculate the angle of incidence
+                        double reflectionAngle = getLineReflectionAngle(currentRay, line);
 
-                    double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
 
-                    if(isInTheLens) intersectors.remove(currSphericalLens);
-                    else intersectors.add(currSphericalLens);
-                    // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(refractionAngle);
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
-                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
+                        // TODO: Implement some sort of dimming for internal reflection
+                        nextRay.setBrightness(currentRay.getBrightness());
+                    }
+
+                    // If there is no internal reflection, execute refraction
+                    else {
+                        double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
+
+                        if (inLens) {
+                            intersectors.remove(currSphericalLens);
+                        } else intersectors.add(currSphericalLens);
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+                    }
 
                 }
 
@@ -368,6 +401,33 @@ public class OriginRay extends Ray {
         if(!isInTheLens) return currentSphericalLens.getRefractiveIndex();
         if(intersectors.size() == 1) return 1;
         return intersectors.get(intersectors.size() - 1).getRefractiveIndex();
+    }
+    public boolean checkInternalReflection(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex, boolean inLens, boolean isConcave) {
+        // Check if the ray is going from a denser medium to a less dense medium
+        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
+
+        double centerX = arc.getCenterX();
+        double centerY = arc.getCenterY();
+        double pointX = ray.getEndX();
+        double pointY = ray.getEndY();
+
+        double normalAngle = -Math.atan2((pointY - centerY) , (pointX - centerX));
+        double reversedNormalAngle = -Math.atan2((centerY - pointY) , (centerX - pointX));
+
+        // Use the appropriate formula for calculating the new ray angle
+        if ((inLens && !isConcave) || (!inLens && isConcave)) {
+            return Math.abs(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - reversedNormalAngle)) > 1;
+        }
+        return Math.abs(currRefractiveIndex / newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle)) > 1;
+    }
+
+    public boolean checkInternalReflection(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
+        // Check if the ray is going from a denser medium to a less dense medium
+        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
+        double lineAngle = -Math.atan2(line.getStartY() - line.getEndY(), line.getStartX() - line.getEndX());
+        double normalAngle = (Math.abs(angleOfIncidence - (lineAngle + Math.PI/2)) > Math.abs(angleOfIncidence - (lineAngle - Math.PI/2))) ? lineAngle + Math.PI/2 : lineAngle - Math.PI/2;
+
+        return Math.abs(currRefractiveIndex / newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle)) > 1;
     }
 
 }
