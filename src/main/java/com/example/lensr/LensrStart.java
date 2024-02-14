@@ -20,7 +20,7 @@ public class LensrStart extends Application {
     public static final double editPointSize = 8;
     public static final int SIZE = 1000;
     public static int whiteLightRayCount = 30;
-    public static int panelRayCount = 30;
+    public static int panelRayCount = 10;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);
     public static List<Object> lightSources = new ArrayList<>();
@@ -57,10 +57,14 @@ public class LensrStart extends Application {
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
+    public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
 
     @Override
     public void start(Stage primaryStage) {
         scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
+
+        root.getChildren().add(rayCanvas);
+        rayCanvas.toBack();
 
         // Create toolbar buttons
         ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", Key.Z, 25, 25);

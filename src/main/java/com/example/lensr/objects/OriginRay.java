@@ -1,6 +1,6 @@
 package com.example.lensr.objects;
 
-import com.example.lensr.RayCanvas;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.*;
@@ -15,7 +15,6 @@ public class OriginRay extends Ray {
     public Group group = new Group();
     Object parentSource;
     List<Ray> rayReflections = new ArrayList<>();
-    private final RayCanvas rayRenderer = new RayCanvas(SIZE, SIZE);
 
     public OriginRay(double startX, double startY, double endX, double endY) {
         super(startX, startY, endX, endY);
@@ -25,10 +24,10 @@ public class OriginRay extends Ray {
         setEndY(endY);
 
         group.getChildren().add(this);
-        group.getChildren().add(rayRenderer);
     }
 
     public void simulate() {
+        rayReflections.clear();
         // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
         // That's some clever chat-gpt code right there
         if (getEndX() != SIZE || getEndY() != SIZE) {
@@ -53,7 +52,7 @@ public class OriginRay extends Ray {
                 setEndY(intersectionPoint.getY());
             }
         }
-        new Thread(() -> {
+        taskPool.execute(() -> {
             int recursiveDepth = 0;
             Ray currentRay = this;
             while (true) {
@@ -138,6 +137,13 @@ public class OriginRay extends Ray {
 
                 currentRay.setEndX(closestIntersectionPoint.getX());
                 currentRay.setEndY(closestIntersectionPoint.getY());
+
+                if (recursiveDepth > 0 && recursiveDepth % 500 == 0) {
+                    final List<Ray> drawnRays = new ArrayList<>(rayReflections.subList(rayReflections.size() - 500, rayReflections.size()));
+                    Platform.runLater(() -> {
+                        rayCanvas.drawRays(drawnRays);
+                    });
+                }
 
                 // Limit recursive depth
                 if (recursiveDepth >= 5000) break;
@@ -252,12 +258,8 @@ public class OriginRay extends Ray {
                 recursiveDepth++;
                 currentRay = nextRay;
             }
-            rayRenderer.drawRays(rayReflections);
-        }).start();
-    }
-
-    public RayCanvas getRenderer() {
-        return rayRenderer;
+        });
+        rayReflections.clear();
     }
 
     public void setParentSource(Object parentSource) {
