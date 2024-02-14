@@ -61,18 +61,18 @@ public class EditPoint extends Rectangle {
 
 
     public void setCenter(Point2D center) {
-        setX(center.getX() - editPointSize / 2);
-        setY(center.getY() - editPointSize / 2);
+        setX(center.getX() - getWidth() / 2);
+        setY(center.getY() - getHeight() / 2);
     }
 
 
     public double getCenterX() {
-        return getX() + editPointSize / 2;
+        return getX() + getWidth() / 2;
     }
 
 
     public double getCenterY() {
-        return getY() + editPointSize / 2;
+        return getY() + getHeight() / 2;
     }
 
 
