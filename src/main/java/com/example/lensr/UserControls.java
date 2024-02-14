@@ -390,7 +390,6 @@ public class UserControls {
 
     public static void closeCurrentEdit() {
         if (editedShape instanceof Editable) {
-            System.out.println("object");
             ((Editable) editedShape).closeObjectEdit();
         }
         else if (editedShape instanceof Group group) {

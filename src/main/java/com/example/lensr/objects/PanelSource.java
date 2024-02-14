@@ -118,9 +118,10 @@ public class PanelSource extends Line implements Editable {
             return;
         }
 
+        rayCanvas.clear();
+
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-            originRay.getRenderer().clear();
             mirrors.forEach(mirror -> {
                 if (mirror instanceof LightSensor lightSensor) {
                     lightSensor.detectedRays.removeAll(originRay.rayReflections);
@@ -141,6 +142,8 @@ public class PanelSource extends Line implements Editable {
 
         // Defocus the text field
         root.requestFocus();
+
+        rayCanvas.clear();
 
         hasBeenClicked = true;
         isEdited = true;

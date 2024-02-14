@@ -132,9 +132,7 @@ public class OriginRay extends Ray {
                     double currDistance = shortestIntersectionDistance;
                     if (lens instanceof SphericalLens currentSphericalLens) {
                         for (Shape element : currentSphericalLens.elements) {
-//                            System.out.print(currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) + " " + currDistance);
                             if(currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) < currDistance && currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) > 0) {
-//                                System.out.println(" - distance is smaller");
 
                                 if (element instanceof LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
                                     intersectionPoint = getRayArcIntersectionPoint(currentRay, arc);
@@ -146,7 +144,6 @@ public class OriginRay extends Ray {
                                     currDistance = currentRay.getMinimalDistanceToBounds(element.getLayoutBounds());
                                 }
                             }
-//                            else System.out.println(" - distance is greater");
                         }
                         if (intersectionPoint == null) continue;
 
@@ -305,7 +302,9 @@ public class OriginRay extends Ray {
                     double currentRefractiveIndex = getCurrentRefractiveIndex(currSphericalLens, isInTheLens);
                     double newRefractiveIndex = getNewRefractiveIndex(currSphericalLens, isInTheLens);
 
-                    double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isConvex);
+                    double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex, isInTheLens);
+                    System.out.println(isConvex);
+                    System.out.println(refractionAngle);
 
                     if(isInTheLens) intersectors.remove(currSphericalLens);
                     else intersectors.add(currSphericalLens);
@@ -345,7 +344,7 @@ public class OriginRay extends Ray {
                 recursiveDepth++;
                 currentRay = nextRay;
             }
-            rayRenderer.drawRays(rayReflections);
+            rayCanvas.drawRays(rayReflections);
         }).start();
     }
 

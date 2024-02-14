@@ -112,6 +112,7 @@ public class SphericalLens extends Group implements Editable {
 //        rotatePoint.setFill(Color.PURPLE);
 
         rotateField = createRotateField();
+        rotateField.setFill(Color.TRANSPARENT); // TODO: actual code by franio
         root.getChildren().add(rotateField);
 
         arcEditPoints.add(new EditPoint(firstArc.getVertex()));
@@ -331,6 +332,21 @@ public class SphericalLens extends Group implements Editable {
     @Override
     public void setHasBeenClicked(boolean hasBeenClicked) {
         this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public void delete() {
+
+    }
+
+    @Override
+    public void copy() {
+
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+
     }
 
     @Override

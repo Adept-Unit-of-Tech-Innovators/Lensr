@@ -97,7 +97,6 @@ public class EllipseMirror extends Ellipse implements Editable {
 
     @Override
     public void closeObjectEdit() {
-        System.out.println("ellipse closed");
         reflectivitySlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {

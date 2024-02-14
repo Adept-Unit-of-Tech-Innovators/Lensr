@@ -108,9 +108,10 @@ public class BeamSource extends Rectangle implements Editable{
             return;
         }
 
+        rayCanvas.clear();
+
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-            originRay.getRenderer().clear();
             mirrors.forEach(mirror -> {
                 if (mirror instanceof LightSensor lightSensor) {
                     lightSensor.detectedRays.removeAll(originRay.rayReflections);
@@ -134,7 +135,7 @@ public class BeamSource extends Rectangle implements Editable{
         // Defocus the text fields
         root.requestFocus();
 
-        originRays.forEach(originRay -> originRay.getRenderer().clear());
+        rayCanvas.clear();
 
         hasBeenClicked = true;
         isEdited = true;

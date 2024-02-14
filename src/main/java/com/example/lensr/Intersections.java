@@ -209,20 +209,13 @@ public class Intersections {
     public static double getLineRefractionAngle(Line ray, Line lens, double currrefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.PI/2 - Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double lensAngle = Math.atan2(lens.getEndY() - lens.getStartY(), lens.getEndX() - lens.getStartX());
-//        double normalAngle = lensAngle + Math.PI/2;
-//        if(lensAngle > Math.PI) normalAngle += Math.PI;
 
         double refractedAngle = Math.asin(currrefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence));
-
-        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
-//        System.out.println("Angle of lens: " + Math.toDegrees(lensAngle));
-//        System.out.println("Normal angle: " + Math.toDegrees(normalAngle));
-//        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
         if(angleOfIncidence > Math.PI/2  || angleOfIncidence < -Math.PI/2) return refractedAngle - Math.PI/2;
         return Math.PI/2 - refractedAngle;
     }
 
-    public static double getArcRefractionAngle(Line ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex, boolean isConvex) {
+    public static double getArcRefractionAngle(Line ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex, boolean inLens) {
 
         // 6 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(),ray.getEndX() - ray.getStartX());
@@ -233,19 +226,11 @@ public class Intersections {
         double pointY = ray.getEndY();
 
         double normalAngle = Math.atan2((pointY - centerY) , (pointX - centerX));
-        if(normalAngle < 0) normalAngle += 2 * Math.PI;
 
         double reversedNormalAngle = Math.atan2((centerY - pointY) , (centerX - pointX));
-        if(reversedNormalAngle < 0) reversedNormalAngle += 2 * Math.PI;
 
         double refractedAngle = reversedNormalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle));
-        if(!isConvex) refractedAngle = normalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - reversedNormalAngle));
-
-        System.out.println("Angle of incidence: " + Math.toDegrees(angleOfIncidence));
-        System.out.print("Normal angle: ");
-        if(isConvex) System.out.println(Math.toDegrees(normalAngle));
-        else System.out.println(Math.toDegrees(reversedNormalAngle));
-        System.out.println("Refracted angle: " + Math.toDegrees(refractedAngle));
+        if(!inLens) refractedAngle = normalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - reversedNormalAngle));
 
         return refractedAngle;
     }

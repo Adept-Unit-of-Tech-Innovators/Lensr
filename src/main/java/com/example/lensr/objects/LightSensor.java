@@ -18,7 +18,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class LightSensor extends Line implements Editable{
+public class LightSensor extends Line implements Editable {
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing

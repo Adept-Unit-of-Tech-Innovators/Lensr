@@ -61,7 +61,6 @@ public class LensArc extends Arc {
         if (thickness < 0) startAngle += 180;
 
         setStartAngle(startAngle);
-        System.out.println(thickness);
         setLength(angleInDegrees);
     }
 
