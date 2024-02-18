@@ -418,9 +418,6 @@ public class SphericalLens extends Group implements Editable {
         lowerRotateField.setCenter(new Point2D(centerX + (middleHeight/2 + rotateFieldHeight /4) * Math.cos(angleOfRotation + Math.PI/2), centerY + (middleHeight/2 + rotateFieldHeight /4) * Math.sin(angleOfRotation + Math.PI/2)));
         lowerRotateField.setRotate(Math.toDegrees(angleOfRotation));
 
-        System.out.println(upperRotateField.getRotate());
-        System.out.println(lowerRotateField.getRotate());
-
     }
     public Shape getMiddleBounds() {
         return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());

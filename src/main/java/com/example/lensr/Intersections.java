@@ -1,5 +1,7 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.LensArc;
+import com.example.lensr.objects.OriginRay;
 import com.example.lensr.objects.Ray;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -232,40 +234,43 @@ public class Intersections {
     }
 
     public static double getLineRefractionAngle(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
-        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
-        double lineAngle = -Math.atan2(line.getStartY() - line.getEndY(), line.getStartX() - line.getEndX());
-        double normalAngle = (Math.abs(angleOfIncidence - (lineAngle + Math.PI/2)) > Math.abs(angleOfIncidence - (lineAngle - Math.PI/2))) ? lineAngle + Math.PI/2 : lineAngle - Math.PI/2;
-        double reversedNormalAngle = normalAngle + Math.PI;
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
+        double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
 
-        if (Math.abs(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle)) > 1) {
-            return getLineReflectionAngle(ray, line);
+        double normalAngle = determineNormalAngle(lineAngle - Math.PI/2, lineAngle + Math.PI/2, angleOfIncidence);
+        double reversedNormalAngle = normalAngle + Math.PI;
+        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+
+        if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
+            return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
         }
 
-        return reversedNormalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle));
+        return getLineReflectionAngle(ray, line);
     }
 
-    public static double getArcRefractionAngle(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex, boolean inLens, boolean isConcave) {
-
-        // 6 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
-        double angleOfIncidence = -Math.atan2(ray.getStartY() - ray.getEndY(), ray.getStartX() - ray.getEndX());
+    public static double getArcRefractionAngle(Ray ray, LensArc arc, double currRefractiveIndex, double newRefractiveIndex) {
+        // 12 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
 
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
 
-        double normalAngle = -Math.atan2((pointY - centerY) , (pointX - centerX));
-        double reversedNormalAngle = -Math.atan2((centerY - pointY) , (centerX - pointX));
+        double normalAngle = determineNormalAngle(Math.atan2((pointY - centerY), (pointX - centerX)), Math.atan2((centerY - pointY), (centerX - pointX)), angleOfIncidence);
+        double reversedNormalAngle = normalAngle + Math.PI;
+        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
 
-        // Use the appropriate formula for calculating the new ray angle
-        if ((inLens && !isConcave) || (!inLens && isConcave)) {
-            return normalAngle + Math.asin(currRefractiveIndex/newRefractiveIndex * Math.sin(angleOfIncidence - reversedNormalAngle));
+        if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
+            return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
         }
-        return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(angleOfIncidence - normalAngle));
+
+        return getArcReflectionAngle(ray, arc);
     }
 
-    public static Point2D rotatePointAroundOtherByAngle(Point2D rotatedPoint, Point2D staticPoint, double angle)
-    {
+    public static Point2D rotatePointAroundOtherByAngle(Point2D rotatedPoint, Point2D staticPoint, double angle) {
         double x = rotatedPoint.getX() - staticPoint.getX();
         double y = rotatedPoint.getY() - staticPoint.getY();
 
@@ -275,5 +280,8 @@ public class Intersections {
         return new Point2D(newX, newY);
     }
 
+    public static double determineNormalAngle (double angle1, double angle2, double angleOfIncidence) {
+        return Math.abs(angleOfIncidence - angle1) < Math.abs(angleOfIncidence - angle2) ? angle1 : angle2;
+    }
 
 }

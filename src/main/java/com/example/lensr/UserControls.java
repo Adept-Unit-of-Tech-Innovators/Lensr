@@ -373,7 +373,7 @@ public class UserControls {
                 lightSources.add(panelSource);
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(0, 0, mousePos.getX(), mousePos.getY(), -20, 1.52);
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.52);
                 sphericalLens.create();
                 if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
                 {
