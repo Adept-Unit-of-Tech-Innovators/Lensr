@@ -37,7 +37,8 @@ public class LensrStart extends Application {
         N,
         M,
         K,
-        J
+        J,
+        H
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -72,6 +73,7 @@ public class LensrStart extends Application {
         ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
         ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 25, 75);
         ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 150, 75);
+        ToolbarButton prismButton = new ToolbarButton("Prism", Key.H, 275, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -81,6 +83,7 @@ public class LensrStart extends Application {
         toolbar.add(sensorButton);
         toolbar.add(beamButton);
         toolbar.add(panelButton);
+        toolbar.add(prismButton);
 
         for (ToolbarButton button : toolbar) {
             button.setOnAction(actionEvent -> {

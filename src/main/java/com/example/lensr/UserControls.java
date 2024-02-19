@@ -244,6 +244,14 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("H") && isEditMode) {
+                if (keyPressed == Key.H) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.H;
+                }
+                closeCurrentEdit();
+            }
             toolbar.forEach(ToolbarButton::updateRender);
         });
 
@@ -361,6 +369,13 @@ public class UserControls {
                 panelSource.openObjectEdit();
                 panelSource.scale(mousePos);
                 lightSources.add(panelSource);
+                break;
+            case H:
+                Prism prism = new Prism(mousePos.getX(), mousePos.getY());
+                prism.create();
+                prism.openObjectEdit();
+                prism.draw();
+                mirrors.add(prism);
                 break;
         }
     }
