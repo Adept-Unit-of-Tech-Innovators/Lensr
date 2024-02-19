@@ -121,7 +121,9 @@ public class OriginRay extends Ray {
                             closestIntersectionObject = funnyMirror.getClosestIntersectionSegment();
                         }
                     }
-                    closestIntersectionObject = mirror;
+                    else {
+                        closestIntersectionObject = mirror;
+                    }
                 }
 
 
@@ -129,33 +131,33 @@ public class OriginRay extends Ray {
                 for (Object lens : lenses) {
                     Point2D intersectionPoint = null;
                     Shape currObject = null;
-                    double currDistance = shortestIntersectionDistance;
                     if (lens instanceof SphericalLens currentSphericalLens) {
                         for (Shape element : currentSphericalLens.elements) {
-                            if(currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) < currDistance && currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) > 0) {
-
+                            if (currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) > 0) {
                                 if (element instanceof LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
                                     intersectionPoint = getRayArcIntersectionPoint(currentRay, arc);
                                     currObject = arc;
-                                    currDistance = currentRay.getMinimalDistanceToBounds(element.getLayoutBounds());
-                                } else if(element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
+                                } else if (element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
+                                    // TODO: Fix intersection not being detected when exiting the lens
                                     intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                                     currObject = line;
-                                    currDistance = currentRay.getMinimalDistanceToBounds(element.getLayoutBounds());
                                 }
                             }
-                        }
-                        if (intersectionPoint == null) continue;
 
-                        double intersectionDistance = Math.sqrt(
-                                Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                        Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                        );
+                            if (intersectionPoint == null) continue;
 
-                        if (intersectionDistance < shortestIntersectionDistance) {
-                            closestIntersectionPoint = intersectionPoint;
-                            shortestIntersectionDistance = intersectionDistance;
-                            closestIntersectionObject = currObject;
+                            double intersectionDistance = Math.sqrt(
+                                    Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                            Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
+                            );
+
+
+
+                            if (intersectionDistance < shortestIntersectionDistance) {
+                                closestIntersectionPoint = intersectionPoint;
+                                shortestIntersectionDistance = intersectionDistance;
+                                closestIntersectionObject = currObject;
+                            }
                         }
                     }
 
@@ -402,12 +404,12 @@ public class OriginRay extends Ray {
 
     public boolean determineTIR(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
         double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
 
-        double normalAngle = (Math.abs(angleOfIncidence - (lineAngle + Math.PI/2)) > Math.abs(angleOfIncidence - (lineAngle - Math.PI/2))) ? lineAngle + Math.PI/2 : lineAngle - Math.PI/2;
+        double normalAngle = determineNormalAngle(lineAngle - Math.PI/2, lineAngle + Math.PI/2, angleOfIncidence);
         double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
 
-        double criticalAngle = Math.asin(newRefractiveIndex/currRefractiveIndex);
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
 
