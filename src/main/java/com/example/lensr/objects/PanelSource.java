@@ -38,7 +38,6 @@ public class PanelSource extends Line implements Editable {
         setEndY(endY);
     }
 
-
     public void create() {
         setStroke(Color.GRAY);
         setStrokeWidth(3);
@@ -69,8 +68,26 @@ public class PanelSource extends Line implements Editable {
             originRays.add(originRay);
         }
 
+        // Place edit points
+        objectEditPoints.add(new EditPoint(getStartX(), getStartY()));
+        objectEditPoints.add(new EditPoint(getEndX(), getEndY()));
+
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
+                scale(oppositeEditPoint.getCenter());
+            });
+        }
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.get(2).setOnClickEvent(event -> move());
+
+        objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
+
         group.getChildren().add(this);
         originRays.forEach(ray -> group.getChildren().add(ray.group));
+        group.getChildren().addAll(objectEditPoints);
         root.getChildren().add(group);
         originRays.forEach(Node::toBack);
     }
@@ -140,32 +157,20 @@ public class PanelSource extends Line implements Editable {
         // Defocus the text field
         root.requestFocus();
 
+        objectEditPoints.forEach(editPoint -> {
+            System.out.println("Setting visible");
+            editPoint.setVisible(true);
+            editPoint.toFront();
+        });
+
         Platform.runLater(() -> rayCanvas.clear());
 
         hasBeenClicked = true;
         isEdited = true;
 
-        // Place edit points
-        objectEditPoints.add(new EditPoint(getStartX(), getStartY()));
-        objectEditPoints.add(new EditPoint(getEndX(), getEndY()));
-
-        // Define what happens when an edit point is clicked
-        for (EditPoint editPoint : objectEditPoints) {
-            editPoint.setOnClickEvent(event -> {
-                // Scale the mirror with the opposite edit point as an anchor
-                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
-                scale(oppositeEditPoint.getCenter());
-            });
-        }
-
-        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
-        objectEditPoints.get(2).setOnClickEvent(event -> move());
-
         editPoints.addAll(objectEditPoints);
-        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
-
 
     @Override
     public void closeObjectEdit() {
@@ -173,15 +178,17 @@ public class PanelSource extends Line implements Editable {
         whiteLightToggle.hide();
 
         isEdited = false;
-        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(objectEditPoints);
+        if (objectEditPoints != null && editedShape instanceof Group) {
             editPoints.removeAll(objectEditPoints);
-            objectEditPoints.clear();
+            objectEditPoints.forEach(editPoint -> {
+                System.out.println("Setting invisible1");
+                editPoint.setVisible(false);
+                editPoint.hasBeenClicked = false;
+            });
         }
         editedShape = null;
         updateLightSources();
     }
-
 
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
@@ -194,7 +201,6 @@ public class PanelSource extends Line implements Editable {
         updateHitbox();
     }
 
-
     private void updateHitbox() {
         hitbox.setY(getStartY() - hitbox.getHeight() / 2);
         hitbox.setX(getStartX() - hitbox.getHeight() / 2);
@@ -204,7 +210,6 @@ public class PanelSource extends Line implements Editable {
         hitbox.setWidth(getLength() + hitbox.getHeight());
         rotate.setAngle(rotation);
     }
-
 
     public double getLength() {
         return Math.sqrt(
@@ -276,8 +281,6 @@ public class PanelSource extends Line implements Editable {
                         objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
                     }
 
-
-
                     updateHitbox();
                 });
 
@@ -345,10 +348,19 @@ public class PanelSource extends Line implements Editable {
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
-                    this.setStartX(finalStartX);
-                    this.setStartY(finalStartY);
-                    this.setEndX(finalEndX);
-                    this.setEndY(finalEndY);
+                    // TODO: Might be worth rethinking the variable names here
+                    if (anchor.equals(objectEditPoints.get(0).getCenter())) {
+                        this.setStartX(finalStartX);
+                        this.setStartY(finalStartY);
+                        this.setEndX(finalEndX);
+                        this.setEndY(finalEndY);
+                    }
+                    else {
+                        this.setStartX(finalEndX);
+                        this.setStartY(finalEndY);
+                        this.setEndX(finalStartX);
+                        this.setEndY(finalStartY);
+                    }
 
                     double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
                     double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
