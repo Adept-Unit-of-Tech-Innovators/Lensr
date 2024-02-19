@@ -108,6 +108,27 @@ public class OriginRay extends Ray {
                                 }
                             }
                         }
+                        else if (currentMirror instanceof Prism prism) {
+                            // Treat the prism as 3 lines
+                            Point2D intersectionPoint1 = getRayLineIntersectionPoint(currentRay, new Line(prism.getPoints().get(0), prism.getPoints().get(1), prism.getPoints().get(2), prism.getPoints().get(3)));
+                            Point2D intersectionPoint2 = getRayLineIntersectionPoint(currentRay, new Line(prism.getPoints().get(2), prism.getPoints().get(3), prism.getPoints().get(4), prism.getPoints().get(5)));
+                            Point2D intersectionPoint3 = getRayLineIntersectionPoint(currentRay, new Line(prism.getPoints().get(4), prism.getPoints().get(5), prism.getPoints().get(0), prism.getPoints().get(1)));
+
+                            // Find the closest intersection point if it exists
+                            double distance1 = intersectionPoint1 != null ? new Point2D(currentRay.getStartX(), currentRay.getStartY()).distance(intersectionPoint1) : Double.MAX_VALUE;
+                            double distance2 = intersectionPoint2 != null ? new Point2D(currentRay.getStartX(), currentRay.getStartY()).distance(intersectionPoint2) : Double.MAX_VALUE;
+                            double distance3 = intersectionPoint3 != null ? new Point2D(currentRay.getStartX(), currentRay.getStartY()).distance(intersectionPoint3) : Double.MAX_VALUE;
+
+                            double minDistance = Math.min(Math.min(distance1, distance2), distance3);
+
+                            if (minDistance == distance1) {
+                                intersectionPoint = intersectionPoint1;
+                            } else if (minDistance == distance2) {
+                                intersectionPoint = intersectionPoint2;
+                            } else if (minDistance == distance3) {
+                                intersectionPoint = intersectionPoint3;
+                            }
+                        }
                     }
 
                     if (intersectionPoint == null) continue;
@@ -241,6 +262,10 @@ public class OriginRay extends Ray {
                     nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness());
+                }
+                else if (closestIntersectionMirror instanceof Prism prism) {
+                    // TODO: Implement prism refraction calculations
+                    break;
                 }
                 else if (closestIntersectionMirror instanceof LightEater) {
                     break;
