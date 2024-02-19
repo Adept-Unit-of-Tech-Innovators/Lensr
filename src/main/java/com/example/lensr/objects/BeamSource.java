@@ -331,7 +331,6 @@ public class BeamSource extends Rectangle implements Editable{
             originRays.forEach(ray -> group.getChildren().add(ray.group));
             originRays.forEach(Node::toBack);
             updateLightSources();
-            System.out.println(originRays.size());
         });
     }
 
