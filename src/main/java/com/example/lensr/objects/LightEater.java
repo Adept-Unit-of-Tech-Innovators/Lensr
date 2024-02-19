@@ -111,7 +111,7 @@ public class LightEater extends Circle implements Editable{
             Point2D prevMousePos = mousePos;
             Point2D prevCenter = new Point2D(getCenterX(), getCenterY());
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double x = prevCenter.getX() + (mousePos.getX() - prevMousePos.getX());
                 double y = prevCenter.getY() + (mousePos.getY() - prevMousePos.getY());
 
@@ -149,7 +149,7 @@ public class LightEater extends Circle implements Editable{
         new Thread(() -> {
             double centerX, centerY, radius;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed) {
                     centerX = anchor.getX();

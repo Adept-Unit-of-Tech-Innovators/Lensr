@@ -243,7 +243,7 @@ public class PanelSource extends Line implements Editable {
             Point2D prevStart = new Point2D(getStartX(), getStartY());
             Point2D prevEnd = new Point2D(getEndX(), getEndY());
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double deltaX = mousePos.getX() - prevMousePos.getX();
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
@@ -296,7 +296,7 @@ public class PanelSource extends Line implements Editable {
         new Thread(() -> {
             double startX, startY, endX, endY;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();

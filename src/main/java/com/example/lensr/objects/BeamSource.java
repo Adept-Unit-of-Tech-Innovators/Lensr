@@ -186,7 +186,7 @@ public class BeamSource extends Rectangle implements Editable{
 
             Point2D prevMousePos = mousePos;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double deltaX = mousePos.getX() - prevMousePos.getX();
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
@@ -232,7 +232,7 @@ public class BeamSource extends Rectangle implements Editable{
                 }
             });
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double angle = Math.atan2(mousePos.getY() - getCenterY(), mousePos.getX() - getCenterX());
 
                 // Rotate the light source
