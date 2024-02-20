@@ -17,6 +17,7 @@ import static com.example.lensr.LensrStart.*;
 
 public class SphericalLens extends Group implements Editable {
 
+    Group group = new Group();
     List<EditPoint> objectEditPoints = new ArrayList<>();
     List<EditPoint> arcEditPoints = new ArrayList<>();
     private EditPoint upperRotateField;
@@ -64,8 +65,57 @@ public class SphericalLens extends Group implements Editable {
             element.setStrokeWidth(globalStrokeWidth);
         }
 
-        getChildren().addAll(elements);
-        root.getChildren().addAll(this);
+        // Setup positions for all different edit points
+
+        // Corner points
+        objectEditPoints.add(new EditPoint(topLine.getStartX(), topLine.getStartY()));
+        objectEditPoints.add(new EditPoint(topLine.getEndX(), topLine.getEndY()));
+        objectEditPoints.add(new EditPoint(bottomLine.getEndX(), bottomLine.getEndY()));
+        objectEditPoints.add(new EditPoint(bottomLine.getStartX(), bottomLine.getStartY()));
+
+        // Center point
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.get(4).setOnClickEvent(event -> move());
+
+        // Rotate fields
+        upperRotateField = new EditPoint(0 ,0);
+        upperRotateField.setFill(Color.TRANSPARENT);
+        upperRotateField.setStroke(Color.TRANSPARENT);
+
+        lowerRotateField = new EditPoint(0, 0);
+        lowerRotateField.setFill(Color.TRANSPARENT);
+        lowerRotateField.setStroke(Color.TRANSPARENT);
+
+        // Arc edit points
+        arcEditPoints.add(new EditPoint(firstArc.getVertex()));
+        arcEditPoints.add(new EditPoint(secondArc.getVertex()));
+
+        arcEditPoints.get(0).setFill(Color.HOTPINK);
+        arcEditPoints.get(1).setFill(Color.HOTPINK);
+
+        // Set what will happen after clicking an edit point
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
+                scale(oppositeEditPoint.getCenter());
+            });
+        }
+
+        upperRotateField.setOnClickEvent(event -> rotate());
+        lowerRotateField.setOnClickEvent(event -> rotate());
+
+        arcEditPoints.get(0).setOnClickEvent(event -> scaleArc(firstArc));
+        arcEditPoints.get(1).setOnClickEvent(event -> scaleArc(secondArc));
+
+        objectEditPoints.add(upperRotateField);
+        objectEditPoints.add(lowerRotateField);
+        objectEditPoints.addAll(arcEditPoints);
+
+        // Add everything to the group
+        group.getChildren().add(this);
+        group.getChildren().addAll(elements);
+        group.getChildren().addAll(objectEditPoints);
+        root.getChildren().add(group);
     }
 
     // TODO: Implement visible focal point
@@ -95,115 +145,54 @@ public class SphericalLens extends Group implements Editable {
     public void resize(double newAngleOfRotation) {resize(centerX, centerY, middleWidth, middleHeight, newAngleOfRotation);}
     public void resize(double newCenterX, double newCenterY) {resize(newCenterX, newCenterY, middleWidth, middleHeight, angleOfRotation);}
     @Override
-    public void openObjectEdit()
-    {
+    public void openObjectEdit() {
+        // Setup the sliders
         coefficientASlider.setCurrentSource(this);
         coefficientBSlider.setCurrentSource(this);
         coefficientASlider.show();
         coefficientBSlider.show();
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setVisible(true);
+            editPoint.toFront();
+        });
 
         hasBeenClicked = true;
         isEdited = true;
 
         // Defocus the text field
         root.requestFocus();
-
-        // Setup positions for all different edit points
-        objectEditPoints.add(new EditPoint(topLine.getStartX(), topLine.getStartY()));
-        objectEditPoints.add(new EditPoint(topLine.getEndX(), topLine.getEndY()));
-        objectEditPoints.add(new EditPoint(bottomLine.getEndX(), bottomLine.getEndY()));
-        objectEditPoints.add(new EditPoint(bottomLine.getStartX(), bottomLine.getStartY()));
-
-        upperRotateField = new EditPoint(0 ,0);
-        upperRotateField.setFill(Color.TRANSPARENT);
-        upperRotateField.setStroke(Color.TRANSPARENT);
-
-        lowerRotateField = new EditPoint(0, 0);
-        lowerRotateField.setFill(Color.TRANSPARENT);
-        lowerRotateField.setStroke(Color.TRANSPARENT);
-
         adjustRotateField();
 
-        root.getChildren().addAll(upperRotateField, lowerRotateField);
-
-        arcEditPoints.add(new EditPoint(firstArc.getVertex()));
-        arcEditPoints.add(new EditPoint(secondArc.getVertex()));
-
-        arcEditPoints.get(0).setFill(Color.HOTPINK);
-        arcEditPoints.get(1).setFill(Color.HOTPINK);
-
-        // Set what will happen after clicking an edit point
-        for (EditPoint editPoint : objectEditPoints) {
-            editPoint.setOnClickEvent(event -> {
-                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
-                scale(oppositeEditPoint.getCenter());
-            });
-        }
-
-        upperRotateField.setOnClickEvent(event -> {
-            rotate();
-            System.out.println("upper nigga");
-        });
-        lowerRotateField.setOnClickEvent(event -> {
-            rotate();
-            System.out.println("lower nigga");
-        });
-
-
-
-        arcEditPoints.get(0).setOnClickEvent(event -> scaleArc(firstArc));
-        arcEditPoints.get(1).setOnClickEvent(event -> scaleArc(secondArc));
-
         editPoints.addAll(objectEditPoints);
-        getChildren().addAll(objectEditPoints);
-
-        editPoints.add(upperRotateField);
-        editPoints.add(lowerRotateField);
-        getChildren().addAll(upperRotateField, lowerRotateField);
-
-        editPoints.addAll(arcEditPoints);
-        getChildren().addAll(arcEditPoints);
-
-        editedShape = this;
+        editedShape = group;
     }
     @Override
     public void closeObjectEdit() {
         coefficientASlider.hide();
         coefficientBSlider.hide();
         isEdited = false;
-        if(objectEditPoints != null && editedShape instanceof Group editedGroup)
-        {
-            editedGroup.getChildren().removeAll(objectEditPoints);
+        if (objectEditPoints != null && editedShape instanceof Group) {
             editPoints.removeAll(objectEditPoints);
-            objectEditPoints.clear();
-
-            editedGroup.getChildren().removeAll(upperRotateField, lowerRotateField);
-            editPoints.remove(upperRotateField);
-            editPoints.remove(lowerRotateField);
-
-            editedGroup.getChildren().removeAll(arcEditPoints);
-            editPoints.removeAll(arcEditPoints);
-            arcEditPoints.clear();
+            objectEditPoints.forEach(editPoint -> {
+                editPoint.setVisible(false);
+                editPoint.hasBeenClicked = false;
+            });
         }
 
         editedShape = null;
         MirrorMethods.updateLightSources();
     }
 
-    public void move()
-    {
-        new Thread(() -> {
-            Point2D prevMousePos = mousePos;
-            Point2D prevCenter = new Point2D(getCenterX(), getCenterY());
-
+    public void move() {
+        taskPool.execute(() -> {
             while (isMousePressed) {
-                double x = prevCenter.getX() + (mousePos.getX() - prevMousePos.getX());
-                double y = prevCenter.getY() + (mousePos.getY() - prevMousePos.getY());
+                double x = mousePos.getX();
+                double y = mousePos.getY();
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     resize(x,y);
-
                     alignEditPoints();
                 });
 
@@ -216,17 +205,14 @@ public class SphericalLens extends Group implements Editable {
                 }
             }
 
-        }).start();
+        });
     }
-    public void scale(Point2D anchor)
-    {
-        new Thread(() -> {
+    public void scale(Point2D anchor) {
+        taskPool.execute(() -> {
             double newCenterX, newCenterY, newWidth, newHeight;
 
-            while (isMousePressed)
-            {
-                if(altPressed && shiftPressed) // Scale along center & preserve ratio
-                {
+            while (isMousePressed) {
+                if (altPressed && shiftPressed) {
                     newCenterX = anchor.getX();
                     newCenterY = anchor.getY();
 
@@ -235,14 +221,14 @@ public class SphericalLens extends Group implements Editable {
                     newWidth = 2 * Math.abs(newCenterX - mousePos.getX()) / Math.cos(angleOfRotation);
                     newHeight = newWidth * ratio;
                 }
-                else if (altPressed) { // Scale along center
+                else if (altPressed) {
                     newCenterX = anchor.getX();
                     newCenterY = anchor.getY();
 
                     newWidth = 2 * Math.abs(newCenterX - mousePos.getX()) / ((angleOfRotation == 0) ? 1 : Math.cos(angleOfRotation));
                     newHeight = 2 * Math.abs(newCenterY - mousePos.getY()) / ((angleOfRotation == 0) ? 1 : Math.sin(angleOfRotation));
                 }
-                else if (shiftPressed) { // Scale with preserving width to height ratio
+                else if (shiftPressed) {
                     //TODO: Make this mf work
                     newCenterX = mousePos.getX() + (anchor.getX() - mousePos.getX()) / 2;
                     newCenterY = mousePos.getY() + (anchor.getY() - mousePos.getY()) / 2;
@@ -295,12 +281,11 @@ public class SphericalLens extends Group implements Editable {
             }
 
 
-        }).start();
+        });
     }
 
-    public void rotate()
-    {
-        new Thread(() -> {
+    public void rotate() {
+        taskPool.execute(() -> {
             double newAngleOfRotation;
 
             double mouseAngle = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX());
@@ -327,12 +312,11 @@ public class SphericalLens extends Group implements Editable {
             }
 
 
-        }).start();
+        });
     }
 
-    public void scaleArc(LensArc arc)
-    {
-        new Thread(() -> {
+    public void scaleArc(LensArc arc) {
+        taskPool.execute(() -> {
             double newThickness;
             while (isMousePressed)
             {
@@ -356,16 +340,16 @@ public class SphericalLens extends Group implements Editable {
                     }
                 }
             }
-        }).start();
+        });
 
     }
 
-    public void alignEditPoints()
-    {
+    public void alignEditPoints() {
         objectEditPoints.get(0).setCenter(topLine.getStart());
         objectEditPoints.get(1).setCenter(topLine.getEnd());
         objectEditPoints.get(2).setCenter(bottomLine.getEnd());
         objectEditPoints.get(3).setCenter(bottomLine.getStart());
+        objectEditPoints.get(4).setCenter(getCenter());
 
         adjustRotateField();
 
@@ -381,7 +365,7 @@ public class SphericalLens extends Group implements Editable {
     @Override
     public void delete() {
         lenses.remove(this);
-        root.getChildren().remove(this);
+        root.getChildren().remove(group);
     }
 
     @Override
@@ -427,8 +411,7 @@ public class SphericalLens extends Group implements Editable {
         return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());
     }
 
-    public Point2D getCenter()
-    {
+    public Point2D getCenter() {
         return new Point2D(centerX, centerY);
     }
     public double getCoeficientA() {

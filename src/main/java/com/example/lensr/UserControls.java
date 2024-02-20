@@ -381,9 +381,8 @@ public class UserControls {
                     coefficientBSlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientB, SliderStyle.Secondary);
                 }
                 sphericalLens.openObjectEdit();
-                lenses.add(sphericalLens);
                 sphericalLens.scale(mousePos);
-                editedShape = sphericalLens;
+                lenses.add(sphericalLens);
                 break;
         }
     }

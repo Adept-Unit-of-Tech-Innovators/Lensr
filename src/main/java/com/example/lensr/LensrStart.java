@@ -109,10 +109,6 @@ public class LensrStart extends Application {
             button.disableProperty().setValue(true);
         }
 
-
-        root.getChildren().add(rayCanvas);
-        rayCanvas.toBack();
-
         UserControls.setUserControls();
 
         primaryStage.setTitle("rtx 5090ti testing place");

@@ -361,6 +361,8 @@ public class OriginRay extends Ray {
 
                     boolean totalInternalReflection = determineTIR(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
+                    System.out.println(currentRay.getWavelength() + " " + refractionAngle);
+                    System.out.println("-------------------");
 
                     if (inLens && !totalInternalReflection) intersectors.remove(currSphericalLens);
                     else if (!inLens && !totalInternalReflection) intersectors.add(currSphericalLens);

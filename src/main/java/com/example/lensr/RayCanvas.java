@@ -17,8 +17,9 @@ public class RayCanvas extends Canvas {
     }
 
     public void drawRays(List<Ray> rays) {
+        final List<Ray> raysCopy = List.copyOf(rays);
         Platform.runLater(() -> {
-            for (Ray ray : rays) {
+            for (Ray ray : raysCopy) {
                 Color rayColor = (Color) ray.getStroke();
                 rayColor = new Color(rayColor.getRed(), rayColor.getGreen(), rayColor.getBlue(), ray.getBrightness());
                 getGraphicsContext2D().setStroke(rayColor);
