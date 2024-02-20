@@ -36,6 +36,7 @@ public class UserControls {
             clickableObjects.addAll(editPoints);
             clickableObjects.addAll(lightSources);
             clickableObjects.addAll(mirrors);
+            clickableObjects.addAll(lenses);
 
             for (Object clickableObject : clickableObjects) {
                 if (clickableObject instanceof EditPoint editPoint && !editPoint.hasBeenClicked && editPoint.intersects(mouseHitbox.getLayoutBounds())) {
@@ -244,6 +245,15 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if(keyEvent.getCode().toString().equals("L") && isEditMode)
+            {
+                if (keyPressed == Key.L) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.L;
+                }
+                closeCurrentEdit();
+            }
             toolbar.forEach(ToolbarButton::updateRender);
         });
 
@@ -362,12 +372,28 @@ public class UserControls {
                 panelSource.scale(mousePos);
                 lightSources.add(panelSource);
                 break;
+            case L:
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.5, 0.004);
+                sphericalLens.create();
+                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
+                {
+                    coefficientASlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientA, SliderStyle.Primary);
+                    coefficientBSlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientB, SliderStyle.Secondary);
+                }
+                sphericalLens.openObjectEdit();
+                lenses.add(sphericalLens);
+                sphericalLens.scale(mousePos);
+                editedShape = sphericalLens;
+                break;
         }
     }
 
 
     public static void closeCurrentEdit() {
-        if (editedShape instanceof Group group) {
+        if (editedShape instanceof Editable) {
+            ((Editable) editedShape).closeObjectEdit();
+        }
+        else if (editedShape instanceof Group group) {
             group.getChildren().stream()
                     .filter(node -> node instanceof Editable)
                     .map(node -> (Editable) node)
@@ -382,6 +408,7 @@ public class UserControls {
         clickableObjects.addAll(editPoints);
         clickableObjects.addAll(lightSources);
         clickableObjects.addAll(mirrors);
+        clickableObjects.addAll(lenses);
 
         for (Object clickableObject : clickableObjects) {
             if (clickableObject instanceof EditPoint editPoint) {

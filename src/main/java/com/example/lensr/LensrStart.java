@@ -1,10 +1,12 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.SphericalLens;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -26,6 +28,7 @@ public class LensrStart extends Application {
     public static List<Object> lightSources = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
     public static List<Rectangle> editPoints = new ArrayList<>();
+    public static List<Object> lenses = new ArrayList<>();
     public static Point2D mousePos;
     public enum Key {
         None,
@@ -37,7 +40,8 @@ public class LensrStart extends Application {
         N,
         M,
         K,
-        J
+        J,
+        L
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -53,6 +57,8 @@ public class LensrStart extends Application {
     public static ParameterSlider reflectivitySlider;
     public static ParameterSlider startPassbandSlider;
     public static ParameterSlider endPassbandSlider;
+    public static ParameterSlider coefficientASlider;
+    public static ParameterSlider coefficientBSlider;
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
@@ -74,8 +80,9 @@ public class LensrStart extends Application {
         ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
         ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
-        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 25, 75);
-        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 150, 75);
+        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 25, 75);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 150, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 275, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -83,6 +90,7 @@ public class LensrStart extends Application {
         toolbar.add(gaussianFilterButton);
         toolbar.add(brickwallFilterButton);
         toolbar.add(sensorButton);
+        toolbar.add(lensButton);
         toolbar.add(beamButton);
         toolbar.add(panelButton);
 
@@ -100,6 +108,10 @@ public class LensrStart extends Application {
             button.addToRoot();
             button.disableProperty().setValue(true);
         }
+
+
+        root.getChildren().add(rayCanvas);
+        rayCanvas.toBack();
 
         UserControls.setUserControls();
 
