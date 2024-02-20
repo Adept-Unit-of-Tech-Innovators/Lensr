@@ -75,8 +75,12 @@ public class OriginRay extends Ray {
                         else if (currentMirror instanceof Line line) {
                             intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                         }
+                        else if (currentMirror instanceof Arc arcMirror) {
+                            intersectionPoint = getRayArcIntersectionPoint(currentRay, arcMirror);
+                        }
                         else if (currentMirror instanceof FunnyMirror funnyMirror) {
-                            for (int i = 0; i + 2 < funnyMirror.getPoints().size(); i = i + 2) {
+                            // TODO: Update FunnyMirror intersection (because LineMirror is no longer a thing)
+                            /*for (int i = 0; i + 2 < funnyMirror.getPoints().size(); i = i + 2) {
                                 Line segment = new Line(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i+1), funnyMirror.getPoints().get(i+2), funnyMirror.getPoints().get(i+3));
                                 Point2D segmentIntersectionPoint = getRayLineIntersectionPoint(currentRay, segment);
                                 if (segmentIntersectionPoint != null) {
@@ -84,9 +88,9 @@ public class OriginRay extends Ray {
                                         intersectionPoint = segmentIntersectionPoint;
 
                                         // This is a cursed way to do this but it works
-                                        LineMirror lineMirror = new LineMirror(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY());
-                                        lineMirror.setReflectivity(funnyMirror.getReflectivity());
-                                        funnyMirror.setClosestIntersectionSegment(lineMirror);
+                                        ArcMirror arcMirror = new ArcMirror(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY());
+                                        arcMirror.setReflectivity(funnyMirror.getReflectivity());
+                                        funnyMirror.setClosestIntersectionSegment(arcMirror);
                                     }
                                     else {
                                         double distanceToSegmentIntersectionPoint = Math.sqrt(
@@ -101,13 +105,13 @@ public class OriginRay extends Ray {
                                             intersectionPoint = segmentIntersectionPoint;
 
                                             // This is a cursed way to do this but it works
-                                            LineMirror lineMirror = new LineMirror(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY());
-                                            lineMirror.setReflectivity(funnyMirror.getReflectivity());
-                                            funnyMirror.setClosestIntersectionSegment(lineMirror);
+                                            ArcMirror arcMirror = new ArcMirror(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY());
+                                            arcMirror.setReflectivity(funnyMirror.getReflectivity());
+                                            funnyMirror.setClosestIntersectionSegment(arcMirror);
                                         }
                                     }
                                 }
-                            }
+                            }*/
                         }
                     }
 
@@ -196,17 +200,17 @@ public class OriginRay extends Ray {
                 double reflectedY = 0;
 
                 // LineMirror interaction
-                if (closestIntersectionObject instanceof LineMirror mirror) {
+                if (closestIntersectionObject instanceof ArcMirror mirror) {
                     // Calculate the angle of incidence
-                    double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
+                    double reflectionAngle = getArcReflectionAngle(currentRay, mirror);
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() - SIZE * 2 * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - SIZE * 2 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() -.001 * Math.cos(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                 }

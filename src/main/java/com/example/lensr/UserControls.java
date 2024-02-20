@@ -294,14 +294,14 @@ public class UserControls {
                 mirrors.add(ellipseMirror);
                 break;
             case Z:
-                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                lineMirror.create();
+                ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
+                arcMirror.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    reflectivitySlider = new ParameterSlider(arcMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
                 }
-                lineMirror.openObjectEdit();
-                lineMirror.scale(mousePos);
-                mirrors.add(lineMirror);
+                arcMirror.openObjectEdit();
+                arcMirror.scale(arcMirror.objectEditPoints.get(0));
+                mirrors.add(arcMirror);
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
