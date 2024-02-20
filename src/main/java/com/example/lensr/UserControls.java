@@ -373,11 +373,12 @@ public class UserControls {
                 lightSources.add(panelSource);
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.52);
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.5, 0.004);
                 sphericalLens.create();
                 if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
                 {
-                    refractiveIndexSlider = new ParameterSlider(sphericalLens, ValueToChange.RefractiveIndex, SliderStyle.Primary);
+                    coefficientASlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientA, SliderStyle.Primary);
+                    coefficientBSlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientB, SliderStyle.Secondary);
                 }
                 sphericalLens.openObjectEdit();
                 lenses.add(sphericalLens);

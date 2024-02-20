@@ -4,7 +4,6 @@ import com.example.lensr.EditPoint;
 import com.example.lensr.MirrorMethods;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -35,13 +34,15 @@ public class SphericalLens extends Group implements Editable {
     private final LensLine bottomLine;
     public List<Shape> elements = new ArrayList<>();
 
-    private double refractiveIndex;
+    private double coeficientA;
+    private double coeficientB;
     private double focalLength;
 
     private Point2D focalPoint;
 
-    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double refractiveIndex) {
-        this.refractiveIndex = refractiveIndex;
+    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coeficientA, double coeficientB) {
+        this.coeficientA = coeficientA;
+        this.coeficientB = coeficientB;
 
         firstArc = new LensArc(this, lensThickness1);
         secondArc = new LensArc(this, lensThickness2);
@@ -73,8 +74,8 @@ public class SphericalLens extends Group implements Editable {
     }
 
     public double calculateFocalLength() {
-
-        return 1 / ((refractiveIndex - 1) * (1 / firstArc.getRadiusY() - 1 / secondArc.getRadiusY() + (((refractiveIndex - 1) * middleWidth) / refractiveIndex * firstArc.getRadiusY() * secondArc.getRadiusY())));
+            return 0;
+//        return 1 / ((refractiveIndex - 1) * (1 / firstArc.getRadiusY() - 1 / secondArc.getRadiusY() + (((refractiveIndex - 1) * middleWidth) / refractiveIndex * firstArc.getRadiusY() * secondArc.getRadiusY())));
     }
 
     public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight, double newAngleOfRotation) {
@@ -96,8 +97,10 @@ public class SphericalLens extends Group implements Editable {
     @Override
     public void openObjectEdit()
     {
-        refractiveIndexSlider.setCurrentSource(this);
-        refractiveIndexSlider.show();
+        coefficientASlider.setCurrentSource(this);
+        coefficientBSlider.setCurrentSource(this);
+        coefficientASlider.show();
+        coefficientBSlider.show();
 
         hasBeenClicked = true;
         isEdited = true;
@@ -165,7 +168,8 @@ public class SphericalLens extends Group implements Editable {
     }
     @Override
     public void closeObjectEdit() {
-        refractiveIndexSlider.hide();
+        coefficientASlider.hide();
+        coefficientBSlider.hide();
         isEdited = false;
         if(objectEditPoints != null && editedShape instanceof Group editedGroup)
         {
@@ -382,7 +386,7 @@ public class SphericalLens extends Group implements Editable {
 
     @Override
     public void copy() {
-        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), refractiveIndex);
+        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), coeficientA, coeficientB);
         newLens.create();
         newLens.moveBy(10, 10);
         lenses.add(newLens);
@@ -427,12 +431,17 @@ public class SphericalLens extends Group implements Editable {
     {
         return new Point2D(centerX, centerY);
     }
-    public double getRefractiveIndex() {
-        return refractiveIndex;
+    public double getCoeficientA() {
+        return coeficientA;
     }
-    public void setRefractiveIndex(double refractiveIndex)
-    {
-        this.refractiveIndex = refractiveIndex;
+    public double getCoeficientB() {
+        return coeficientB;
+    }
+    public void setCoefficientA(double coeficientA) {
+        this.coeficientA = coeficientA;
+    }
+    public void setCoefficientB(double coeficientB) {
+        this.coeficientB = coeficientB;
     }
     public LensArc getFirstArc() {return firstArc;}
     public LensArc getSecondArc() {return secondArc;}

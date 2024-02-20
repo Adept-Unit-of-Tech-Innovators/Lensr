@@ -57,7 +57,8 @@ public class LensrStart extends Application {
     public static ParameterSlider reflectivitySlider;
     public static ParameterSlider startPassbandSlider;
     public static ParameterSlider endPassbandSlider;
-    public static ParameterSlider refractiveIndexSlider;
+    public static ParameterSlider coefficientASlider;
+    public static ParameterSlider coefficientBSlider;
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
