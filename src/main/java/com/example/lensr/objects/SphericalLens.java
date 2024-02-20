@@ -75,7 +75,6 @@ public class SphericalLens extends Group implements Editable {
 
         // Center point
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
-        objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         // Rotate fields
         upperRotateField = new EditPoint(0 ,0);
@@ -100,6 +99,8 @@ public class SphericalLens extends Group implements Editable {
                 scale(oppositeEditPoint.getCenter());
             });
         }
+
+        objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         upperRotateField.setOnClickEvent(event -> rotate());
         lowerRotateField.setOnClickEvent(event -> rotate());
