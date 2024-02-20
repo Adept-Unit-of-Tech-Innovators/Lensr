@@ -157,8 +157,6 @@ public class OriginRay extends Ray {
                                             Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
                             );
 
-
-
                             if (intersectionDistance < shortestIntersectionDistance) {
                                 closestIntersectionPoint = intersectionPoint;
                                 shortestIntersectionDistance = intersectionDistance;
@@ -361,8 +359,6 @@ public class OriginRay extends Ray {
 
                     boolean totalInternalReflection = determineTIR(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
-                    System.out.println(currentRay.getWavelength() + " " + refractionAngle);
-                    System.out.println("-------------------");
 
                     if (inLens && !totalInternalReflection) intersectors.remove(currSphericalLens);
                     else if (!inLens && !totalInternalReflection) intersectors.add(currSphericalLens);
@@ -416,7 +412,7 @@ public class OriginRay extends Ray {
     // Get current and new coefficients for the lens and prism interactions
     private Tuple<Double, Double> getCurrentCoefficients(SphericalLens currentSphericalLens, boolean isInTheLens) {
         if(intersectors.isEmpty()) return new Tuple<>(1.0, 0.0);
-        if(isInTheLens) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
+        if(isInTheLens || intersectors.size() == 1) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
         return new Tuple<>(intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientA(),
                 intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientB());
     }
