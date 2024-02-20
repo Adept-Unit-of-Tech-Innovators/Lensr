@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.RayCanvas;
+import com.example.lensr.Tuple;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.*;
@@ -316,12 +317,10 @@ public class OriginRay extends Ray {
                     SphericalLens currSphericalLens = arc.getParentLens();
 
                     boolean inLens = intersectors.contains(currSphericalLens);
-                    double currentCoefficientA = getCurrentCoefficientA(currSphericalLens, inLens);
-                    double newCoefficientA = getNewCoefficientA(currSphericalLens, inLens);
-                    double currentCoefficientB = getCurrentCoefficientB(currSphericalLens, inLens);
-                    double newCoefficientB = getNewCoefficientB(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficientA + currentCoefficientB / Math.pow(currentRay.getWavelength(), 2);
-                    double newRefractiveIndex = newCoefficientA + newCoefficientB / Math.pow(currentRay.getWavelength(), 2);
+                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients(currSphericalLens, inLens);
+                    Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
@@ -344,12 +343,10 @@ public class OriginRay extends Ray {
                     SphericalLens currSphericalLens = line.getParentLens();
 
                     boolean inLens = intersectors.contains(currSphericalLens);
-                    double currentCoefficientA = getCurrentCoefficientA(currSphericalLens, inLens);
-                    double newCoefficientA = getNewCoefficientA(currSphericalLens, inLens);
-                    double currentCoefficientB = getCurrentCoefficientB(currSphericalLens, inLens);
-                    double newCoefficientB = getNewCoefficientB(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficientA + currentCoefficientB / Math.pow(currentRay.getWavelength(), 2);
-                    double newRefractiveIndex = newCoefficientA + newCoefficientB / Math.pow(currentRay.getWavelength(), 2);
+                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients(currSphericalLens, inLens);
+                    Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
@@ -397,27 +394,20 @@ public class OriginRay extends Ray {
         return parentSource;
     }
 
-    public double getCurrentCoefficientA(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(intersectors.isEmpty()) return 1;
-        if(isInTheLens) return currentSphericalLens.getCoeficientA();
-        return intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientA();
-    }
-    public double getNewCoefficientA(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(!isInTheLens) return currentSphericalLens.getCoeficientA();
-        if(intersectors.size() == 1) return 1;
-        return intersectors.get(intersectors.size() - 1).getCoeficientA();
+    // Get current and new coefficients for the lens and prism interactions
+    private Tuple<Double, Double> getCurrentCoefficients(SphericalLens currentSphericalLens, boolean isInTheLens) {
+        if(intersectors.isEmpty()) return new Tuple<>(1.0, 0.0);
+        if(isInTheLens) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
+        return new Tuple<>(intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientA(),
+                intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientB());
     }
 
-    public double getCurrentCoefficientB(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(intersectors.isEmpty()) return 1;
-        if(isInTheLens) return currentSphericalLens.getCoeficientB();
-        return intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientB();
+    private Tuple<Double, Double> getNewCoefficients(SphericalLens currentSphericalLens, boolean isInTheLens) {
+        if(!isInTheLens) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
+        if(intersectors.size() == 1) return new Tuple<>(1.0, 0.0);
+        return new Tuple<>(intersectors.get(intersectors.size() - 1).getCoeficientA(), intersectors.get(intersectors.size() - 1).getCoeficientB());
     }
-    public double getNewCoefficientB(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(!isInTheLens) return currentSphericalLens.getCoeficientB();
-        if(intersectors.size() == 1) return 1;
-        return intersectors.get(intersectors.size() - 1).getCoeficientB();
-    }
+
     public boolean determineTIR(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double centerX = arc.getCenterX();

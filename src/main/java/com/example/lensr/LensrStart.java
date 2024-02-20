@@ -76,20 +76,18 @@ public class LensrStart extends Application {
         ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
         ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
-        ToolbarButton rayButton = new ToolbarButton("Ray", Key.C, 775, 25);
-        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 900, 25);
         ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
-        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 25, 75);
-        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 150, 75);
+        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 25, 75);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 150, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 275, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
         toolbar.add(lightEaterButton);
         toolbar.add(gaussianFilterButton);
         toolbar.add(brickwallFilterButton);
-        toolbar.add(rayButton);
-        toolbar.add(lensButton);
         toolbar.add(sensorButton);
+        toolbar.add(lensButton);
         toolbar.add(beamButton);
         toolbar.add(panelButton);
 
