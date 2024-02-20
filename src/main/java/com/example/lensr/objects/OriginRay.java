@@ -133,12 +133,12 @@ public class OriginRay extends Ray {
                     Shape currObject = null;
                     if (lens instanceof SphericalLens currentSphericalLens) {
                         for (Shape element : currentSphericalLens.elements) {
-                            if (currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) > 0) {
+                            if (currentRay.getMinimalDistanceToBounds(element.getLayoutBounds()) >= 0) {
                                 if (element instanceof LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
                                     intersectionPoint = getRayArcIntersectionPoint(currentRay, arc);
                                     currObject = arc;
-                                } else if (element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
-                                    // TODO: Fix intersection not being detected when exiting the lens
+                                }
+                                else if (element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
                                     intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                                     currObject = line;
                                 }
@@ -347,13 +347,25 @@ public class OriginRay extends Ray {
                     if (inLens && !totalInternalReflection) intersectors.remove(currSphericalLens);
                     else if (!inLens && !totalInternalReflection) intersectors.add(currSphericalLens);
 
-                    // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
 
-                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+                    if (totalInternalReflection) {
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
+                    }
+                    else {
+                        // Calculate the reflected ray's endpoint based on the reflection angle
+                        reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+
+                        // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
+                        nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
+                        nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+                    }
                 }
 
                 nextRay.setEndX(reflectedX);
