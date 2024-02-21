@@ -326,7 +326,7 @@ public class OriginRay extends Ray {
                     SphericalLens currSphericalLens = arc.getParentLens();
 
                     boolean inLens = intersectors.contains(currSphericalLens);
-                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients(currSphericalLens, inLens);
+                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
                     double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
                     double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
@@ -352,7 +352,7 @@ public class OriginRay extends Ray {
                     SphericalLens currSphericalLens = line.getParentLens();
 
                     boolean inLens = intersectors.contains(currSphericalLens);
-                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients(currSphericalLens, inLens);
+                    Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
                     double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
                     double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
@@ -410,17 +410,15 @@ public class OriginRay extends Ray {
     }
 
     // Get current and new coefficients for the lens and prism interactions
-    private Tuple<Double, Double> getCurrentCoefficients(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(intersectors.isEmpty()) return new Tuple<>(1.0, 0.0);
-        if(isInTheLens || intersectors.size() == 1) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
-        return new Tuple<>(intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientA(),
-                intersectors.get(intersectors.indexOf(currentSphericalLens) - 1).getCoeficientB());
+    private Tuple<Double, Double> getCurrentCoefficients() {
+        if (intersectors.isEmpty()) return new Tuple<>(1.0, 0.0);
+        return new Tuple<>(intersectors.get(intersectors.size() - 1).getCoeficientA(), intersectors.get(intersectors.size() - 1).getCoeficientB());
     }
 
     private Tuple<Double, Double> getNewCoefficients(SphericalLens currentSphericalLens, boolean isInTheLens) {
-        if(!isInTheLens) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
-        if(intersectors.size() == 1) return new Tuple<>(1.0, 0.0);
-        return new Tuple<>(intersectors.get(intersectors.size() - 1).getCoeficientA(), intersectors.get(intersectors.size() - 1).getCoeficientB());
+        if (intersectors.size() == 1 && intersectors.get(0) == currentSphericalLens) return new Tuple<>(1.0, 0.0);
+        if (!isInTheLens || intersectors.size() < 2) return new Tuple<>(currentSphericalLens.getCoeficientA(), currentSphericalLens.getCoeficientB());
+        return new Tuple<>(intersectors.get(intersectors.size() - 2).getCoeficientA(), intersectors.get(intersectors.size() - 2).getCoeficientB());
     }
 
     public boolean determineTIR(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex) {
