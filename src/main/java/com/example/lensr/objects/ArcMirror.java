@@ -34,7 +34,7 @@ public class ArcMirror extends Arc implements Editable {
 
         // Place edit points (initially at the center)
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.add(new EditPoint(getCenterX() + 1, getCenterY() + 1));
 
         // Define what happens when an edit point is clicked
         objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter()));
@@ -168,30 +168,39 @@ public class ArcMirror extends Arc implements Editable {
                 curvePoint = new Point2D(mousePos.getX(), mousePos.getY());
                 Circle circumcircle = getCircumcircle(start, end, curvePoint);
 
-                double curvePointAngle = (360 - Math.toDegrees(Math.atan2(curvePoint.getY() - circumcircle.getCenterY(), curvePoint.getX() - circumcircle.getCenterX())));
-                double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX())));
-                double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX())));
+                // Calculate the angles of the start, end and curve point relative to the circumcircle
+                double curvePointAngle = (360 - Math.toDegrees(Math.atan2(curvePoint.getY() - circumcircle.getCenterY(), curvePoint.getX() - circumcircle.getCenterX()))) % 360;
+                double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
+                double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
 
+                double length;
+                // If the curve point angle is between the start and end angles, or if the curve point angle is outside the start and end angles but the arc crosses the 0/360 line
+                // then the length is simply the end angle minus the start angle
+                if ((curvePointAngle >= startAngle && curvePointAngle <= endAngle) ||
+                        (curvePointAngle <= startAngle && curvePointAngle >= endAngle)) {
+                    length = endAngle - startAngle;
+                }
+                // Otherwise, the length is 360 minus the absolute value of the end angle minus the start angle (i.e. the "inversed" length of the arc, e.g. -17 vs 343)
+                else {
+                    length = 360 - Math.abs(endAngle - startAngle);
+                }
+                // If the all the angles are in the same half of the circle, then the length is negative
+                // If you're going to try and fix the edge case where the length is opposite of what it should be, it's probably this if you want to change
+                if (
+                        (curvePointAngle < startAngle && curvePointAngle < endAngle && curvePointAngle > 180) ||
+                                (curvePointAngle > startAngle && curvePointAngle > endAngle && curvePointAngle < 180)) {
+                    length = -length;
+                }
+
+
+                double finalLength = length;
                 Platform.runLater(() -> {
                     setCenterX(circumcircle.getCenterX());
                     setCenterY(circumcircle.getCenterY());
                     setRadiusX(circumcircle.getRadius());
                     setRadiusY(circumcircle.getRadius());
                     setStartAngle(startAngle);
-                    if ((curvePointAngle < startAngle && curvePointAngle > endAngle - startAngle) ||
-                            (curvePointAngle > startAngle && curvePointAngle < endAngle - startAngle)
-                    ) {
-                        System.out.println("Left");
-                        setLength(endAngle - startAngle);
-                    }
-                    else {
-                        System.out.println("Right");
-                        setLength(endAngle - startAngle);
-                    }
-                    //if (curvePointAngle >= Math.min(startAngle, endAngle) && curvePointAngle > Math.max(startAngle, endAngle)) {
-                    System.out.println(curvePointAngle + " " + startAngle + " " + endAngle + " " + getLength());
-
-
+                    setLength(finalLength);
 
                     // Update editPoints location
                     objectEditPoints.get(0).setCenterX(start.getX());
@@ -265,18 +274,44 @@ public class ArcMirror extends Arc implements Editable {
                 Point2D end = new Point2D(oppositeX, oppositeY);
                 curvePoint = objectEditPoints.get(2).getCenter();
 
+                // Get the circumcircle of the triangle formed by the start, end and curve point
                 Circle circumcircle = getCircumcircle(start, end, curvePoint);
 
-                // Update the UI on the JavaFX application thread
+                // Calculate the angles of the start, end and curve point relative to the circumcircle
+                double curvePointAngle = (360 - Math.toDegrees(Math.atan2(curvePoint.getY() - circumcircle.getCenterY(), curvePoint.getX() - circumcircle.getCenterX()))) % 360;
+                double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
+                double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
+
+                double length;
+                // If the curve point angle is between the start and end angles, or if the curve point angle is outside the start and end angles but the arc crosses the 0/360 line
+                // then the length is simply the end angle minus the start angle
+                if ((curvePointAngle >= startAngle && curvePointAngle <= endAngle) ||
+                        (curvePointAngle <= startAngle && curvePointAngle >= endAngle)) {
+                    length = endAngle - startAngle;
+                }
+                // Otherwise, the length is 360 minus the absolute value of the end angle minus the start angle (i.e. the "inversed" length of the arc, e.g. -17 vs 343)
+                else {
+                    length = 360 - Math.abs(endAngle - startAngle);
+                }
+                // If the all the angles are in the same half of the circle, then the length is negative
+                // If you're going to try and fix the edge case where the length is opposite of what it should be, it's probably this if you want to change
+                if (
+                        (curvePointAngle < startAngle && curvePointAngle < endAngle && curvePointAngle > 180) ||
+                                (curvePointAngle > startAngle && curvePointAngle > endAngle && curvePointAngle < 180)) {
+                    length = -length;
+                }
+
+                // curve point, start, end, start angle, end angle, "normal" length, "inversed" length
+                System.out.println(curvePointAngle + " " + startAngle + " " + endAngle + " " + (endAngle - startAngle) + " " + (360 - Math.abs(endAngle - startAngle)));
+
+                double finalLength = length;
                 Platform.runLater(() -> {
                     setCenterX(circumcircle.getCenterX());
                     setCenterY(circumcircle.getCenterY());
                     setRadiusX(circumcircle.getRadius());
                     setRadiusY(circumcircle.getRadius());
-
-                    // TODO: This doesn't work. You might need to swap the start and end points. Check if length can be negative. Good luck soldier.
-                    setStartAngle(-Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX())));
-                    setLength(-Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX())) - getStartAngle());
+                    setStartAngle(startAngle);
+                    setLength(finalLength);
 
                     // Update editPoints location
                     objectEditPoints.get(0).setCenterX(start.getX());
