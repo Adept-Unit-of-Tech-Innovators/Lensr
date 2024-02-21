@@ -1,9 +1,7 @@
 package com.example.lensr;
 
 import com.example.lensr.objects.LensArc;
-import com.example.lensr.objects.OriginRay;
 import com.example.lensr.objects.Ray;
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.*;
 
@@ -125,21 +123,32 @@ public class Intersections {
             return null;
         }
 
-        Bounds arcBounds = arc.getLayoutBounds();
-        // Return the intersection point that is closest to the ray's start point and in the direction of the ray and within the arc
-        if (dotProduct1 >= 0 &&
-                (intersections.get(0).getX() >= arcBounds.getMinX() && intersections.get(0).getX() <= arcBounds.getMaxX()) &&
-                (intersections.get(0).getY() >= arcBounds.getMinY() && intersections.get(0).getY() <= arcBounds.getMaxY())
+        double intersection1Angle = -Math.toDegrees(Math.atan2(intersections.get(0).getY() - arc.getCenterY(), intersections.get(0).getX() - arc.getCenterX()));
+        double intersection2Angle = -Math.toDegrees(Math.atan2(intersections.get(1).getY() - arc.getCenterY(), intersections.get(1).getX() - arc.getCenterX()));
+
+        // Return the closest intersection point in the direction of the ray that lies on the arc
+        if (dotProduct1 < 0 ||
+                (!(intersection1Angle >= arc.getStartAngle() && intersection1Angle <= arc.getStartAngle() + arc.getLength()) &&
+                        !(intersection1Angle <= arc.getStartAngle() && intersection1Angle >= arc.getStartAngle() + arc.getLength()))
         ) {
+            intersections.set(0, null);
+        }
+        if (dotProduct2 < 0 ||
+                (!(intersection2Angle >= arc.getStartAngle() && intersection2Angle <= arc.getStartAngle() + arc.getLength()) &&
+                        !(intersection2Angle <= arc.getStartAngle() && intersection2Angle >= arc.getStartAngle() + arc.getLength()))
+        ) {
+            intersections.set(1, null);
+        }
+
+        if (intersections.get(0) != null && (intersections.get(1) == null || intersections.get(0).distance(ray.getStartX(), ray.getStartY()) < intersections.get(1).distance(ray.getStartX(), ray.getStartY()))) {
             return intersections.get(0);
-        } else if (dotProduct2 >= 0 &&
-                (intersections.get(1).getX() >= arcBounds.getMinX() && intersections.get(1).getX() <= arcBounds.getMaxX()) &&
-                (intersections.get(1).getY() >= arcBounds.getMinY() && intersections.get(1).getY() <= arcBounds.getMaxY())
-        ) {
+        } else if (intersections.get(1) != null) {
             return intersections.get(1);
         }
+
         return null;
     }
+
 
 
     private static List<Point2D> calculateIntersectionPoints(Ray ray, Ellipse ellipse) {

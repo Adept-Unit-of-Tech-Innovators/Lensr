@@ -37,11 +37,12 @@ public class ArcMirror extends Arc implements Editable {
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
 
         // Define what happens when an edit point is clicked
-        objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1)));
+        objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter()));
         objectEditPoints.get(1).setOnClickEvent(event -> {
             System.out.println("end");
-            scale(objectEditPoints.get(0));
+            scale(objectEditPoints.get(0).getCenter());
         });
+        objectEditPoints.get(0).setFill(Color.HOTPINK);
 
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
         objectEditPoints.get(2).setOnClickEvent(event -> setVertex());
@@ -167,13 +168,30 @@ public class ArcMirror extends Arc implements Editable {
                 curvePoint = new Point2D(mousePos.getX(), mousePos.getY());
                 Circle circumcircle = getCircumcircle(start, end, curvePoint);
 
+                double curvePointAngle = (360 - Math.toDegrees(Math.atan2(curvePoint.getY() - circumcircle.getCenterY(), curvePoint.getX() - circumcircle.getCenterX())));
+                double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX())));
+                double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX())));
+
                 Platform.runLater(() -> {
                     setCenterX(circumcircle.getCenterX());
                     setCenterY(circumcircle.getCenterY());
                     setRadiusX(circumcircle.getRadius());
                     setRadiusY(circumcircle.getRadius());
-                    setStartAngle(-Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX())));
-                    setLength(-Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX())) - getStartAngle());
+                    setStartAngle(startAngle);
+                    if ((curvePointAngle < startAngle && curvePointAngle > endAngle - startAngle) ||
+                            (curvePointAngle > startAngle && curvePointAngle < endAngle - startAngle)
+                    ) {
+                        System.out.println("Left");
+                        setLength(endAngle - startAngle);
+                    }
+                    else {
+                        System.out.println("Right");
+                        setLength(endAngle - startAngle);
+                    }
+                    //if (curvePointAngle >= Math.min(startAngle, endAngle) && curvePointAngle > Math.max(startAngle, endAngle)) {
+                    System.out.println(curvePointAngle + " " + startAngle + " " + endAngle + " " + getLength());
+
+
 
                     // Update editPoints location
                     objectEditPoints.get(0).setCenterX(start.getX());
@@ -197,37 +215,37 @@ public class ArcMirror extends Arc implements Editable {
         }).start();
     }
 
-    public void scale(EditPoint editPoint) {
+    public void scale(Point2D anchorPoint) {
         new Thread(() -> {
             double editPointX, editPointY, oppositeX, oppositeY;
 
             while (isMousePressed && isEdited) {
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
-                    double deltaX = mousePos.getX() - editPoint.getX();
-                    double deltaY = mousePos.getY() - editPoint.getY();
+                    double deltaX = mousePos.getX() - anchorPoint.getX();
+                    double deltaY = mousePos.getY() - anchorPoint.getY();
                     double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
                     double angle = Math.atan2(deltaY, deltaX);
                     double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
-                    double snappedX = editPoint.getX() + distance * Math.cos(shiftedAngle);
-                    double snappedY = editPoint.getY() + distance * Math.sin(shiftedAngle);
+                    double snappedX = anchorPoint.getX() + distance * Math.cos(shiftedAngle);
+                    double snappedY = anchorPoint.getY() + distance * Math.sin(shiftedAngle);
 
                     // Alt-mode calculations to determine the "other half of the mirror"
-                    editPointX = editPoint.getX() - (snappedX - editPoint.getX());
-                    editPointY = editPoint.getY() - (snappedY - editPoint.getY());
+                    editPointX = anchorPoint.getX() - (snappedX - anchorPoint.getX());
+                    editPointY = anchorPoint.getY() - (snappedY - anchorPoint.getY());
                     oppositeX = snappedX;
                     oppositeY = snappedY;
                 }
                 else if (altPressed) {
                     // Calculate first because funny java threading
-                    editPointX = editPoint.getX() - (mousePos.getX() - editPoint.getX());
-                    editPointY = editPoint.getY() - (mousePos.getY() - editPoint.getY());
+                    editPointX = anchorPoint.getX() - (mousePos.getX() - anchorPoint.getX());
+                    editPointY = anchorPoint.getY() - (mousePos.getY() - anchorPoint.getY());
                     oppositeX = mousePos.getX();
                     oppositeY = mousePos.getY();
                 }
                 else if (shiftPressed) {
-                    editPointX = editPoint.getX();
-                    editPointY = editPoint.getY();
+                    editPointX = anchorPoint.getX();
+                    editPointY = anchorPoint.getY();
                     double deltaX = mousePos.getX() - editPointX;
                     double deltaY = mousePos.getY() - editPointY;
                     double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
@@ -237,20 +255,10 @@ public class ArcMirror extends Arc implements Editable {
                     oppositeY = editPointY + distance * Math.sin(shiftedAngle);
                 }
                 else {
-                    editPointX = editPoint.getX();
-                    editPointY = editPoint.getY();
+                    editPointX = anchorPoint.getX();
+                    editPointY = anchorPoint.getY();
                     oppositeX = mousePos.getX();
                     oppositeY = mousePos.getY();
-                }
-
-                // This is a cheaty way to make the mirror always face the same direction (swapping the points)
-                if (editPoint == objectEditPoints.get(1)) {
-                    double temp = oppositeX;
-                    oppositeX = editPointX;
-                    editPointX = temp;
-                    temp = oppositeY;
-                    oppositeY = editPointY;
-                    editPointY = temp;
                 }
 
                 Point2D start = new Point2D(editPointX, editPointY);
