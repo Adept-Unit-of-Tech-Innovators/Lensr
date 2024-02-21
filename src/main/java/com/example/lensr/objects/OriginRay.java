@@ -328,8 +328,8 @@ public class OriginRay extends Ray {
                     boolean inLens = intersectors.contains(currSphericalLens);
                     Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
-                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
@@ -354,8 +354,8 @@ public class OriginRay extends Ray {
                     boolean inLens = intersectors.contains(currSphericalLens);
                     Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
-                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength(), 2);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
