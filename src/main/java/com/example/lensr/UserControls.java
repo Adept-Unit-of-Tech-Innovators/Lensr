@@ -300,7 +300,7 @@ public class UserControls {
                     reflectivitySlider = new ParameterSlider(arcMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
                 }
                 arcMirror.openObjectEdit();
-                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter());
+                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
                 mirrors.add(arcMirror);
                 break;
             case V:

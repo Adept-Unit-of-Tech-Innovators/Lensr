@@ -37,10 +37,9 @@ public class ArcMirror extends Arc implements Editable {
         objectEditPoints.add(new EditPoint(getCenterX() + 1, getCenterY() + 1));
 
         // Define what happens when an edit point is clicked
-        objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter()));
+        objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter(), objectEditPoints.get(1), objectEditPoints.get(0)));
         objectEditPoints.get(1).setOnClickEvent(event -> {
-            System.out.println("end");
-            scale(objectEditPoints.get(0).getCenter());
+            scale(objectEditPoints.get(0).getCenter(), objectEditPoints.get(0), objectEditPoints.get(1));
         });
         objectEditPoints.get(0).setFill(Color.HOTPINK);
 
@@ -173,6 +172,11 @@ public class ArcMirror extends Arc implements Editable {
                 double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
                 double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
 
+                // =============== Edge case ===============
+                if ((endAngle < 360 && endAngle > 180) && endAngle > startAngle) {
+                    endAngle -= 360;
+                }
+
                 double length;
                 // If the curve point angle is between the start and end angles, or if the curve point angle is outside the start and end angles but the arc crosses the 0/360 line
                 // then the length is simply the end angle minus the start angle
@@ -184,14 +188,6 @@ public class ArcMirror extends Arc implements Editable {
                 else {
                     length = 360 - Math.abs(endAngle - startAngle);
                 }
-                // If the all the angles are in the same half of the circle, then the length is negative
-                // If you're going to try and fix the edge case where the length is opposite of what it should be, it's probably this if you want to change
-                if (
-                        (curvePointAngle < startAngle && curvePointAngle < endAngle && curvePointAngle > 180) ||
-                                (curvePointAngle > startAngle && curvePointAngle > endAngle && curvePointAngle < 180)) {
-                    length = -length;
-                }
-
 
                 double finalLength = length;
                 Platform.runLater(() -> {
@@ -224,7 +220,7 @@ public class ArcMirror extends Arc implements Editable {
         }).start();
     }
 
-    public void scale(Point2D anchorPoint) {
+    public void scale(Point2D anchorPoint, EditPoint startPoint, EditPoint endPoint) {
         new Thread(() -> {
             double editPointX, editPointY, oppositeX, oppositeY;
 
@@ -282,6 +278,11 @@ public class ArcMirror extends Arc implements Editable {
                 double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
                 double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
 
+                // =============== Edge case ===============
+                if ((endAngle < 360 && endAngle > 180) && endAngle > startAngle) {
+                    endAngle -= 360;
+                }
+
                 double length;
                 // If the curve point angle is between the start and end angles, or if the curve point angle is outside the start and end angles but the arc crosses the 0/360 line
                 // then the length is simply the end angle minus the start angle
@@ -293,16 +294,6 @@ public class ArcMirror extends Arc implements Editable {
                 else {
                     length = 360 - Math.abs(endAngle - startAngle);
                 }
-                // If the all the angles are in the same half of the circle, then the length is negative
-                // If you're going to try and fix the edge case where the length is opposite of what it should be, it's probably this if you want to change
-                if (
-                        (curvePointAngle < startAngle && curvePointAngle < endAngle && curvePointAngle > 180) ||
-                                (curvePointAngle > startAngle && curvePointAngle > endAngle && curvePointAngle < 180)) {
-                    length = -length;
-                }
-
-                // curve point, start, end, start angle, end angle, "normal" length, "inversed" length
-                System.out.println(curvePointAngle + " " + startAngle + " " + endAngle + " " + (endAngle - startAngle) + " " + (360 - Math.abs(endAngle - startAngle)));
 
                 double finalLength = length;
                 Platform.runLater(() -> {
@@ -314,10 +305,10 @@ public class ArcMirror extends Arc implements Editable {
                     setLength(finalLength);
 
                     // Update editPoints location
-                    objectEditPoints.get(0).setCenterX(start.getX());
-                    objectEditPoints.get(0).setCenterY(start.getY());
-                    objectEditPoints.get(1).setCenterX(end.getX());
-                    objectEditPoints.get(1).setCenterY(end.getY());
+                    startPoint.setCenterX(start.getX());
+                    startPoint.setCenterY(start.getY());
+                    endPoint.setCenterX(end.getX());
+                    endPoint.setCenterY(end.getY());
                     objectEditPoints.get(2).setCenterX(curvePoint.getX());
                     objectEditPoints.get(2).setCenterY(curvePoint.getY());
                     objectEditPoints.get(3).setCenterX(circumcircle.getCenterX());
