@@ -6,7 +6,9 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.*;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 import static com.example.lensr.Intersections.*;
@@ -29,35 +31,14 @@ public class OriginRay extends Ray {
     }
 
     public void simulate() {
-        rayReflections.clear();
-        // If the ray is not ending on the edge of the canvas, make it end on the intersection with a border of the canvas
-        // That's some clever chat-gpt code right there
-        if (getEndX() != SIZE || getEndY() != SIZE) {
-            // Extend the ray to or past the edge of the canvas while following the same angle
-            double originalEndX = getEndX();
-            double originalEndY = getEndY();
-            setEndX(originalEndX + SIZE * Math.cos(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
-            setEndY(originalEndY + SIZE * Math.sin(Math.atan2(originalEndY - getStartY(), originalEndX - getStartX())));
-
-            Point2D intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, 0, SIZE, 0));
-            if (intersectionPoint == null) {
-                intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, 0, 0, SIZE));
-                if (intersectionPoint == null) {
-                    intersectionPoint = getRayLineIntersectionPoint(this, new Line(0, SIZE, SIZE, SIZE));
-                    if (intersectionPoint == null) {
-                        intersectionPoint = getRayLineIntersectionPoint(this, new Line(SIZE, 0, SIZE, SIZE));
-                    }
-                }
-            }
-            if (intersectionPoint != null) {
-                setEndX(intersectionPoint.getX());
-                setEndY(intersectionPoint.getY());
-            }
-        }
         taskPool.execute(() -> {
-            int recursiveDepth = 0;
-            Ray currentRay = this;
-            while (true) {
+            rayReflections.clear();
+
+            Deque<Ray> stack = new ArrayDeque<>();
+            stack.push(this);
+
+            while (!stack.isEmpty()) {
+                Ray currentRay = stack.pop();
                 double shortestIntersectionDistance = Double.MAX_VALUE;
                 Object closestIntersectionObject = null;
                 Point2D closestIntersectionPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -77,7 +58,7 @@ public class OriginRay extends Ray {
                         }
                         else if (currentMirror instanceof FunnyMirror funnyMirror) {
                             for (int i = 0; i + 2 < funnyMirror.getPoints().size(); i = i + 2) {
-                                Line segment = new Line(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i+1), funnyMirror.getPoints().get(i+2), funnyMirror.getPoints().get(i+3));
+                                Line segment = new Line(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i + 1), funnyMirror.getPoints().get(i + 2), funnyMirror.getPoints().get(i + 3));
                                 Point2D segmentIntersectionPoint = getRayLineIntersectionPoint(currentRay, segment);
                                 if (segmentIntersectionPoint != null) {
                                     if (intersectionPoint == null) {
@@ -87,8 +68,7 @@ public class OriginRay extends Ray {
                                         LineMirror lineMirror = new LineMirror(segment.getStartX(), segment.getStartY(), segment.getEndX(), segment.getEndY());
                                         lineMirror.setReflectivity(funnyMirror.getReflectivity());
                                         funnyMirror.setClosestIntersectionSegment(lineMirror);
-                                    }
-                                    else {
+                                    } else {
                                         double distanceToSegmentIntersectionPoint = Math.sqrt(
                                                 Math.pow(segmentIntersectionPoint.getX() - currentRay.getStartX(), 2) +
                                                         Math.pow(segmentIntersectionPoint.getY() - currentRay.getStartY(), 2)
@@ -126,8 +106,7 @@ public class OriginRay extends Ray {
                         if (mirror instanceof FunnyMirror funnyMirror) {
                             closestIntersectionObject = funnyMirror.getClosestIntersectionSegment();
                         }
-                    }
-                    else {
+                    } else {
                         closestIntersectionObject = mirror;
                     }
                 }
@@ -143,8 +122,7 @@ public class OriginRay extends Ray {
                                 if (element instanceof LensArc arc && getRayArcIntersectionPoint(currentRay, arc) != null) {
                                     intersectionPoint = getRayArcIntersectionPoint(currentRay, arc);
                                     currObject = arc;
-                                }
-                                else if (element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
+                                } else if (element instanceof LensLine line && getRayLineIntersectionPoint(currentRay, line) != null) {
                                     intersectionPoint = getRayLineIntersectionPoint(currentRay, line);
                                     currObject = line;
                                 }
@@ -171,20 +149,20 @@ public class OriginRay extends Ray {
                     rayReflections.add(currentRay);
                 }
 
-                // If there's no intersection, break
-                if (closestIntersectionObject == null) break;
+                // If there's no intersection, return
+                if (closestIntersectionObject == null) continue;
 
                 currentRay.setEndX(closestIntersectionPoint.getX());
                 currentRay.setEndY(closestIntersectionPoint.getY());
 
                 // batch draw rays (every 500 rays)
-                if (recursiveDepth > 0 && recursiveDepth % 500 == 0) {
+                if (!rayReflections.isEmpty() && rayReflections.size() % 500 == 0) {
                     final List<Ray> drawnRays = new ArrayList<>(rayReflections.subList(rayReflections.size() - 500, rayReflections.size()));
                     Platform.runLater(() -> rayCanvas.drawRays(drawnRays));
                 }
 
-                // Limit recursive depth
-                if (recursiveDepth >= 5000) break;
+                // Limit the number of rays reflection to 5000
+                if (rayReflections.size() >= 5000) break;
 
                 Ray nextRay = new Ray(0, 0, 0, 0);
                 nextRay.setStrokeWidth(globalStrokeWidth);
@@ -292,13 +270,13 @@ public class OriginRay extends Ray {
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 *  Math.sin(reflectionAngle));
+                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
                     // Set the brightness of the ray for the brickwall filter profile
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
                         nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
                     } else {
-                        break;
+                        continue;
                     }
                 }
 
@@ -317,8 +295,11 @@ public class OriginRay extends Ray {
                     nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness());
-                } else if (closestIntersectionObject instanceof LightEater) {
-                    return;
+                }
+
+                // LightEater interaction
+                else if (closestIntersectionObject instanceof LightEater) {
+                    continue;
                 }
 
                 // LensArc interaction
@@ -328,8 +309,8 @@ public class OriginRay extends Ray {
                     boolean inLens = intersectors.contains(currSphericalLens);
                     Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
-                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength() / 1000, 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength() / 1000, 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getArcRefractionAngle(currentRay, arc, currentRefractiveIndex, newRefractiveIndex);
@@ -354,8 +335,8 @@ public class OriginRay extends Ray {
                     boolean inLens = intersectors.contains(currSphericalLens);
                     Tuple<Double, Double> currentCoefficients = getCurrentCoefficients();
                     Tuple<Double, Double> newCoefficients = getNewCoefficients(currSphericalLens, inLens);
-                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
-                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength()/1000, 2);
+                    double currentRefractiveIndex = currentCoefficients.a() + currentCoefficients.b() / Math.pow(currentRay.getWavelength() / 1000, 2);
+                    double newRefractiveIndex = newCoefficients.a() + newCoefficients.b() / Math.pow(currentRay.getWavelength() / 1000, 2);
 
                     boolean totalInternalReflection = determineTIR(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                     double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
@@ -372,8 +353,7 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
-                    }
-                    else {
+                    } else {
                         // Calculate the reflected ray's endpoint based on the reflection angle
                         reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
                         reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
@@ -386,10 +366,9 @@ public class OriginRay extends Ray {
 
                 nextRay.setEndX(reflectedX);
                 nextRay.setEndY(reflectedY);
-
-                recursiveDepth++;
-                currentRay = nextRay;
+                stack.push(nextRay);
             }
+
             if (rayReflections.isEmpty() || rayReflections.size() % 500 == 0) return;
 
             Platform.runLater(() -> {
@@ -403,7 +382,6 @@ public class OriginRay extends Ray {
     public void setParentSource(Object parentSource) {
         this.parentSource = parentSource;
     }
-
 
     public Object getParentSource() {
         return parentSource;
@@ -421,7 +399,7 @@ public class OriginRay extends Ray {
         return new Tuple<>(intersectors.get(intersectors.size() - 2).getCoeficientA(), intersectors.get(intersectors.size() - 2).getCoeficientB());
     }
 
-    public boolean determineTIR(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex) {
+    private boolean determineTIR(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
@@ -436,7 +414,7 @@ public class OriginRay extends Ray {
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
 
-    public boolean determineTIR(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
+    private boolean determineTIR(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
         double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
@@ -446,5 +424,4 @@ public class OriginRay extends Ray {
 
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
-
 }
