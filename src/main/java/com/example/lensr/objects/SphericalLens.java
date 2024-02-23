@@ -34,6 +34,7 @@ public class SphericalLens extends Group implements Editable {
     private final LensLine topLine;
     private final LensLine bottomLine;
     public List<Shape> elements = new ArrayList<>();
+    int arcSnap = 20;
 
     private double coeficientA;
     private double coeficientB;
@@ -324,6 +325,7 @@ public class SphericalLens extends Group implements Editable {
                 // "Unrotate" position of the mouse around the center of the lens, so we can easily get distance between mouse and center on the rotated X axis
                 Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, getCenter(), -angleOfRotation);
                 newThickness = (arc == secondArc ? unrotatedMousePos.getX() - centerX + middleWidth/2 : centerX - unrotatedMousePos.getX() - middleWidth * 3/2);
+                newThickness = roundDownToMultiple(newThickness, arcSnap);
 
                 double finalThickness = newThickness;
 
@@ -412,6 +414,11 @@ public class SphericalLens extends Group implements Editable {
         return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());
     }
 
+
+    public int roundDownToMultiple(double number, int multiple)
+    {
+        return (int)(Math.floor(number / multiple) * multiple);
+    }
     public Point2D getCenter() {
         return new Point2D(centerX, centerY);
     }

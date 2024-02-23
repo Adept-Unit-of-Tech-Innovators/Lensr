@@ -254,6 +254,15 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if(keyEvent.getCode().toString().equals("H") && isEditMode)
+            {
+                if (keyPressed == Key.H) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.H;
+                }
+                closeCurrentEdit();
+            }
             toolbar.forEach(ToolbarButton::updateRender);
         });
 
@@ -383,6 +392,29 @@ public class UserControls {
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);
                 lenses.add(sphericalLens);
+                break;
+            case H:
+                PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);
+                fullPointSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(fullPointSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(fullPointSource, ParameterToChange.WhiteLight);
+                }
+                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(fullPointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
+                fullPointSource.openObjectEdit();
+                lightSources.add(fullPointSource);
+                break;
+            case G:
+                PointSource pointSource = new PointSource(mousePos.getX(), mousePos.getY(), Math.PI/2, 0, 6, false);
+                pointSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(pointSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(pointSource, ParameterToChange.WhiteLight);
+                }
+                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(pointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
+                if(fieldOfViewSlider == null) fieldOfViewSlider = new ParameterSlider(pointSource, ValueToChange.FieldOfView, SliderStyle.Tertiary);
+                pointSource.openObjectEdit();
+                lightSources.add(pointSource);
                 break;
         }
     }
