@@ -6,6 +6,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Slider;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,6 +173,41 @@ public class UserControls {
                 }
             }
 
+            if (keyEvent.getCode().toString().equals("S") && keyEvent.isControlDown() && isEditMode) {
+                System.out.println("Saving project");
+                SaveState.saveProject("projectSave.ser");
+            }
+
+            if (keyEvent.getCode().toString().equals("A") && keyEvent.isControlDown() && isEditMode) {
+                // Delete all objects
+                List<Object> currentObjects = new ArrayList<>();
+                currentObjects.addAll(mirrors);
+                currentObjects.addAll(lightSources);
+                currentObjects.addAll(lenses);
+                currentObjects.forEach(object -> {
+                    if (object instanceof Editable editable) {
+                        editable.closeObjectEdit();
+                        editable.delete();
+                    }
+                });
+
+                System.out.println("Loading lineMirror");
+                List<Serializable> objects = LoadState.loadProject("projectSave.ser");
+                for (Serializable object : objects) {
+                    if (object instanceof Editable editable) {
+                        editable.create();
+                        if (editable instanceof BeamSource || editable instanceof PanelSource) {
+                            lightSources.add(editable);
+                        }
+                        else {
+                            mirrors.add(editable);
+                        }
+                    }
+                }
+                // After loading, simulate the new scene
+                MirrorMethods.updateLightSources();
+            }
+
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 if (keyPressed == Key.X) {
                     keyPressed = Key.None;
@@ -279,7 +315,6 @@ public class UserControls {
         });
     }
 
-
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
@@ -335,7 +370,7 @@ public class UserControls {
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 brickwallFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
                     startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
                     endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
                 }
@@ -387,7 +422,6 @@ public class UserControls {
         }
     }
 
-
     public static void closeCurrentEdit() {
         if (editedShape instanceof Editable) {
             ((Editable) editedShape).closeObjectEdit();
@@ -400,7 +434,6 @@ public class UserControls {
                     .ifPresent(Editable::closeObjectEdit);
         }
     }
-
 
     public static void resetHasBeenClicked() {
         List<Object> clickableObjects = new ArrayList<>();

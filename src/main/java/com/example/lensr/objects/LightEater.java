@@ -9,17 +9,21 @@ import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LightEater extends Circle implements Editable{
-    public Group group = new Group();
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+public class LightEater extends Circle implements Editable, Serializable {
+    public transient Group group = new Group();
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
 
     public LightEater(double centerX, double centerY, double radius) {
         setCenterX(centerX);
@@ -27,7 +31,7 @@ public class LightEater extends Circle implements Editable{
         setRadius(radius);
     }
 
-
+    @Override
     public void create() {
         setFill(Color.BLACK);
         setStroke(Color.BLACK);
@@ -195,6 +199,28 @@ public class LightEater extends Circle implements Editable{
                 }
             }
         }).start();
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getCenterX());
+        out.writeDouble(getCenterY());
+        out.writeDouble(getRadius());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setCenterX(in.readDouble());
+        setCenterY(in.readDouble());
+        setRadius(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
     @Override

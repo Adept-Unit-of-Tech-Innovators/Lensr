@@ -11,20 +11,22 @@ import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeType;
 
+import java.io.IOException;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class EllipseMirror extends Ellipse implements Editable {
-    public Group group = new Group();
+public class EllipseMirror extends Ellipse implements Editable, Serializable {
+    public transient Group group = new Group();
     // The outline of the object for ray intersection
-    List<EditPoint> objectEditPoints = new ArrayList<>();
-    public boolean isEdited;
-    public boolean hasBeenClicked;
-    public double reflectivity = 1;
-
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
+    double reflectivity = 1;
     public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
         setCenterX(centerX);
         setCenterY(centerY);
@@ -32,7 +34,7 @@ public class EllipseMirror extends Ellipse implements Editable {
         setRadiusY(radiusY);
     }
 
-
+    @Override
     public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
@@ -108,7 +110,6 @@ public class EllipseMirror extends Ellipse implements Editable {
         updateLightSources();
     }
 
-
     public void setReflectivity(double reflectivity) {
         this.reflectivity = reflectivity;
     }
@@ -128,7 +129,6 @@ public class EllipseMirror extends Ellipse implements Editable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
     }
-
 
     public void move() {
         new Thread(() -> {
@@ -235,6 +235,30 @@ public class EllipseMirror extends Ellipse implements Editable {
             }
 
         }).start();
+    }
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getCenterX());
+        out.writeDouble(getCenterY());
+        out.writeDouble(getRadiusX());
+        out.writeDouble(getRadiusY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setCenterX(in.readDouble());
+        setCenterY(in.readDouble());
+        setRadiusX(in.readDouble());
+        setRadiusY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
     @Override

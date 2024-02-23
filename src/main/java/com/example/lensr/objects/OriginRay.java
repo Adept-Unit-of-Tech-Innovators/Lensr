@@ -274,7 +274,7 @@ public class OriginRay extends Ray {
 
                     // Set the brightness of the ray for the brickwall filter profile
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
-                        nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
+                        nextRay.setBrightness(currentRay.getBrightness() * filter.getPeakTransmission());
                     } else {
                         continue;
                     }

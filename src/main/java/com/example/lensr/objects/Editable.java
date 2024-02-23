@@ -9,4 +9,5 @@ public interface Editable {
     void moveBy(double x, double y);
     boolean getHasBeenClicked();
     boolean intersectsMouseHitbox();
+    void create();
 }

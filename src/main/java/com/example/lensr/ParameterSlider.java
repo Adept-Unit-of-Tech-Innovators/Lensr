@@ -20,7 +20,6 @@ public class ParameterSlider extends JFXSlider {
         PeakTransmission,
         Passband,
         FWHM,
-        Transmission,
         StartPassband,
         EndPassband,
         Reflectivity,
@@ -61,7 +60,7 @@ public class ParameterSlider extends JFXSlider {
         inputField.getChildren().add(textField);
         hBox.getChildren().add(inputField);
         hBox.getChildren().add(sliderAndLabel);
-        show();
+        hide();
 
         // Add the appropriate style class to the slider
         switch (sliderStyle) {
@@ -136,8 +135,8 @@ public class ParameterSlider extends JFXSlider {
                 filter.graph.drawGraph();
                 return;
             }
-            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.Transmission) {
-                filter.setTransmission(roundedValue);
+            if (currentSource instanceof BrickwallFilter filter && valueToChange == ValueToChange.PeakTransmission) {
+                filter.setPeakTransmission(roundedValue);
                 filter.graph.drawGraph();
                 return;
             }
@@ -242,8 +241,8 @@ public class ParameterSlider extends JFXSlider {
             startingVal = filter.getFWHM();
             label.setText("FWHM");
         }
-        else if (valueToChange == ValueToChange.Transmission && currentSource instanceof BrickwallFilter filter) {
-            startingVal = filter.getTransmission();
+        else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof BrickwallFilter filter) {
+            startingVal = filter.getPeakTransmission();
             label.setText("Transmission");
         }
         else if (valueToChange == ValueToChange.StartPassband && currentSource instanceof BrickwallFilter filter) {

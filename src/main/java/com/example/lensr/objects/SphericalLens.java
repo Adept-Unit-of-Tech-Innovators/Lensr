@@ -59,6 +59,7 @@ public class SphericalLens extends Group implements Editable {
         resize(centerX, centerY, middleWidth, middleHeight,Math.toRadians(45));
     }
 
+    @Override
     public void create() {
         for (Shape element : elements) {
             element.setStroke(mirrorColor);

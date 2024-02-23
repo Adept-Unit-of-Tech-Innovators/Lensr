@@ -20,7 +20,7 @@ public class ParameterToggle extends JFXToggleButton {
 
         // Set up the GUI
         // TODO: Make this not look abhorrent
-        show();
+        hide();
         setLayoutX(850);
         setLayoutY(50);
 

@@ -1,12 +1,10 @@
 package com.example.lensr;
 
-import com.example.lensr.objects.SphericalLens;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Arc;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -14,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.example.lensr.ParameterSlider.*;
+import static com.example.lensr.ParameterToggle.*;
 
 public class LensrStart extends Application {
     public static final Object lock = new Object();
@@ -50,16 +51,16 @@ public class LensrStart extends Application {
     public static boolean isMousePressed = false;
     public static Object editedShape;
     public static List<ToolbarButton> toolbar = new ArrayList<>();
-    public static ParameterSlider wavelengthSlider;
-    public static ParameterSlider passbandSlider;
-    public static ParameterSlider peakTransmissionSlider;
-    public static ParameterSlider FWHMSlider;
-    public static ParameterSlider reflectivitySlider;
-    public static ParameterSlider startPassbandSlider;
-    public static ParameterSlider endPassbandSlider;
-    public static ParameterSlider coefficientASlider;
-    public static ParameterSlider coefficientBSlider;
-    public static ParameterToggle whiteLightToggle;
+    public static ParameterSlider wavelengthSlider = new ParameterSlider(null, ValueToChange.Wavelength, SliderStyle.Primary);
+    public static ParameterSlider passbandSlider = new ParameterSlider(null, ValueToChange.Passband, SliderStyle.Secondary);
+    public static ParameterSlider peakTransmissionSlider = new ParameterSlider(null, ValueToChange.PeakTransmission, SliderStyle.Primary);
+    public static ParameterSlider FWHMSlider = new ParameterSlider(null, ValueToChange.FWHM, SliderStyle.Tertiary);
+    public static ParameterSlider reflectivitySlider = new ParameterSlider(null, ValueToChange.Reflectivity, SliderStyle.Primary);
+    public static ParameterSlider startPassbandSlider = new ParameterSlider(null, ValueToChange.StartPassband, SliderStyle.Secondary);
+    public static ParameterSlider endPassbandSlider = new ParameterSlider(null, ValueToChange.EndPassband, SliderStyle.Tertiary);
+    public static ParameterSlider coefficientASlider = new ParameterSlider(null, ValueToChange.CoefficientA, SliderStyle.Primary);
+    public static ParameterSlider coefficientBSlider = new ParameterSlider(null, ValueToChange.CoefficientB, SliderStyle.Secondary);
+    public static ParameterToggle whiteLightToggle = new ParameterToggle(null, ParameterToChange.WhiteLight);
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);

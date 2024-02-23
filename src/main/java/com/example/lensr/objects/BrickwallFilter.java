@@ -12,6 +12,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,19 +23,19 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.*;
 
-public class BrickwallFilter extends Line implements Editable {
-    public Group group = new Group();
-    Rotate rotate = new Rotate();
+public class BrickwallFilter extends Line implements Editable, Serializable {
+    public transient Group group = new Group();
+    private transient Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    Rectangle hitbox;
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public Graph graph;
-    double rotation = 0;
-    public boolean isEdited;
-    public boolean hasBeenClicked;
-    double startPassband = 480;
-    double endPassband = 680;
-    double transmission = 0.8;
+    private transient Rectangle hitbox;
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    public transient Graph graph;
+    private transient double rotation = 0;
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
+    private double startPassband = 480;
+    private double endPassband = 680;
+    private double peakTransmission = 0.8;
 
     public BrickwallFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -40,15 +44,16 @@ public class BrickwallFilter extends Line implements Editable {
         setEndY(endY);
     }
 
-
+    @Override
     public void create() {
         setFill(Color.TRANSPARENT);
-        setStroke(mirrorColor);
+        setWavelengthColor((startPassband + endPassband) / 2);
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
         graph = new Graph(700, 100, 200, 150);
         graph.setDataSource(this);
+        graph.hide();
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
@@ -65,7 +70,7 @@ public class BrickwallFilter extends Line implements Editable {
     @Override
     public void copy() {
         BrickwallFilter brickwallFilter = new BrickwallFilter(getStartX(), getStartY(), getEndX(), getEndY());
-        brickwallFilter.setTransmission(transmission);
+        brickwallFilter.setPeakTransmission(peakTransmission);
         brickwallFilter.setStartPassband(startPassband);
         brickwallFilter.setEndPassband(endPassband);
         brickwallFilter.create();
@@ -303,6 +308,32 @@ public class BrickwallFilter extends Line implements Editable {
         }).start();
     }
 
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        rotate = new Rotate();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        rotation = 0;
+        isEdited = false;
+        hasBeenClicked = false;
+    }
 
     private void setWavelengthColor(double passband) {
         double factor;
@@ -372,33 +403,27 @@ public class BrickwallFilter extends Line implements Editable {
         setStroke(Color.rgb((int) red, (int) green, (int) blue));
     }
 
-
-    public void setTransmission(double transmission) {
-        this.transmission = transmission;
+    public void setPeakTransmission(double peakTransmission) {
+        this.peakTransmission = peakTransmission;
     }
 
-
-    public double getTransmission() {
-        return transmission;
+    public double getPeakTransmission() {
+        return peakTransmission;
     }
-
 
     public void setStartPassband(double startPassband) {
         this.startPassband = startPassband;
         setWavelengthColor((startPassband + endPassband) / 2);
     }
 
-
     public double getStartPassband() {
         return startPassband;
     }
-
 
     public void setEndPassband(double endPassband) {
         this.endPassband = endPassband;
         setWavelengthColor((startPassband + endPassband) / 2);
     }
-
 
     public double getEndPassband() {
         return endPassband;

@@ -12,6 +12,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,16 +23,16 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.*;
 
-public class GaussianRolloffFilter extends Line implements Editable{
-    public Group group = new Group();
-    Rotate rotate = new Rotate();
+public class GaussianRolloffFilter extends Line implements Editable, Serializable {
+    public transient Group group = new Group();
+    private transient Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    Rectangle hitbox;
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public Graph graph;
-    double rotation = 0;
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+    private transient Rectangle hitbox;
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    public transient Graph graph;
+    private transient double rotation = 0;
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
     double passband = 580;
     double peakTransmission = 0.8;
     double FWHM = 20;
@@ -41,14 +45,16 @@ public class GaussianRolloffFilter extends Line implements Editable{
     }
 
 
+    @Override
     public void create() {
         setFill(Color.TRANSPARENT);
-        setStroke(mirrorColor);
+        setWavelengthColor();
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
         graph = new Graph(700, 100, 200, 150);
         graph.setDataSource(this);
+        graph.hide();
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
@@ -311,14 +317,35 @@ public class GaussianRolloffFilter extends Line implements Editable{
         }).start();
     }
 
-    public double getPassband() {
-        return passband;
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        rotate = new Rotate();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        rotation = 0;
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
 
-    public void setPassband(double passband) {
-        this.passband = passband;
-
+    private void setWavelengthColor() {
         double factor;
         double red;
         double green;
@@ -381,9 +408,19 @@ public class GaussianRolloffFilter extends Line implements Editable{
         if (blue != 0) {
             blue = Math.round(intensityMax * Math.pow(blue * factor, Gamma));
         }
-        
+
 
         setStroke(Color.rgb((int) red, (int) green, (int) blue));
+    }
+
+    public double getPassband() {
+        return passband;
+    }
+
+
+    public void setPassband(double passband) {
+        this.passband = passband;
+        setWavelengthColor();
     }
 
 
