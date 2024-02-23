@@ -18,6 +18,9 @@ public class SaveState {
             for (Object lightSource : lightSources) {
                 out.writeObject(lightSource);
             }
+            for (Object lens : lenses) {
+                out.writeObject(lens);
+            }
             out.close();
             fileOut.close();
         } catch (IOException i) {

@@ -199,6 +199,9 @@ public class UserControls {
                         if (editable instanceof BeamSource || editable instanceof PanelSource) {
                             lightSources.add(editable);
                         }
+                        else if (editable instanceof SphericalLens) {
+                            lenses.add(editable);
+                        }
                         else {
                             mirrors.add(editable);
                         }
