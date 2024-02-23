@@ -100,8 +100,8 @@ public class Intersections {
     }
 
     public static Point2D getRayArcIntersectionPoint(Ray ray, Arc arc) {
+        if(arc instanceof LensArc && ((LensArc) arc).getThickness() == 0) return getRayLineIntersectionPoint(ray, ((LensArc) arc).getCorrespondingFlatArc());
         List<Point2D> intersections = calculateIntersectionPoints(ray, new Ellipse(arc.getCenterX(), arc.getCenterY(), arc.getRadiusX(), arc.getRadiusY()));
-
         if (intersections == null) {
             return null;
         }
@@ -289,6 +289,12 @@ public class Intersections {
     }
 
     public static double determineNormalAngle (double angle1, double angle2, double angleOfIncidence) {
+        if (angle1 > Math.PI) {
+            angle1 = -Math.PI + (angle1 - Math.PI);
+        }
+        if (angle2 > Math.PI) {
+            angle2 = -Math.PI + (angle2 - Math.PI);
+        }
         return Math.abs(angleOfIncidence - angle1) < Math.abs(angleOfIncidence - angle2) ? angle1 : angle2;
     }
 

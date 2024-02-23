@@ -18,7 +18,7 @@ import java.util.List;
 import static com.example.lensr.Intersections.rotatePointAroundOtherByAngle;
 import static com.example.lensr.LensrStart.*;
 
-public class SphericalLens extends Group implements Editable, Serializable {
+public class SphericalLens extends Group implements Glass, Editable, Serializable {
 
     private transient Group group = new Group();
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
@@ -34,32 +34,38 @@ public class SphericalLens extends Group implements Editable, Serializable {
     private double centerY;
     private double lensThickness1;
     private double lensThickness2;
-    private transient LensArc firstArc;
-    private transient LensArc secondArc;
-    private transient LensLine topLine;
-    private transient LensLine bottomLine;
+    private transient final LensArc firstArc;
+    private transient final LensArc secondArc;
+    private transient final Line firstFlatArc;
+    private transient final Line secondFlatArc;
+    private transient final LensLine topLine;
+    private transient final LensLine bottomLine;
     public transient List<Shape> elements = new ArrayList<>();
+    int arcSnap = 20;
 
-    private double coeficientA;
-    private double coeficientB;
+    private double coefficientA;
+    private double coefficientB;
     private double focalLength;
     private transient Point2D focalPoint;
 
-    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coeficientA, double coeficientB) {
+    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coefficientA, double coefficientB) {
         this.middleHeight = middleHeight;
         this.middleWidth = middleWidth;
         this.centerX = centerX;
         this.centerY = centerY;
         this.lensThickness1 = lensThickness1;
         this.lensThickness2 = lensThickness2;
-        this.coeficientA = coeficientA;
-        this.coeficientB = coeficientB;
+        this.coefficientA = coefficientA;
+        this.coefficientB = coefficientB;
     }
 
     @Override
     public void create() {
-        firstArc = new LensArc(this, lensThickness1);
-        secondArc = new LensArc(this, lensThickness2);
+        firstFlatArc = new Line();
+        secondFlatArc = new Line();
+
+        firstArc = new LensArc(this, firstFlatArc, lensThickness1);
+        secondArc = new LensArc(this, secondFlatArc, lensThickness2);
 
         topLine = new LensLine(this);
         bottomLine = new LensLine(this);
@@ -69,11 +75,21 @@ public class SphericalLens extends Group implements Editable, Serializable {
         elements.add(topLine);
         elements.add(bottomLine);
 
-        resize(centerX, centerY, middleWidth, middleHeight, angleOfRotation);
+        resize(centerX, centerY, middleWidth, middleHeight,Math.toRadians(45));
 
         for (Shape element : elements) {
             element.setStroke(mirrorColor);
             element.setStrokeWidth(globalStrokeWidth);
+            if(element instanceof LensArc arc)
+            {
+                arc.getCorrespondingFlatArc().setStroke(Color.TRANSPARENT);
+                arc.getCorrespondingFlatArc().setStrokeWidth(globalStrokeWidth);
+                if(arc.getThickness() == 0)
+                {
+                    arc.setStroke(Color.TRANSPARENT);
+                    arc.getCorrespondingFlatArc().setStroke(mirrorColor);
+                }
+            }
         }
 
         // Setup positions for all different edit points
@@ -132,6 +148,11 @@ public class SphericalLens extends Group implements Editable, Serializable {
         group.getChildren().addAll(elements);
         group.getChildren().addAll(objectEditPoints);
         root.getChildren().add(group);
+        upperRotateField.setFill(Color.BISQUE);
+        lowerRotateField.setFill(Color.BISQUE);
+        root.getChildren().addAll(firstFlatArc, secondFlatArc, upperRotateField, lowerRotateField);
+        firstFlatArc.toBack();
+        secondFlatArc.toBack();
     }
 
     // TODO: Implement visible focal point
@@ -156,6 +177,16 @@ public class SphericalLens extends Group implements Editable, Serializable {
 
         topLine.adjust();
         bottomLine.adjust();
+
+        firstFlatArc.setStartX(topLine.getStartX());
+        firstFlatArc.setStartY(topLine.getStartY());
+        firstFlatArc.setEndX(bottomLine.getStartX());
+        firstFlatArc.setEndY(bottomLine.getStartY());
+
+        secondFlatArc.setStartX(topLine.getEndX());
+        secondFlatArc.setStartY(topLine.getEndY());
+        secondFlatArc.setEndX(bottomLine.getEndX());
+        secondFlatArc.setEndY(bottomLine.getEndY());
     }
 
     public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight) {resize(newCenterX, newCenterY, newWidth, newHeight, angleOfRotation);}
@@ -313,9 +344,13 @@ public class SphericalLens extends Group implements Editable, Serializable {
             while (isMousePressed)
             {
                 // Get the angle between center of lens and position of the mouse
+                int snapValue = 1;
 
                 newAngleOfRotation = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX()) - mouseAngle;
-                double finalAngleOfRotation = newAngleOfRotation;
+
+                if(shiftPressed) snapValue = 45;
+                else if(altPressed) snapValue = 90;
+                double finalAngleOfRotation = Math.toRadians(roundDownToMultiple(Math.toDegrees(newAngleOfRotation), snapValue));
 
                 Platform.runLater(() -> {
                     resize(finalAngleOfRotation);
@@ -343,6 +378,8 @@ public class SphericalLens extends Group implements Editable, Serializable {
                 // "Unrotate" position of the mouse around the center of the lens, so we can easily get distance between mouse and center on the rotated X axis
                 Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, getCenter(), -angleOfRotation);
                 newThickness = (arc == secondArc ? unrotatedMousePos.getX() - centerX + middleWidth/2 : centerX - unrotatedMousePos.getX() - middleWidth * 3/2);
+
+                if(shiftPressed) newThickness = roundDownToMultiple(newThickness, arcSnap);
 
                 double finalThickness = newThickness;
                 if (arc == firstArc) lensThickness1 = finalThickness;
@@ -421,7 +458,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
 
     @Override
     public void copy() {
-        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), coeficientA, coeficientB);
+        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), coefficientA, coefficientB);
         newLens.create();
         newLens.moveBy(10, 10);
         lenses.add(newLens);
@@ -464,20 +501,24 @@ public class SphericalLens extends Group implements Editable, Serializable {
         return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());
     }
 
+    public int roundDownToMultiple(double number, int multiple)
+    {
+        return (int)(Math.floor(number / multiple) * multiple);
+    }
     public Point2D getCenter() {
         return new Point2D(centerX, centerY);
     }
-    public double getCoeficientA() {
-        return coeficientA;
+    public double getCoefficientA() {
+        return coefficientA;
     }
-    public double getCoeficientB() {
-        return coeficientB;
+    public double getCoefficientB() {
+        return coefficientB;
     }
     public void setCoefficientA(double coeficientA) {
-        this.coeficientA = coeficientA;
+        this.coefficientA = coeficientA;
     }
     public void setCoefficientB(double coeficientB) {
-        this.coeficientB = coeficientB;
+        this.coefficientB = coeficientB;
     }
     public LensArc getFirstArc() {return firstArc;}
     public LensArc getSecondArc() {return secondArc;}
@@ -488,4 +529,6 @@ public class SphericalLens extends Group implements Editable, Serializable {
     public double getCenterY() {return centerY;}
     public double getMiddleHeight() {return middleHeight;}
     public double getMiddleWidth() {return middleWidth;}
+
+
 }

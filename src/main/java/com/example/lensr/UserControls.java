@@ -82,6 +82,7 @@ public class UserControls {
                     for (ToolbarButton button : toolbar) {
                         button.disableProperty().setValue(true);
                     }
+                    closeCurrentEdit();
                 }
                 else {
                     for (ToolbarButton button : toolbar) {
@@ -217,6 +218,14 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("A") && isEditMode) {
+                if (keyPressed == Key.A) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.A;
+                }
+                closeCurrentEdit();
+            }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
                 if (keyPressed == Key.V) {
                     keyPressed = Key.None;
@@ -274,12 +283,28 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if(keyEvent.getCode().toString().equals("L") && isEditMode)
-            {
+            else if (keyEvent.getCode().toString().equals("L") && isEditMode) {
                 if (keyPressed == Key.L) {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.L;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("P") && isEditMode) {
+                if (keyPressed == Key.P) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.P;
+                }
+                closeCurrentEdit();
+            }
+            else if(keyEvent.getCode().toString().equals("H") && isEditMode)
+            {
+                if (keyPressed == Key.H) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.H;
                 }
                 closeCurrentEdit();
             }
@@ -311,6 +336,16 @@ public class UserControls {
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
+            case Z:
+                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lineMirror.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                lineMirror.openObjectEdit();
+                lineMirror.scale(mousePos);
+                mirrors.add(lineMirror);
+                break;
             case X:
                 EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                 ellipseMirror.create();
@@ -321,15 +356,15 @@ public class UserControls {
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
                 break;
-            case Z:
-                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                lineMirror.create();
+            case A:
+                ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
+                arcMirror.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    reflectivitySlider = new ParameterSlider(arcMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
                 }
-                lineMirror.openObjectEdit();
-                lineMirror.scale(mousePos);
-                mirrors.add(lineMirror);
+                arcMirror.openObjectEdit();
+                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
+                mirrors.add(arcMirror);
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
@@ -411,6 +446,41 @@ public class UserControls {
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);
                 lenses.add(sphericalLens);
+                break;
+            case P:
+                Prism prism = new Prism(mousePos.getX(), mousePos.getY(),  1.5, 0.004);
+                prism.create();
+                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
+                {
+                    coefficientASlider = new ParameterSlider(prism, ValueToChange.CoefficientA, SliderStyle.Primary);
+                    coefficientBSlider = new ParameterSlider(prism, ValueToChange.CoefficientB, SliderStyle.Secondary);
+                }
+                prism.openObjectEdit();
+                prism.draw();
+                lenses.add(prism);
+                break;
+            case H:
+                PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);
+                fullPointSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(fullPointSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(fullPointSource, ParameterToChange.WhiteLight);
+                }
+                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(fullPointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
+                fullPointSource.openObjectEdit();
+                lightSources.add(fullPointSource);
+                break;
+            case G:
+                PointSource pointSource = new PointSource(mousePos.getX(), mousePos.getY(), Math.PI/2, 0, 6, false);
+                pointSource.create();
+                if (lightSources.isEmpty()) {
+                    wavelengthSlider = new ParameterSlider(pointSource, ValueToChange.Wavelength, SliderStyle.Primary);
+                    whiteLightToggle = new ParameterToggle(pointSource, ParameterToChange.WhiteLight);
+                }
+                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(pointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
+                if(fieldOfViewSlider == null) fieldOfViewSlider = new ParameterSlider(pointSource, ValueToChange.FieldOfView, SliderStyle.Tertiary);
+                pointSource.openObjectEdit();
+                lightSources.add(pointSource);
                 break;
         }
     }

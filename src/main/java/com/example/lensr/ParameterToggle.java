@@ -2,6 +2,7 @@ package com.example.lensr;
 
 import com.example.lensr.objects.BeamSource;
 import com.example.lensr.objects.PanelSource;
+import com.example.lensr.objects.PointSource;
 import com.jfoenix.controls.JFXToggleButton;
 
 import static com.example.lensr.LensrStart.root;
@@ -33,6 +34,10 @@ public class ParameterToggle extends JFXToggleButton {
             else if (currentSource instanceof PanelSource panelSource && parameterToChange == ParameterToChange.WhiteLight) {
                 setText("White Light");
                 panelSource.setWhiteLight(isSelected());
+            }
+            else if(currentSource instanceof PointSource pointSource && parameterToChange == ParameterToChange.WhiteLight) {
+                setText("White Light");
+                pointSource.setWhiteLight(isSelected());
             }
             SaveState.autoSave();
         });

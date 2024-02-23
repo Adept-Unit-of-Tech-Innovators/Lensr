@@ -4,13 +4,18 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Line;
+
+import static com.example.lensr.LensrStart.mirrorColor;
 
 public class LensArc extends Arc {
     private double thickness;
     private final SphericalLens parentLens;
+    private final Line correspondingFlatArc;
 
-    public LensArc(SphericalLens parentLens, double thickness) {
+    public LensArc(SphericalLens parentLens, Line correspondingFlatArc, double thickness) {
         this.parentLens = parentLens;
+        this.correspondingFlatArc = correspondingFlatArc;
         this.thickness = thickness;
     }
 
@@ -28,6 +33,13 @@ public class LensArc extends Arc {
     public void adjust() {
         setType(ArcType.OPEN);
         setFill(Color.TRANSPARENT);
+        setStroke(mirrorColor);
+        correspondingFlatArc.setStroke(Color.TRANSPARENT);
+        if(thickness == 0)
+        {
+            setStroke(Color.TRANSPARENT);
+            correspondingFlatArc.setStroke(mirrorColor);
+        }
 
         int multiplier = 1;
         if (this == parentLens.getSecondArc()) multiplier = -1;
@@ -71,4 +83,5 @@ public class LensArc extends Arc {
         thickness = newThickness;
         adjust();
     }
+    public Line getCorrespondingFlatArc() {return correspondingFlatArc;}
 }

@@ -1,0 +1,426 @@
+package com.example.lensr.objects;
+
+import com.example.lensr.EditPoint;
+import com.example.lensr.UserControls;
+import javafx.application.Platform;
+import javafx.geometry.Point2D;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.scene.transform.Rotate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.MirrorMethods.updateLightSources;
+
+public class PointSource extends Rectangle implements Editable {
+    
+    public List<OriginRay> originRays = new ArrayList<>();
+    public List<EditPoint> objectEditPoints = new ArrayList<>();
+    double startAngle = 0;
+    double fieldOfView;
+    public Rectangle hitbox;
+    public Group group = new Group();
+    public boolean hasBeenClicked;
+    public boolean isEdited;
+    public double wavelength = 580;
+    public double brightness = 1.0;
+    public int rayCount;
+    boolean isFull;
+    boolean isWhiteLight = false;
+    
+    public PointSource(double centerX, double centerY, double fieldOfView, double startAngle, int rayCount, boolean isFull)
+    {
+        setWidth(10);
+        setHeight(10);
+        setCenter(centerX, centerY);
+        this.fieldOfView = fieldOfView;
+        this.startAngle = startAngle;
+        this.rayCount = rayCount;
+        this.isFull = isFull;
+    }
+    
+    public void create()
+    {
+        setFill(Color.GRAY);
+        toBack();
+        
+        createRectangleHitbox();
+        
+        double angleBetweenRays = fieldOfView / rayCount;
+
+        for (int i = 0; i < rayCount; i++) {
+            OriginRay originRay = new OriginRay(getCenter().getX(), 
+                    getCenter().getY(), 
+                    getCenter().getX() + (Math.cos(startAngle + angleBetweenRays * i)) * SIZE,
+                    getCenter().getY() + (Math.sin(startAngle + angleBetweenRays * i)) * SIZE);
+            originRay.setParentSource(this);
+            originRay.setStrokeWidth(globalStrokeWidth);
+            originRay.setWavelength(wavelength);
+            originRay.setBrightness(brightness);
+            originRays.add(originRay);
+        }
+        
+        objectEditPoints.add(new EditPoint(getCenter()));
+        objectEditPoints.add(new EditPoint(getCenter().getX() + Math.cos(startAngle + fieldOfView/2) * 100, getCenter().getY() + Math.sin(startAngle + fieldOfView/2) * 100));
+
+        objectEditPoints.get(0).setOnClickEvent(event -> move());
+        objectEditPoints.get(1).setOnClickEvent(event -> rotate());
+
+        group.getChildren().add(this);
+        originRays.forEach(ray -> group.getChildren().add(ray.group));
+        group.getChildren().addAll(objectEditPoints);
+        root.getChildren().add(group);
+        originRays.forEach(Node::toBack);
+    }
+
+    private void move()
+    {
+        new Thread(() -> {
+            double angleBetweenRays = fieldOfView / rayCount;
+
+
+            while (isMousePressed && isEdited)
+            {
+                double newCenterX = mousePos.getX();
+                double newCenterY = mousePos.getY();
+
+                Platform.runLater(() -> {
+                    setCenter(newCenterX, newCenterY);
+
+                    int i = 0;
+                    for(OriginRay originRay : originRays)
+                    {
+                        originRay.setStartX(newCenterX);
+                        originRay.setStartY(newCenterY);
+                        originRay.setEndX(newCenterX + (Math.cos(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
+                        originRay.setEndY(newCenterY + (Math.sin(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
+                        i++;
+                    }
+
+                    if(objectEditPoints != null) {
+                        objectEditPoints.get(0).setCenter(new Point2D(newCenterX, newCenterY));
+                        objectEditPoints.get(1).setCenter(new Point2D(newCenterX + Math.cos(startAngle + fieldOfView/2) * 100, newCenterY + Math.sin(startAngle + fieldOfView/2) * 100));
+                    }
+
+                    updateHitbox();
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void rotate()
+    {
+        new Thread(() -> {
+            while (isMousePressed && isEdited)
+            {
+                double mouseAngle = Math.atan2(mousePos.getY() - getCenter().getY(), mousePos.getX() - getCenter().getX());
+                double newStartAngle = mouseAngle - fieldOfView/2;
+                Platform.runLater(() -> {
+
+                    setStartAngle(newStartAngle);
+                    System.out.println(Math.toDegrees(startAngle));
+
+                    if(objectEditPoints != null) {
+                        objectEditPoints.get(1).setCenter(new Point2D(getCenter().getX() + Math.cos(mouseAngle)  * 100, getCenter().getY() + Math.sin(mouseAngle) * 100));
+                    }
+                });
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(10); // Adjust the sleep time as needed
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void setCenter(double newCenterX, double newCenterY)
+    {
+        setX(newCenterX - getWidth()/2);
+        setY(newCenterY - getHeight()/2);
+    }
+    private void createRectangleHitbox() {
+        hitbox = new Rectangle();
+        hitbox.setHeight(mouseHitboxSize);
+        hitbox.setWidth(mouseHitboxSize);
+        hitbox.setFill(Color.TRANSPARENT);
+        hitbox.setStroke(Color.BLACK);
+        hitbox.setStrokeWidth(0);
+        hitbox.toBack();
+        updateHitbox();
+    }
+    private void updateHitbox() {
+        Point2D center = getCenter();
+        hitbox.setY(center.getY() - hitbox.getHeight() / 2);
+        hitbox.setX(center.getX() - hitbox.getHeight() / 2);
+    }
+    public Point2D getCenter() {
+        return new Point2D(getX() + getWidth()/2, getY() + getHeight()/2);
+    }
+
+    public void setRayCount(int newRayCount)
+    {
+        rayCount = newRayCount;
+        int rayNumber = isWhiteLight ? whiteLightRayCount : 1;
+
+//        while (originRays.size() > rayCount * rayNumber) {
+//            OriginRay toDelete = originRays.get(originRays.size() - 1);
+//            root.getChildren().remove(toDelete.group);
+//            group.getChildren().remove(toDelete.group);
+//            originRays.remove(toDelete);
+//            System.out.println("ray removed");
+//        }
+
+        double angleBetweenRays = fieldOfView / rayCount;
+
+        originRays.forEach(ray -> {
+            root.getChildren().remove(ray.group);
+            group.getChildren().remove(ray.group);
+        });
+        originRays.clear();
+
+        for (int i = 0; i < rayNumber; i++) {
+            for (int j = 0; j < rayCount; j++) {
+                OriginRay originRay = new OriginRay(
+                        getCenter().getX(),
+                        getCenter().getY(),
+                        getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE,
+                        getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
+        }
+        originRays.forEach(ray -> group.getChildren().add(ray.group));
+        originRays.forEach(Node::toBack);
+
+    }
+    public void setFieldOfView(double fieldOfView)
+    {
+        double middleAngle = startAngle + this.fieldOfView / 2;
+        this.fieldOfView = fieldOfView;
+        setStartAngle(middleAngle - fieldOfView/2);
+    }
+    public void setStartAngle(double startAngle)
+    {
+        this.startAngle = startAngle;
+        double angleBetweenRays = fieldOfView / rayCount;
+        for (int i = 0; i < originRays.size(); i++) {
+            originRays.get(i).setEndX(getCenter().getX() + Math.cos(startAngle + angleBetweenRays * (i % rayCount)) * SIZE);
+            originRays.get(i).setEndY(getCenter().getY() + Math.sin(startAngle + angleBetweenRays * (i % rayCount)) * SIZE);
+        }
+        update();
+    }
+
+    public void update() {
+        if (isEdited) {
+            return;
+        }
+
+        for (OriginRay originRay : originRays) {
+            group.getChildren().removeAll(originRay.rayReflections);
+            mirrors.forEach(mirror -> {
+                if (mirror instanceof LightSensor lightSensor) {
+                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                    lightSensor.getDetectedRays().remove(originRay);
+                }
+            });
+
+            originRay.simulate();
+        }
+    }
+
+    @Override
+    public void openObjectEdit() {
+        wavelengthSlider.setCurrentSource(this);
+        wavelengthSlider.show();
+        whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.show();
+        numberOfRaysSlider.setCurrentSource(this);
+        numberOfRaysSlider.show();
+
+        wavelengthSlider.setDisable(isWhiteLight);
+
+        if(!isFull) {
+            fieldOfViewSlider.setCurrentSource(this);
+            fieldOfViewSlider.show();
+        }
+        root.requestFocus();
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setVisible(true);
+            editPoint.toFront();
+        });
+
+        Platform.runLater(() -> rayCanvas.clear());
+
+        hasBeenClicked = true;
+        isEdited = true;
+
+        editPoints.addAll(objectEditPoints);
+        editedShape = group;
+
+        updateLightSources();
+    }
+
+    @Override
+    public void closeObjectEdit() {
+        wavelengthSlider.hide();
+        whiteLightToggle.hide();
+        numberOfRaysSlider.hide();
+        if(fieldOfViewSlider != null) fieldOfViewSlider.hide();
+
+        isEdited = false;
+        if(objectEditPoints != null && editedShape instanceof Group)
+        {
+            editPoints.removeAll(objectEditPoints);
+
+            objectEditPoints.forEach(editPoint -> {
+                editPoint.setVisible(false);
+                editPoint.hasBeenClicked = false;
+            });
+        }
+        editedShape = null;
+        updateLightSources();
+    }
+
+    @Override
+    public void delete() {
+        lightSources.remove(this);
+        root.getChildren().remove(group);
+    }
+
+    @Override
+    public void copy() {
+        PointSource newPointSource = new PointSource(getCenter().getX(), getCenter().getY(), fieldOfView, startAngle, rayCount, isFull);
+        newPointSource.create();
+
+        lightSources.add(newPointSource);
+        newPointSource.group.getChildren().add(newPointSource);
+        newPointSource.originRays.forEach(originRay -> newPointSource.group.getChildren().add(originRay.group));
+        newPointSource.originRays.forEach(Node::toBack);
+        root.getChildren().add(newPointSource.group);
+
+        newPointSource.moveBy(10, 10);
+        UserControls.closeCurrentEdit();
+        newPointSource.openObjectEdit();
+    }
+
+    @Override
+    public void moveBy(double x, double y)
+    {
+        setCenter(x, y);
+        objectEditPoints.get(0).setCenter(new Point2D(x, y));
+        objectEditPoints.get(1).setCenter(new Point2D(x + Math.cos(startAngle + fieldOfView/2) * 100, y + Math.sin(startAngle + fieldOfView/2) * 100));
+
+        updateHitbox();
+
+        originRays.forEach(originRay -> {
+            originRay.setStartX(originRay.getStartX() + x);
+            originRay.setStartY(originRay.getStartY() + y);
+            originRay.setEndX(originRay.getEndX() + x);
+            originRay.setEndY(originRay.getEndY() + y);
+        });
+    }
+
+    public double getFieldOfView()
+    {
+        return fieldOfView;
+    }
+    public double getRayCount()
+    {
+        return rayCount;
+    }
+    public boolean getIsFull()
+    {
+        return isFull;
+    }
+    public double getWavelength()
+    {
+        return wavelength;
+    }
+    public boolean getIsWhiteLight() {return isWhiteLight;}
+    public void setWhiteLight(boolean whiteLight)
+    {
+        isWhiteLight = whiteLight;
+        wavelengthSlider.setDisable(isWhiteLight);
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().remove(originRay.group);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            double angleBetweenRays = fieldOfView/rayCount;
+
+            int rayNumber = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < rayNumber; i++) {
+                for (int j = 0; j < rayCount; j++) {
+                    OriginRay originRay = new OriginRay(
+                            getCenter().getX(),
+                            getCenter().getY(),
+                            getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE,
+                            getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE
+                    );
+                    originRay.setParentSource(this);
+                    originRay.setStrokeWidth(globalStrokeWidth);
+                    originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setBrightness(brightness);
+
+                    originRays.add(originRay);
+                }
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+        });
+        updateLightSources();
+    }
+
+    public void setWavelength(double wavelength) {
+        this.wavelength = wavelength;
+        for (OriginRay originRay : originRays) {
+            originRay.setWavelength(wavelength);
+        }
+    }
+    @Override
+    public void setHasBeenClicked(boolean hasBeenClicked) {
+        this.hasBeenClicked = hasBeenClicked;
+    }
+
+    @Override
+    public boolean getHasBeenClicked() {
+        return hasBeenClicked;
+    }
+
+    @Override
+    public boolean intersectsMouseHitbox() {
+        return Shape.intersect(this, mouseHitbox).getLayoutBounds().getWidth() != -1;
+    }
+}

@@ -25,12 +25,19 @@ public class ParameterSlider extends JFXSlider {
         Reflectivity,
         CoefficientA,
         CoefficientB,
+        NumberOfRays,
+        FieldOfView,
     }
 
     enum SliderStyle {
         Primary,
         Secondary,
         Tertiary    
+    }
+
+    enum DisplayedType {
+        Integer,
+        Double
     }
 
     // Local variables
@@ -127,6 +134,10 @@ public class ParameterSlider extends JFXSlider {
                 panelSource.setWavelength(roundedValue);
                 return;
             }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Wavelength) {
+                if(!pointSource.getIsWhiteLight()) pointSource.setWavelength(roundedValue);
+                return;
+            }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
                 filter.graph.drawGraph();
@@ -157,8 +168,8 @@ public class ParameterSlider extends JFXSlider {
                 filter.graph.drawGraph();
                 return;
             }
-            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
-                lineMirror.setReflectivity(roundedValue);
+            if (currentSource instanceof ArcMirror arcMirror && valueToChange == ValueToChange.Reflectivity) {
+                arcMirror.setReflectivity(roundedValue);
                 return;
             }
             if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
@@ -173,6 +184,18 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientB) {
                 sphericalLens.setCoefficientB(roundedValue);
+            }
+            if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientA) {
+                prism.setCoefficientA(roundedValue);
+            }
+            if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientB) {
+                prism.setCoefficientB(roundedValue);
+            }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
+                pointSource.setRayCount((int)roundedValue);
+            }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.FieldOfView) {
+                pointSource.setFieldOfView(Math.toRadians(roundedValue));
             }
         });
 
@@ -231,6 +254,12 @@ public class ParameterSlider extends JFXSlider {
             startingVal = panelSource.getWavelength();
             label.setText("Wavelength");
         }
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PointSource pointSource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = pointSource.getWavelength();
+            label.setText("Wavelength");
+        }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
             minVal = 0;
             maxVal = 1;
@@ -267,10 +296,10 @@ public class ParameterSlider extends JFXSlider {
             filter.setEndPassband(startingVal);
             label.setText("End passband");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof ArcMirror arcMirror) {
             minVal = 0;
             maxVal = 1;
-            startingVal = lineMirror.getReflectivity();
+            startingVal = arcMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
@@ -288,14 +317,38 @@ public class ParameterSlider extends JFXSlider {
         else if (valueToChange == ValueToChange.CoefficientA && currentSource instanceof SphericalLens sphericalLens) {
             minVal = 1;
             maxVal = 3;
-            startingVal = sphericalLens.getCoeficientA();
+            startingVal = sphericalLens.getCoefficientA();
             label.setText("Coefficient A");
         }
         else if (valueToChange == ValueToChange.CoefficientB && currentSource instanceof SphericalLens sphericalLens) {
             minVal = 0.000;
             maxVal = 0.020;
-            startingVal = sphericalLens.getCoeficientB();
+            startingVal = sphericalLens.getCoefficientB();
             label.setText("Coefficient B");
+        }
+        else if (valueToChange == ValueToChange.CoefficientA && currentSource instanceof Prism prism) {
+            minVal = 1;
+            maxVal = 3;
+            startingVal = prism.getCoefficientA();
+            label.setText("Coefficient A");
+        }
+        else if (valueToChange == ValueToChange.CoefficientB && currentSource instanceof Prism prism) {
+            minVal = 0.000;
+            maxVal = 0.020;
+            startingVal = prism.getCoefficientB();
+            label.setText("Coefficient B");
+        }
+        else if (valueToChange == ValueToChange.FieldOfView && currentSource instanceof PointSource pointSource && !pointSource.getIsFull()) {
+            minVal = 0;
+            maxVal = 180;
+            startingVal = Math.toDegrees(pointSource.getFieldOfView());
+            label.setText("Field of view");
+        }
+        else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PointSource pointSource) {
+            minVal = 1;
+            maxVal = 100;
+            startingVal = pointSource.getRayCount();
+            label.setText("Number of rays");
         }
         setMin(minVal);
         setMax(maxVal);
