@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
 
@@ -23,7 +24,7 @@ public class FunnyMirror extends Polyline implements Editable{
     public boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
-    ArcMirror closestIntersectionSegment;
+    LineMirror closestIntersectionSegment;
 
     public FunnyMirror() {
 
@@ -265,11 +266,11 @@ public class FunnyMirror extends Polyline implements Editable{
         updateLightSources();
     }
 
-    public void setClosestIntersectionSegment(ArcMirror closestIntersectionSegment) {
+    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
         this.closestIntersectionSegment = closestIntersectionSegment;
     }
 
-    public ArcMirror getClosestIntersectionSegment() {
+    public LineMirror getClosestIntersectionSegment() {
         return closestIntersectionSegment;
     }
 

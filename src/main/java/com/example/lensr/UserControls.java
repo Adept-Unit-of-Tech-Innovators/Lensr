@@ -188,6 +188,14 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("A") && isEditMode) {
+                if (keyPressed == Key.A) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.A;
+                }
+                closeCurrentEdit();
+            }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
                 if (keyPressed == Key.V) {
                     keyPressed = Key.None;
@@ -283,6 +291,16 @@ public class UserControls {
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
+            case Z:
+                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lineMirror.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                lineMirror.openObjectEdit();
+                lineMirror.scale(mousePos);
+                mirrors.add(lineMirror);
+                break;
             case X:
                 EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                 ellipseMirror.create();
@@ -293,7 +311,7 @@ public class UserControls {
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
                 break;
-            case Z:
+            case A:
                 ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
                 arcMirror.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
