@@ -51,12 +51,12 @@ public class EditPoint extends Rectangle {
 
 
     public void setCenterX(double centerX) {
-        setX(centerX - editPointSize / 2);
+        setX(centerX - getWidth() / 2);
     }
 
 
     public void setCenterY(double centerY) {
-        setY(centerY - editPointSize / 2);
+        setY(centerY - getHeight() / 2);
     }
 
 

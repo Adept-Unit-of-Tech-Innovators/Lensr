@@ -100,8 +100,8 @@ public class Intersections {
     }
 
     public static Point2D getRayArcIntersectionPoint(Ray ray, Arc arc) {
+        if(arc instanceof LensArc && ((LensArc) arc).getThickness() == 0) return getRayLineIntersectionPoint(ray, ((LensArc) arc).getCorrespondingFlatArc());
         List<Point2D> intersections = calculateIntersectionPoints(ray, new Ellipse(arc.getCenterX(), arc.getCenterY(), arc.getRadiusX(), arc.getRadiusY()));
-
         if (intersections == null) {
             return null;
         }

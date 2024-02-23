@@ -31,6 +31,8 @@ public class SphericalLens extends Group implements Editable {
     private double centerY;
     private final LensArc firstArc;
     private final LensArc secondArc;
+    private final Line firstFlatArc;
+    private final Line secondFlatArc;
     private final LensLine topLine;
     private final LensLine bottomLine;
     public List<Shape> elements = new ArrayList<>();
@@ -46,8 +48,11 @@ public class SphericalLens extends Group implements Editable {
         this.coeficientA = coeficientA;
         this.coeficientB = coeficientB;
 
-        firstArc = new LensArc(this, lensThickness1);
-        secondArc = new LensArc(this, lensThickness2);
+        firstFlatArc = new Line();
+        secondFlatArc = new Line();
+
+        firstArc = new LensArc(this, firstFlatArc, lensThickness1);
+        secondArc = new LensArc(this, secondFlatArc, lensThickness2);
 
         topLine = new LensLine(this);
         bottomLine = new LensLine(this);
@@ -64,6 +69,16 @@ public class SphericalLens extends Group implements Editable {
         for (Shape element : elements) {
             element.setStroke(mirrorColor);
             element.setStrokeWidth(globalStrokeWidth);
+            if(element instanceof LensArc arc)
+            {
+                arc.getCorrespondingFlatArc().setStroke(Color.TRANSPARENT);
+                arc.getCorrespondingFlatArc().setStrokeWidth(globalStrokeWidth);
+                if(arc.getThickness() == 0)
+                {
+                    arc.setStroke(Color.TRANSPARENT);
+                    arc.getCorrespondingFlatArc().setStroke(mirrorColor);
+                }
+            }
         }
 
         // Setup positions for all different edit points
@@ -118,6 +133,11 @@ public class SphericalLens extends Group implements Editable {
         group.getChildren().addAll(elements);
         group.getChildren().addAll(objectEditPoints);
         root.getChildren().add(group);
+        upperRotateField.setFill(Color.BISQUE);
+        lowerRotateField.setFill(Color.BISQUE);
+        root.getChildren().addAll(firstFlatArc, secondFlatArc, upperRotateField, lowerRotateField);
+        firstFlatArc.toBack();
+        secondFlatArc.toBack();
     }
 
     // TODO: Implement visible focal point
@@ -142,6 +162,16 @@ public class SphericalLens extends Group implements Editable {
 
         topLine.adjust();
         bottomLine.adjust();
+
+        firstFlatArc.setStartX(topLine.getStartX());
+        firstFlatArc.setStartY(topLine.getStartY());
+        firstFlatArc.setEndX(bottomLine.getStartX());
+        firstFlatArc.setEndY(bottomLine.getStartY());
+
+        secondFlatArc.setStartX(topLine.getEndX());
+        secondFlatArc.setStartY(topLine.getEndY());
+        secondFlatArc.setEndX(bottomLine.getEndX());
+        secondFlatArc.setEndY(bottomLine.getEndY());
     }
     public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight) {resize(newCenterX, newCenterY, newWidth, newHeight, angleOfRotation);}
     public void resize(double newAngleOfRotation) {resize(centerX, centerY, middleWidth, middleHeight, newAngleOfRotation);}
@@ -294,9 +324,13 @@ public class SphericalLens extends Group implements Editable {
             while (isMousePressed)
             {
                 // Get the angle between center of lens and position of the mouse
+                int snapValue = 1;
 
                 newAngleOfRotation = Math.atan2(centerY - mousePos.getY(), centerX - mousePos.getX()) - mouseAngle;
-                double finalAngleOfRotation = newAngleOfRotation;
+
+                if(shiftPressed) snapValue = 45;
+                else if(altPressed) snapValue = 90;
+                double finalAngleOfRotation = Math.toRadians(roundDownToMultiple(Math.toDegrees(newAngleOfRotation), snapValue));
 
                 Platform.runLater(() -> {
                     resize(finalAngleOfRotation);
@@ -325,7 +359,8 @@ public class SphericalLens extends Group implements Editable {
                 // "Unrotate" position of the mouse around the center of the lens, so we can easily get distance between mouse and center on the rotated X axis
                 Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, getCenter(), -angleOfRotation);
                 newThickness = (arc == secondArc ? unrotatedMousePos.getX() - centerX + middleWidth/2 : centerX - unrotatedMousePos.getX() - middleWidth * 3/2);
-                newThickness = roundDownToMultiple(newThickness, arcSnap);
+
+                if(shiftPressed) newThickness = roundDownToMultiple(newThickness, arcSnap);
 
                 double finalThickness = newThickness;
 

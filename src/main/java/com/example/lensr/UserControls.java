@@ -82,6 +82,7 @@ public class UserControls {
                     for (ToolbarButton button : toolbar) {
                         button.disableProperty().setValue(true);
                     }
+                    closeCurrentEdit();
                 }
                 else {
                     for (ToolbarButton button : toolbar) {
