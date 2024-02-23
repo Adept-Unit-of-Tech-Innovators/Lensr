@@ -253,12 +253,19 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if(keyEvent.getCode().toString().equals("L") && isEditMode)
-            {
+            else if(keyEvent.getCode().toString().equals("L") && isEditMode) {
                 if (keyPressed == Key.L) {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.L;
+                }
+                closeCurrentEdit();
+            }
+            else if(keyEvent.getCode().toString().equals("P") && isEditMode) {
+                if (keyPressed == Key.P) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.P;
                 }
                 closeCurrentEdit();
             }
@@ -401,6 +408,18 @@ public class UserControls {
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);
                 lenses.add(sphericalLens);
+                break;
+            case P:
+                Prism prism = new Prism(mousePos.getX(), mousePos.getY(),  1.5, 0.004);
+                prism.create();
+                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
+                {
+                    coefficientASlider = new ParameterSlider(prism, ValueToChange.CoefficientA, SliderStyle.Primary);
+                    coefficientBSlider = new ParameterSlider(prism, ValueToChange.CoefficientB, SliderStyle.Secondary);
+                }
+                prism.openObjectEdit();
+                prism.draw();
+                lenses.add(prism);
                 break;
         }
     }

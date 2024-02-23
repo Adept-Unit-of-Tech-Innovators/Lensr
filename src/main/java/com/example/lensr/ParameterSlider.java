@@ -168,6 +168,12 @@ public class ParameterSlider extends JFXSlider {
             if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientB) {
                 sphericalLens.setCoefficientB(roundedValue);
             }
+            if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientA) {
+                prism.setCoefficientA(roundedValue);
+            }
+            if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientB) {
+                prism.setCoefficientB(roundedValue);
+            }
         });
 
         textField.setOnAction(actionEvent -> {
@@ -281,13 +287,25 @@ public class ParameterSlider extends JFXSlider {
         else if (valueToChange == ValueToChange.CoefficientA && currentSource instanceof SphericalLens sphericalLens) {
             minVal = 1;
             maxVal = 3;
-            startingVal = sphericalLens.getCoeficientA();
+            startingVal = sphericalLens.getCoefficientA();
             label.setText("Coefficient A");
         }
         else if (valueToChange == ValueToChange.CoefficientB && currentSource instanceof SphericalLens sphericalLens) {
             minVal = 0.000;
             maxVal = 0.020;
-            startingVal = sphericalLens.getCoeficientB();
+            startingVal = sphericalLens.getCoefficientB();
+            label.setText("Coefficient B");
+        }
+        else if (valueToChange == ValueToChange.CoefficientA && currentSource instanceof Prism prism) {
+            minVal = 1;
+            maxVal = 3;
+            startingVal = prism.getCoefficientA();
+            label.setText("Coefficient A");
+        }
+        else if (valueToChange == ValueToChange.CoefficientB && currentSource instanceof Prism prism) {
+            minVal = 0.000;
+            maxVal = 0.020;
+            startingVal = prism.getCoefficientB();
             label.setText("Coefficient B");
         }
         setMin(minVal);

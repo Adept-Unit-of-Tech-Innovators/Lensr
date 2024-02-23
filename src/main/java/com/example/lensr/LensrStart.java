@@ -40,7 +40,8 @@ public class LensrStart extends Application {
         M,
         K,
         J,
-        L
+        L,
+        P
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -81,8 +82,9 @@ public class LensrStart extends Application {
         ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 775, 25);
         ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 25, 75);
         ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 150, 75);
-        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 275, 75);
-        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 400, 75);
+        ToolbarButton prismButton = new ToolbarButton("Prism", Key.P, 275, 75);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 400, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 525, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(arcMirrorButton);
         toolbar.add(ellipseMirrorButton);
@@ -92,6 +94,7 @@ public class LensrStart extends Application {
         toolbar.add(brickwallFilterButton);
         toolbar.add(sensorButton);
         toolbar.add(lensButton);
+        toolbar.add(prismButton);
         toolbar.add(beamButton);
         toolbar.add(panelButton);
 

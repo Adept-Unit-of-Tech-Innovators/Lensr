@@ -16,16 +16,20 @@ import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 
-public class Prism extends Polygon implements Editable{
+public class Prism extends Polygon implements Glass, Editable {
 
     public Group group = new Group();
     List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
     public boolean hasBeenClicked;
-    // TODO: Add the properties of the Prism class
+    LineMirror closestIntersectionSegment;
+    public double coefficientA;
+    public double coefficientB;
 
-    public Prism(double x, double y) {
+    public Prism(double x, double y, double coefficientA, double coefficientB) {
         super(x, y, x, y, x, y);
+        this.coefficientA = coefficientA;
+        this.coefficientB = coefficientB;
     }
 
     public void create() {
@@ -61,7 +65,7 @@ public class Prism extends Polygon implements Editable{
 
     @Override
     public void copy() {
-        Prism newPrism = new Prism(getPoints().get(0), getPoints().get(1));
+        Prism newPrism = new Prism(getPoints().get(0), getPoints().get(1), coefficientA, coefficientB);
         newPrism.getPoints().setAll(getPoints());
         newPrism.create();
         newPrism.moveBy(10, 10);
@@ -72,7 +76,10 @@ public class Prism extends Polygon implements Editable{
 
     @Override
     public void openObjectEdit() {
-        // TODO: Implement the sliders for the Prism class
+        coefficientASlider.setCurrentSource(this);
+        coefficientBSlider.setCurrentSource(this);
+        coefficientASlider.show();
+        coefficientBSlider.show();
 
         // Defocus the text fields
         root.requestFocus();
@@ -92,8 +99,8 @@ public class Prism extends Polygon implements Editable{
 
     @Override
     public void closeObjectEdit() {
-        // TODO: Implement the closing of the sliders for the Prism class
-
+        coefficientASlider.hide();
+        coefficientBSlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group) {
             editPoints.removeAll(objectEditPoints);
@@ -102,6 +109,7 @@ public class Prism extends Polygon implements Editable{
                 editPoint.hasBeenClicked = false;
             });
         }
+
         editedShape = null;
         MirrorMethods.updateLightSources();
     }
@@ -212,6 +220,26 @@ public class Prism extends Polygon implements Editable{
 
     public double getCenterY() {
         return (getPoints().get(1) + getPoints().get(3) + getPoints().get(5)) / 3;         // centroid formula
+    }
+
+    public double getCoefficientA() {
+        return coefficientA;
+    }
+    public double getCoefficientB() {
+        return coefficientB;
+    }
+    public void setCoefficientA(double coeficientA) {
+        this.coefficientA = coeficientA;
+    }
+    public void setCoefficientB(double coeficientB) {
+        this.coefficientB = coeficientB;
+    }
+    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
+        this.closestIntersectionSegment = closestIntersectionSegment;
+    }
+
+    public LineMirror getClosestIntersectionSegment() {
+        return closestIntersectionSegment;
     }
 
     @Override
