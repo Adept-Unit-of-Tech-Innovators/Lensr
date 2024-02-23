@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -162,6 +163,7 @@ public class LineMirror extends Line implements Editable, Serializable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -202,6 +204,7 @@ public class LineMirror extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -284,6 +287,7 @@ public class LineMirror extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 

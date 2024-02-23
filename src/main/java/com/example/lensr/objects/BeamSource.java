@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -183,6 +184,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
             originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
         });
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -229,6 +231,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -271,6 +274,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 

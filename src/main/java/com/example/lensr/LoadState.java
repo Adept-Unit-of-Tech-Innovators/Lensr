@@ -1,5 +1,10 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.BeamSource;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.objects.PanelSource;
+import com.example.lensr.objects.SphericalLens;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,16 +12,30 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.lensr.LensrStart.*;
+
 public class LoadState {
-    public static List<Serializable> loadProject(String filename) {
-        List<Serializable> objects = new ArrayList<>();
+    public static void loadProject(String filename) {
+        // Delete all objects
+        List<Object> currentObjects = new ArrayList<>();
+        currentObjects.addAll(mirrors);
+        currentObjects.addAll(lightSources);
+        currentObjects.addAll(lenses);
+        currentObjects.forEach(object -> {
+            if (object instanceof Editable editable) {
+                editable.closeObjectEdit();
+                editable.delete();
+            }
+        });
+
+        List<Serializable> newObjects = new ArrayList<>();
         try {
             // Load every object from the file
             FileInputStream fileIn = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
             while (true) {
                 try {
-                    objects.add((Serializable) in.readObject());
+                    newObjects.add((Serializable) in.readObject());
                 } catch (IOException e) {
                     break;
                 }
@@ -28,6 +47,22 @@ public class LoadState {
         } catch (ClassNotFoundException c) {
             throw new RuntimeException("Error loading project: Object class not found", c);
         }
-        return objects;
+
+        for (Serializable object : newObjects) {
+            if (object instanceof Editable editable) {
+                editable.create();
+                if (editable instanceof BeamSource || editable instanceof PanelSource) {
+                    lightSources.add(editable);
+                }
+                else if (editable instanceof SphericalLens) {
+                    lenses.add(editable);
+                }
+                else {
+                    mirrors.add(editable);
+                }
+            }
+        }
+        // After loading, simulate the new scene
+        MirrorMethods.updateLightSources();
     }
 }

@@ -8,8 +8,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -65,6 +67,8 @@ public class LensrStart extends Application {
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
     public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
+    public static Stack<File> undoSaves = new Stack<>();
+    public static Stack<File> redoSaves = new Stack<>();
 
     @Override
     public void start(Stage primaryStage) {

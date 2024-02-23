@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.Graph;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -174,6 +175,7 @@ public class LightSensor extends Line implements Editable, Serializable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -215,6 +217,7 @@ public class LightSensor extends Line implements Editable, Serializable {
                 }
             }
         }).start();
+        SaveState.autoSave();
     }
 
     public void scale(Point2D anchor) {
@@ -296,6 +299,7 @@ public class LightSensor extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 

@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -74,6 +75,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
     }
 
@@ -87,6 +89,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        SaveState.autoSave();
     }
 
     public void move() {
@@ -133,6 +136,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
     }
 
@@ -194,6 +198,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
     }
 

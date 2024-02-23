@@ -6,7 +6,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Slider;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +109,9 @@ public class UserControls {
                                 editable.delete();
                             });
                 }
+                // This has to be here because the `delete` method will be called when loading a project
+                // Because of that it will make a new autosave meaning you can't undo/redo the delete action
+                SaveState.autoSave();
             }
             if (( keyEvent.getCode().toString().equals("ESCAPE") || keyEvent.getCode().toString().equals("ENTER") ) && isEditMode) {
                 closeCurrentEdit();
@@ -179,36 +181,24 @@ public class UserControls {
             }
 
             if (keyEvent.getCode().toString().equals("A") && keyEvent.isControlDown() && isEditMode) {
-                // Delete all objects
-                List<Object> currentObjects = new ArrayList<>();
-                currentObjects.addAll(mirrors);
-                currentObjects.addAll(lightSources);
-                currentObjects.addAll(lenses);
-                currentObjects.forEach(object -> {
-                    if (object instanceof Editable editable) {
-                        editable.closeObjectEdit();
-                        editable.delete();
-                    }
-                });
+                System.out.println("Loading project");
+                LoadState.loadProject("projectSave.ser");
+            }
 
-                System.out.println("Loading lineMirror");
-                List<Serializable> objects = LoadState.loadProject("projectSave.ser");
-                for (Serializable object : objects) {
-                    if (object instanceof Editable editable) {
-                        editable.create();
-                        if (editable instanceof BeamSource || editable instanceof PanelSource) {
-                            lightSources.add(editable);
-                        }
-                        else if (editable instanceof SphericalLens) {
-                            lenses.add(editable);
-                        }
-                        else {
-                            mirrors.add(editable);
-                        }
-                    }
+            if (keyEvent.getCode().toString().equals("Z") && keyEvent.isControlDown() && isEditMode) {
+                if (undoSaves.size() > 1) {
+                    redoSaves.push(undoSaves.pop());
+                    LoadState.loadProject("autosaves/" + undoSaves.peek().getName());
                 }
-                // After loading, simulate the new scene
-                MirrorMethods.updateLightSources();
+                return;
+            }
+
+            if (keyEvent.getCode().toString().equals("Y") && keyEvent.isControlDown() && isEditMode) {
+                if (!redoSaves.isEmpty()) {
+                    LoadState.loadProject("autosaves/" + redoSaves.peek().getName());
+                    undoSaves.push(redoSaves.pop());
+                }
+                return;
             }
 
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {

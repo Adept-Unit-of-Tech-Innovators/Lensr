@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.MirrorMethods;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -224,7 +225,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         });
     }
 
@@ -300,8 +301,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
                     }
                 }
             }
-
-
+            SaveState.autoSave();
         });
     }
 
@@ -331,8 +331,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
                     }
                 }
             }
-
-
+            SaveState.autoSave();
         });
     }
 
@@ -363,6 +362,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         });
     }
 
@@ -432,6 +432,7 @@ public class SphericalLens extends Group implements Editable, Serializable {
     @Override
     public void moveBy(double x, double y) {
         resize(centerX + x, centerY + y);
+        SaveState.autoSave();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -128,6 +129,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        SaveState.autoSave();
     }
 
     public void move() {
@@ -165,7 +167,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         }).start();
     }
 
@@ -233,7 +235,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         }).start();
     }
 

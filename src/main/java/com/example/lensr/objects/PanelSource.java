@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -247,6 +248,7 @@ public class PanelSource extends Line implements Editable, Serializable {
             originRay.setEndX(originRay.getEndX() + x);
             originRay.setEndY(originRay.getEndY() + y);
         });
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -299,6 +301,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -403,6 +406,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 

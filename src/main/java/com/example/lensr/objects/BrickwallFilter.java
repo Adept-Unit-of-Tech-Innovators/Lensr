@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.Graph;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -183,6 +184,7 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -223,6 +225,7 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -305,6 +308,7 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 

@@ -34,6 +34,7 @@ public class ParameterToggle extends JFXToggleButton {
                 setText("White Light");
                 panelSource.setWhiteLight(isSelected());
             }
+            SaveState.autoSave();
         });
     }
 
