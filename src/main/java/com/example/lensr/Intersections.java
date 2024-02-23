@@ -1,7 +1,7 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.LensArc;
 import com.example.lensr.objects.Ray;
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.*;
 
@@ -123,19 +123,29 @@ public class Intersections {
             return null;
         }
 
-        Bounds arcBounds = arc.getLayoutBounds();
-        // Return the intersection point that is closest to the ray's start point and in the direction of the ray and within the arc
-        if (dotProduct1 >= 0 &&
-                (intersections.get(0).getX() >= arcBounds.getMinX() && intersections.get(0).getX() <= arcBounds.getMaxX()) &&
-                (intersections.get(0).getY() >= arcBounds.getMinY() && intersections.get(0).getY() <= arcBounds.getMaxY())
+        double intersection1Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(0).getY() - arc.getCenterY(), intersections.get(0).getX() - arc.getCenterX()))) % 360;
+        double intersection2Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(1).getY() - arc.getCenterY(), intersections.get(1).getX() - arc.getCenterX()))) % 360;
+
+        // Return the closest intersection point in the direction of the ray that lies on the arc
+        if (dotProduct1 < 0 ||
+                (!(intersection1Angle >= arc.getStartAngle() && intersection1Angle <= arc.getStartAngle() + arc.getLength()) &&
+                        !(intersection1Angle <= arc.getStartAngle() && intersection1Angle >= arc.getStartAngle() + arc.getLength()))
         ) {
+            intersections.set(0, null);
+        }
+        if (dotProduct2 < 0 ||
+                (!(intersection2Angle >= arc.getStartAngle() && intersection2Angle <= arc.getStartAngle() + arc.getLength()) &&
+                        !(intersection2Angle <= arc.getStartAngle() && intersection2Angle >= arc.getStartAngle() + arc.getLength()))
+        ) {
+            intersections.set(1, null);
+        }
+
+        if (intersections.get(0) != null && (intersections.get(1) == null || intersections.get(0).distance(ray.getStartX(), ray.getStartY()) < intersections.get(1).distance(ray.getStartX(), ray.getStartY()))) {
             return intersections.get(0);
-        } else if (dotProduct2 >= 0 &&
-                (intersections.get(1).getX() >= arcBounds.getMinX() && intersections.get(1).getX() <= arcBounds.getMaxX()) &&
-                (intersections.get(1).getY() >= arcBounds.getMinY() && intersections.get(1).getY() <= arcBounds.getMaxY())
-        ) {
+        } else if (intersections.get(1) != null) {
             return intersections.get(1);
         }
+
         return null;
     }
 
@@ -205,4 +215,81 @@ public class Intersections {
 
         return 2 * normalAngle - angleOfIncidence;
     }
+
+    public static double getArcReflectionAngle(Ray ray, Arc mirror) {
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+
+        // Calculate the angle of the normal vector at the intersection point
+        double x = ray.getEndX();
+        double y = ray.getEndY();
+        double centerX = mirror.getCenterX();
+        double centerY = mirror.getCenterY();
+        double semiMajorAxis = mirror.getRadiusX();
+        double semiMinorAxis = mirror.getRadiusY();
+
+        // Equation of an ellipse: (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
+        // Derivative of the ellipse equation: f'(x) = -((x - h) / a^2) / ((y - k) / b^2)
+        // Normal vector: (-f'(x), 1)
+        // according to chatgpt at least
+        double normalAngle = Math.atan2(((y - centerY) * semiMajorAxis * semiMajorAxis), ((x - centerX) * semiMinorAxis * semiMinorAxis));
+
+        // Adjust the normal angle based on the quadrant of the point
+        if (x > centerX) {
+            normalAngle += Math.PI;
+        }
+
+        return 2 * normalAngle - angleOfIncidence;
+    }
+
+    public static double getLineRefractionAngle(Ray ray, Line line, double currRefractiveIndex, double newRefractiveIndex) {
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
+        double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
+
+        double normalAngle = determineNormalAngle(lineAngle - Math.PI/2, lineAngle + Math.PI/2, angleOfIncidence);
+        double reversedNormalAngle = normalAngle + Math.PI;
+        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+
+        if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
+            return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
+        }
+
+        return getLineReflectionAngle(ray, line);
+    }
+
+    public static double getArcRefractionAngle(Ray ray, LensArc arc, double currRefractiveIndex, double newRefractiveIndex) {
+        // 12 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
+        double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
+
+        double centerX = arc.getCenterX();
+        double centerY = arc.getCenterY();
+        double pointX = ray.getEndX();
+        double pointY = ray.getEndY();
+
+        double normalAngle = determineNormalAngle(Math.atan2((pointY - centerY), (pointX - centerX)), Math.atan2((centerY - pointY), (centerX - pointX)), angleOfIncidence);
+        double reversedNormalAngle = normalAngle + Math.PI;
+        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+
+        if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
+            return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
+        }
+
+        return getArcReflectionAngle(ray, arc);
+    }
+
+    public static Point2D rotatePointAroundOtherByAngle(Point2D rotatedPoint, Point2D staticPoint, double angle) {
+        double x = rotatedPoint.getX() - staticPoint.getX();
+        double y = rotatedPoint.getY() - staticPoint.getY();
+
+        double newX = x * Math.cos(angle) - y * Math.sin(angle);
+        double newY = x * Math.sin(angle) + y * Math.cos(angle);
+
+        return new Point2D(newX, newY);
+    }
+
+    public static double determineNormalAngle (double angle1, double angle2, double angleOfIncidence) {
+        return Math.abs(angleOfIncidence - angle1) < Math.abs(angleOfIncidence - angle2) ? angle1 : angle2;
+    }
+
 }

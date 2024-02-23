@@ -18,7 +18,7 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class LightSensor extends Line implements Editable{
+public class LightSensor extends Line implements Editable {
     public Group group = new Group();
     Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
@@ -177,7 +177,7 @@ public class LightSensor extends Line implements Editable{
             Point2D prevStart = new Point2D(getStartX(), getStartY());
             Point2D prevEnd = new Point2D(getEndX(), getEndY());
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double deltaX = mousePos.getX() - prevMousePos.getX();
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
@@ -216,7 +216,7 @@ public class LightSensor extends Line implements Editable{
         new Thread(() -> {
             double startX, startY, endX, endY;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 if (altPressed && shiftPressed) {
                     // Shift-mode calculations for actually half the mirror
                     double deltaX = mousePos.getX() - anchor.getX();

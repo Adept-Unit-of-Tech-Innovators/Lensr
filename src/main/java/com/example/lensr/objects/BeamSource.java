@@ -16,6 +16,7 @@ import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
+import static com.example.lensr.MirrorMethods.updateLightSources;
 
 public class BeamSource extends Rectangle implements Editable{
     public List<OriginRay> originRays = new ArrayList<>();
@@ -110,15 +111,12 @@ public class BeamSource extends Rectangle implements Editable{
 
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-            originRay.getRenderer().clear();
             mirrors.forEach(mirror -> {
                 if (mirror instanceof LightSensor lightSensor) {
                     lightSensor.detectedRays.removeAll(originRay.rayReflections);
                     lightSensor.getDetectedRays().remove(originRay);
                 }
             });
-            originRay.rayReflections.clear();
-
             originRay.simulate();
         }
     }
@@ -134,7 +132,7 @@ public class BeamSource extends Rectangle implements Editable{
         // Defocus the text fields
         root.requestFocus();
 
-        originRays.forEach(originRay -> originRay.getRenderer().clear());
+        Platform.runLater(() -> rayCanvas.clear());
 
         hasBeenClicked = true;
         isEdited = true;
@@ -188,7 +186,7 @@ public class BeamSource extends Rectangle implements Editable{
 
             Point2D prevMousePos = mousePos;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double deltaX = mousePos.getX() - prevMousePos.getX();
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
@@ -234,7 +232,7 @@ public class BeamSource extends Rectangle implements Editable{
                 }
             });
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double angle = Math.atan2(mousePos.getY() - getCenterY(), mousePos.getX() - getCenterX());
 
                 // Rotate the light source
@@ -278,7 +276,7 @@ public class BeamSource extends Rectangle implements Editable{
             objectEditPoints.clear();
         }
         editedShape = null;
-        update();
+        updateLightSources();
     }
 
     private double getCenterX() {
@@ -303,6 +301,7 @@ public class BeamSource extends Rectangle implements Editable{
             group.getChildren().removeAll(originRays);
             originRays.forEach(originRay -> {
                 group.getChildren().removeAll(originRay.rayReflections);
+                group.getChildren().removeAll(originRay.group);
                 mirrors.forEach(mirror -> {
                     if (mirror instanceof LightSensor lightSensor) {
                         lightSensor.detectedRays.removeAll(originRay.rayReflections);
@@ -311,6 +310,7 @@ public class BeamSource extends Rectangle implements Editable{
                 });
                 originRay.rayReflections.clear();
             });
+
             originRays.clear();
 
             int rayCount = whiteLight ? whiteLightRayCount : 1;
@@ -330,7 +330,7 @@ public class BeamSource extends Rectangle implements Editable{
             }
             originRays.forEach(ray -> group.getChildren().add(ray.group));
             originRays.forEach(Node::toBack);
-            update();
+            updateLightSources();
         });
     }
 

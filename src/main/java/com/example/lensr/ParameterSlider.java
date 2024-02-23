@@ -23,7 +23,9 @@ public class ParameterSlider extends JFXSlider {
         Transmission,
         StartPassband,
         EndPassband,
-        Reflectivity
+        Reflectivity,
+        CoefficientA,
+        CoefficientB,
     }
 
     enum SliderStyle {
@@ -35,8 +37,8 @@ public class ParameterSlider extends JFXSlider {
     // Local variables
     SliderStyle sliderStyle;
     ValueToChange valueToChange;
-    double minVal = getMin();
-    double maxVal = getMax();
+    double minVal;
+    double maxVal;
     double startingVal = getValue();
     Object currentSource;
 
@@ -85,7 +87,7 @@ public class ParameterSlider extends JFXSlider {
 
         textField.setLayoutY(32.5);
         textField.setPrefWidth(50);
-        textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 100.0) / 100.0));
+        textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 1000.0) / 1000.0));
 
         label.getStyleClass().add("label");
 
@@ -100,7 +102,7 @@ public class ParameterSlider extends JFXSlider {
         // Set the decimal format to 2 decimal places if the slider is for peak transmission
         if (valueToChange == ValueToChange.PeakTransmission) {
             setValueFactory(slider ->
-                    Bindings.createStringBinding(() -> (Math.round(getValue() * 100.0) / 100.0) + "",
+                    Bindings.createStringBinding(() -> (Math.round(getValue() * 1000.0) / 1000.0) + "",
                             slider.valueProperty()));
         }
 
@@ -109,7 +111,7 @@ public class ParameterSlider extends JFXSlider {
 
         // Set the value of the slider to the appropriate value of the current source
         valueProperty().addListener((observable, oldValue, newValue) -> {
-            double roundedValue = Math.round(newValue.doubleValue() * 100.0) / 100.0;
+            double roundedValue = Math.round(newValue.doubleValue() * 1000.0) / 1000.0;
             textField.setText(String.valueOf(roundedValue));
             if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
                 beamSource.setWavelength(roundedValue);
@@ -149,8 +151,8 @@ public class ParameterSlider extends JFXSlider {
                 filter.graph.drawGraph();
                 return;
             }
-            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
-                lineMirror.setReflectivity(roundedValue);
+            if (currentSource instanceof ArcMirror arcMirror && valueToChange == ValueToChange.Reflectivity) {
+                arcMirror.setReflectivity(roundedValue);
                 return;
             }
             if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
@@ -160,6 +162,12 @@ public class ParameterSlider extends JFXSlider {
             if (currentSource instanceof FunnyMirror funnyMirror && valueToChange == ValueToChange.Reflectivity) {
                 funnyMirror.setReflectivity(roundedValue);
             }
+            if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientA) {
+                sphericalLens.setCoefficientA(roundedValue);
+            }
+            if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientB) {
+                sphericalLens.setCoefficientB(roundedValue);
+            }
         });
 
         textField.setOnAction(actionEvent -> {
@@ -167,7 +175,7 @@ public class ParameterSlider extends JFXSlider {
                 double value = Double.parseDouble(textField.getText());
                 setValue(value);
             } catch (NumberFormatException e) {
-                textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0));
+                textField.setText(String.valueOf(Math.round(getValue() * 1000.0) / 1000.0));
             }
         });
     }
@@ -180,7 +188,7 @@ public class ParameterSlider extends JFXSlider {
     public void hide() {
         // Set the value of the slider to the appropriate value of the text field
         try { setValue(Double.parseDouble(textField.getText())); }
-        catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 100.0) / 100.0)); }
+        catch (NumberFormatException e) { textField.setText(String.valueOf(Math.round(getValue() * 1000.0) / 1000.0)); }
         textField.setFocusTraversable(false);
         // Update UI
         hBox.setVisible(false);
@@ -217,6 +225,8 @@ public class ParameterSlider extends JFXSlider {
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = filter.getPeakTransmission();
             label.setText("Peak transmission");
         }
@@ -250,17 +260,35 @@ public class ParameterSlider extends JFXSlider {
             filter.setEndPassband(startingVal);
             label.setText("End passband");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
-            startingVal = lineMirror.getReflectivity();
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof ArcMirror arcMirror) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = arcMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = ellipseMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof FunnyMirror funnyMirror) {
+            minVal = 0;
+            maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
+        }
+        else if (valueToChange == ValueToChange.CoefficientA && currentSource instanceof SphericalLens sphericalLens) {
+            minVal = 1;
+            maxVal = 3;
+            startingVal = sphericalLens.getCoeficientA();
+            label.setText("Coefficient A");
+        }
+        else if (valueToChange == ValueToChange.CoefficientB && currentSource instanceof SphericalLens sphericalLens) {
+            minVal = 0.000;
+            maxVal = 0.020;
+            startingVal = sphericalLens.getCoeficientB();
+            label.setText("Coefficient B");
         }
         setMin(minVal);
         setMax(maxVal);

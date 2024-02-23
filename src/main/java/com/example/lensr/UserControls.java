@@ -36,6 +36,7 @@ public class UserControls {
             clickableObjects.addAll(editPoints);
             clickableObjects.addAll(lightSources);
             clickableObjects.addAll(mirrors);
+            clickableObjects.addAll(lenses);
 
             for (Object clickableObject : clickableObjects) {
                 if (clickableObject instanceof EditPoint editPoint && !editPoint.hasBeenClicked && editPoint.intersects(mouseHitbox.getLayoutBounds())) {
@@ -187,6 +188,14 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
+            else if (keyEvent.getCode().toString().equals("A") && isEditMode) {
+                if (keyPressed == Key.A) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.A;
+                }
+                closeCurrentEdit();
+            }
             else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
                 if (keyPressed == Key.V) {
                     keyPressed = Key.None;
@@ -244,11 +253,12 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("H") && isEditMode) {
-                if (keyPressed == Key.H) {
+            else if(keyEvent.getCode().toString().equals("L") && isEditMode)
+            {
+                if (keyPressed == Key.L) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.H;
+                    keyPressed = Key.L;
                 }
                 closeCurrentEdit();
             }
@@ -281,6 +291,16 @@ public class UserControls {
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
+            case Z:
+                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lineMirror.create();
+                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
+                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                }
+                lineMirror.openObjectEdit();
+                lineMirror.scale(mousePos);
+                mirrors.add(lineMirror);
+                break;
             case X:
                 EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                 ellipseMirror.create();
@@ -291,15 +311,15 @@ public class UserControls {
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
                 break;
-            case Z:
-                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                lineMirror.create();
+            case A:
+                ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
+                arcMirror.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
+                    reflectivitySlider = new ParameterSlider(arcMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
                 }
-                lineMirror.openObjectEdit();
-                lineMirror.scale(mousePos);
-                mirrors.add(lineMirror);
+                arcMirror.openObjectEdit();
+                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
+                mirrors.add(arcMirror);
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
@@ -370,19 +390,27 @@ public class UserControls {
                 panelSource.scale(mousePos);
                 lightSources.add(panelSource);
                 break;
-            case H:
-                Prism prism = new Prism(mousePos.getX(), mousePos.getY());
-                prism.create();
-                prism.openObjectEdit();
-                prism.draw();
-                mirrors.add(prism);
+            case L:
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.5, 0.004);
+                sphericalLens.create();
+                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
+                {
+                    coefficientASlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientA, SliderStyle.Primary);
+                    coefficientBSlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientB, SliderStyle.Secondary);
+                }
+                sphericalLens.openObjectEdit();
+                sphericalLens.scale(mousePos);
+                lenses.add(sphericalLens);
                 break;
         }
     }
 
 
     public static void closeCurrentEdit() {
-        if (editedShape instanceof Group group) {
+        if (editedShape instanceof Editable) {
+            ((Editable) editedShape).closeObjectEdit();
+        }
+        else if (editedShape instanceof Group group) {
             group.getChildren().stream()
                     .filter(node -> node instanceof Editable)
                     .map(node -> (Editable) node)
@@ -397,6 +425,7 @@ public class UserControls {
         clickableObjects.addAll(editPoints);
         clickableObjects.addAll(lightSources);
         clickableObjects.addAll(mirrors);
+        clickableObjects.addAll(lenses);
 
         for (Object clickableObject : clickableObjects) {
             if (clickableObject instanceof EditPoint editPoint) {

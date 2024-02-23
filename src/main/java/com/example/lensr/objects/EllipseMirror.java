@@ -135,7 +135,7 @@ public class EllipseMirror extends Ellipse implements Editable {
             Point2D prevMousePos = mousePos;
             Point2D prevCenter = new Point2D(getCenterX(), getCenterY());
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double x = prevCenter.getX() + (mousePos.getX() - prevMousePos.getX());
                 double y = prevCenter.getY() + (mousePos.getY() - prevMousePos.getY());
 
@@ -173,7 +173,7 @@ public class EllipseMirror extends Ellipse implements Editable {
         new Thread(() -> {
             double centerX, centerY, radiusX, radiusY;
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 // Resizing standard based on Photoshop and MS Paint :)
                 if (altPressed && shiftPressed) {
                     centerX = anchor.getX();

@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
 
@@ -37,7 +38,7 @@ public class FunnyMirror extends Polyline implements Editable{
         taskPool.execute(() -> {
             getPoints().addAll(mousePos.getX(), mousePos.getY());
             int index = 2;
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 if ((Math.abs(getPoints().get(index - 2) - mousePos.getX()) > 10) || (Math.abs(getPoints().get(index - 1) - mousePos.getY()) > 10)) {
                     getPoints().addAll(mousePos.getX(), mousePos.getY());
                     index = index + 2;
@@ -82,7 +83,7 @@ public class FunnyMirror extends Polyline implements Editable{
         taskPool.execute(() -> {
             Point2D prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
 
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double deltaX = (mousePos.getX() - prevMousePos.getX());
                 double deltaY = (mousePos.getY() - prevMousePos.getY());
 
@@ -128,7 +129,7 @@ public class FunnyMirror extends Polyline implements Editable{
     public void scale(EditPoint anchorPoint) {
         taskPool.execute(() -> {
             double threshold = 1.0; // We only want to scale the object if the mouse has moved more than 1 pixel
-            while (isMousePressed) {
+            while (isMousePressed && isEdited) {
                 double originalWidth = getLayoutBounds().getWidth();
                 double originalHeight = getLayoutBounds().getHeight();
                 double widthToHeightRatio = originalWidth / originalHeight;
