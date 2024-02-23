@@ -30,6 +30,7 @@ public class LensrStart extends Application {
     public enum Key {
         None,
         Z,
+        A,
         X,
         C,
         V,
@@ -75,18 +76,20 @@ public class LensrStart extends Application {
 
         // Create toolbar buttons
         ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", Key.Z, 25, 25);
-        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", Key.X, 150, 25);
-        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 275, 25);
-        ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 400, 25);
-        ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 525, 25);
-        ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 650, 25);
-        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 775, 25);
-        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 25, 75);
-        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 150, 75);
-        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 275, 75);
-        ToolbarButton fullPointButton = new ToolbarButton("Point source (360)", Key.H, 400, 75);
-        ToolbarButton pointButton = new ToolbarButton("Point source (< 360)", Key.G, 525, 75);
+        ToolbarButton arcMirrorButton = new ToolbarButton("Arc Mirror", Key.A, 150, 25);
+        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", Key.X, 275, 25);
+        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 400, 25);
+        ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 525, 25);
+        ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 650, 25);
+        ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 775, 25);
+        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 25, 75);
+        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 150, 75);
+        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 275, 75);
+        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 400, 75);
+        ToolbarButton fullPointButton = new ToolbarButton("Point source (360)", Key.H, 525, 75);
+        ToolbarButton pointButton = new ToolbarButton("Point source (< 360)", Key.G, 650, 75);
         toolbar.add(lineMirrorButton);
+        toolbar.add(arcMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
         toolbar.add(lightEaterButton);

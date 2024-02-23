@@ -162,8 +162,8 @@ public class ParameterSlider extends JFXSlider {
                 filter.graph.drawGraph();
                 return;
             }
-            if (currentSource instanceof LineMirror lineMirror && valueToChange == ValueToChange.Reflectivity) {
-                lineMirror.setReflectivity(roundedValue);
+            if (currentSource instanceof ArcMirror arcMirror && valueToChange == ValueToChange.Reflectivity) {
+                arcMirror.setReflectivity(roundedValue);
                 return;
             }
             if (currentSource instanceof EllipseMirror ellipseMirror && valueToChange == ValueToChange.Reflectivity) {
@@ -283,10 +283,10 @@ public class ParameterSlider extends JFXSlider {
             filter.setEndPassband(startingVal);
             label.setText("End passband");
         }
-        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
+        else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof ArcMirror arcMirror) {
             minVal = 0;
             maxVal = 1;
-            startingVal = lineMirror.getReflectivity();
+            startingVal = arcMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
