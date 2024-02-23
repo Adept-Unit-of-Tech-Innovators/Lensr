@@ -15,7 +15,7 @@ import java.util.List;
 import static com.example.lensr.Intersections.rotatePointAroundOtherByAngle;
 import static com.example.lensr.LensrStart.*;
 
-public class SphericalLens extends Group implements Editable {
+public class SphericalLens extends Group implements Glass, Editable {
 
     Group group = new Group();
     List<EditPoint> objectEditPoints = new ArrayList<>();
@@ -36,15 +36,15 @@ public class SphericalLens extends Group implements Editable {
     public List<Shape> elements = new ArrayList<>();
     int arcSnap = 20;
 
-    private double coeficientA;
-    private double coeficientB;
+    private double coefficientA;
+    private double coefficientB;
     private double focalLength;
 
     private Point2D focalPoint;
 
-    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coeficientA, double coeficientB) {
-        this.coeficientA = coeficientA;
-        this.coeficientB = coeficientB;
+    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coefficientA, double coefficientB) {
+        this.coefficientA = coefficientA;
+        this.coefficientB = coefficientB;
 
         firstArc = new LensArc(this, lensThickness1);
         secondArc = new LensArc(this, lensThickness2);
@@ -373,7 +373,7 @@ public class SphericalLens extends Group implements Editable {
 
     @Override
     public void copy() {
-        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), coeficientA, coeficientB);
+        SphericalLens newLens = new SphericalLens(middleHeight, middleWidth, centerX, centerY, firstArc.getThickness(), secondArc.getThickness(), coefficientA, coefficientB);
         newLens.create();
         newLens.moveBy(10, 10);
         lenses.add(newLens);
@@ -422,17 +422,17 @@ public class SphericalLens extends Group implements Editable {
     public Point2D getCenter() {
         return new Point2D(centerX, centerY);
     }
-    public double getCoeficientA() {
-        return coeficientA;
+    public double getCoefficientA() {
+        return coefficientA;
     }
-    public double getCoeficientB() {
-        return coeficientB;
+    public double getCoefficientB() {
+        return coefficientB;
     }
     public void setCoefficientA(double coeficientA) {
-        this.coeficientA = coeficientA;
+        this.coefficientA = coeficientA;
     }
     public void setCoefficientB(double coeficientB) {
-        this.coeficientB = coeficientB;
+        this.coefficientB = coeficientB;
     }
     public LensArc getFirstArc() {return firstArc;}
     public LensArc getSecondArc() {return secondArc;}
