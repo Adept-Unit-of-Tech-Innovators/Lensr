@@ -214,12 +214,6 @@ public class PointSource extends Rectangle implements Editable {
         originRays.forEach(ray -> group.getChildren().add(ray.group));
         originRays.forEach(Node::toBack);
 
-
-        System.out.println("After adjusting:");
-        System.out.println(rayCount);
-        System.out.println(originRays.size());
-        System.out.println();
-
     }
     public void setFieldOfView(double fieldOfView)
     {

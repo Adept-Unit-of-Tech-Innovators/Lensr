@@ -289,6 +289,12 @@ public class Intersections {
     }
 
     public static double determineNormalAngle (double angle1, double angle2, double angleOfIncidence) {
+        if (angle1 > Math.PI) {
+            angle1 = -Math.PI + (angle1 - Math.PI);
+        }
+        if (angle2 > Math.PI) {
+            angle2 = -Math.PI + (angle2 - Math.PI);
+        }
         return Math.abs(angleOfIncidence - angle1) < Math.abs(angleOfIncidence - angle2) ? angle1 : angle2;
     }
 

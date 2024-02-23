@@ -88,8 +88,8 @@ public class LensrStart extends Application {
         ToolbarButton prismButton = new ToolbarButton("Prism", Key.P, 275, 75);
         ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 400, 75);
         ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 525, 75);
-        ToolbarButton fullPointButton = new ToolbarButton("Point source (360)", Key.H, 650, 75);
-        ToolbarButton pointButton = new ToolbarButton("Point source (< 360)", Key.G, 775, 75);
+        ToolbarButton fullPointButton = new ToolbarButton("Full PS", Key.H, 650, 75);
+        ToolbarButton pointButton = new ToolbarButton("Part PS", Key.G, 775, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(arcMirrorButton);
         toolbar.add(ellipseMirrorButton);
