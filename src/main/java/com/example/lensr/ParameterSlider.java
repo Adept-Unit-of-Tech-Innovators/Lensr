@@ -26,12 +26,19 @@ public class ParameterSlider extends JFXSlider {
         Reflectivity,
         CoefficientA,
         CoefficientB,
+        NumberOfRays,
+        FieldOfView,
     }
 
     enum SliderStyle {
         Primary,
         Secondary,
         Tertiary    
+    }
+
+    enum DisplayedType {
+        Integer,
+        Double
     }
 
     // Local variables
@@ -121,6 +128,10 @@ public class ParameterSlider extends JFXSlider {
                 panelSource.setWavelength(roundedValue);
                 return;
             }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Wavelength) {
+                if(!pointSource.getIsWhiteLight()) pointSource.setWavelength(roundedValue);
+                return;
+            }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
                 filter.setPeakTransmission(roundedValue);
                 filter.graph.drawGraph();
@@ -167,6 +178,12 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientB) {
                 sphericalLens.setCoefficientB(roundedValue);
+            }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
+                pointSource.setRayCount((int)roundedValue);
+            }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.FieldOfView) {
+                pointSource.setFieldOfView(Math.toRadians(roundedValue));
             }
         });
 
@@ -222,6 +239,12 @@ public class ParameterSlider extends JFXSlider {
             minVal = 380;
             maxVal = 780;
             startingVal = panelSource.getWavelength();
+            label.setText("Wavelength");
+        }
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PointSource pointSource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = pointSource.getWavelength();
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
@@ -289,6 +312,18 @@ public class ParameterSlider extends JFXSlider {
             maxVal = 0.020;
             startingVal = sphericalLens.getCoeficientB();
             label.setText("Coefficient B");
+        }
+        else if (valueToChange == ValueToChange.FieldOfView && currentSource instanceof PointSource pointSource && !pointSource.getIsFull()) {
+            minVal = 0;
+            maxVal = 180;
+            startingVal = Math.toDegrees(pointSource.getFieldOfView());
+            label.setText("Field of view");
+        }
+        else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PointSource pointSource) {
+            minVal = 1;
+            maxVal = 100;
+            startingVal = pointSource.getRayCount();
+            label.setText("Number of rays");
         }
         setMin(minVal);
         setMax(maxVal);

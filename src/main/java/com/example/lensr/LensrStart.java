@@ -1,15 +1,12 @@
 package com.example.lensr;
 
-import com.example.lensr.objects.SphericalLens;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Arc;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -41,7 +38,9 @@ public class LensrStart extends Application {
         M,
         K,
         J,
-        L
+        L,
+        H,
+        G
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -59,6 +58,8 @@ public class LensrStart extends Application {
     public static ParameterSlider endPassbandSlider;
     public static ParameterSlider coefficientASlider;
     public static ParameterSlider coefficientBSlider;
+    public static ParameterSlider numberOfRaysSlider;
+    public static ParameterSlider fieldOfViewSlider;
     public static ParameterToggle whiteLightToggle;
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
@@ -83,6 +84,8 @@ public class LensrStart extends Application {
         ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 25, 75);
         ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 150, 75);
         ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 275, 75);
+        ToolbarButton fullPointButton = new ToolbarButton("Point source (360)", Key.H, 400, 75);
+        ToolbarButton pointButton = new ToolbarButton("Point source (< 360)", Key.G, 525, 75);
         toolbar.add(lineMirrorButton);
         toolbar.add(ellipseMirrorButton);
         toolbar.add(funnyMirrorButton);
@@ -93,6 +96,8 @@ public class LensrStart extends Application {
         toolbar.add(lensButton);
         toolbar.add(beamButton);
         toolbar.add(panelButton);
+        toolbar.add(fullPointButton);
+        toolbar.add(pointButton);
 
         for (ToolbarButton button : toolbar) {
             button.setOnAction(actionEvent -> {
