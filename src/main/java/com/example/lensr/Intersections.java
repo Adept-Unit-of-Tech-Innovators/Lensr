@@ -123,8 +123,8 @@ public class Intersections {
             return null;
         }
 
-        double intersection1Angle = -Math.toDegrees(Math.atan2(intersections.get(0).getY() - arc.getCenterY(), intersections.get(0).getX() - arc.getCenterX()));
-        double intersection2Angle = -Math.toDegrees(Math.atan2(intersections.get(1).getY() - arc.getCenterY(), intersections.get(1).getX() - arc.getCenterX()));
+        double intersection1Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(0).getY() - arc.getCenterY(), intersections.get(0).getX() - arc.getCenterX()))) % 360;
+        double intersection2Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(1).getY() - arc.getCenterY(), intersections.get(1).getX() - arc.getCenterX()))) % 360;
 
         // Return the closest intersection point in the direction of the ray that lies on the arc
         if (dotProduct1 < 0 ||
@@ -148,7 +148,6 @@ public class Intersections {
 
         return null;
     }
-
 
 
     private static List<Point2D> calculateIntersectionPoints(Ray ray, Ellipse ellipse) {
