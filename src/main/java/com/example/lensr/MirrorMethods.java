@@ -13,6 +13,9 @@ public class MirrorMethods {
             else if (lightSource instanceof PanelSource panelSource) {
                 panelSource.update();
             }
+            else if (lightSource instanceof PointSource pointSource) {
+                pointSource.update();
+            }
         }
     }
 }

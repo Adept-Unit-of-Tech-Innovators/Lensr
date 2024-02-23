@@ -99,7 +99,7 @@ public class PointSource extends Rectangle implements Editable {
                         originRay.setStartX(newCenterX);
                         originRay.setStartY(newCenterY);
                         originRay.setEndX(newCenterX + (Math.cos(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
-                        originRay.setEndY(newCenterY + (Math.sin(startAngle + angleBetweenRays * Math.sin(angleBetweenRays + fieldOfView / (i + 2)))) * SIZE);
+                        originRay.setEndY(newCenterY + (Math.sin(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
                         i++;
                     }
 
@@ -285,6 +285,8 @@ public class PointSource extends Rectangle implements Editable {
 
         editPoints.addAll(objectEditPoints);
         editedShape = group;
+
+        updateLightSources();
     }
 
     @Override
