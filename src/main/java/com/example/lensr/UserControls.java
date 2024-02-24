@@ -4,14 +4,11 @@ import com.example.lensr.objects.*;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.control.Slider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.ParameterSlider.*;
-import static com.example.lensr.ParameterToggle.*;
 
 public class UserControls {
     public static void setUserControls() {
@@ -339,9 +336,6 @@ public class UserControls {
             case Z:
                 LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 lineMirror.create();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(lineMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                }
                 lineMirror.openObjectEdit();
                 lineMirror.scale(mousePos);
                 mirrors.add(lineMirror);
@@ -349,9 +343,6 @@ public class UserControls {
             case X:
                 EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
                 ellipseMirror.create();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(ellipseMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                }
                 ellipseMirror.openObjectEdit();
                 ellipseMirror.scale(mousePos);
                 mirrors.add(ellipseMirror);
@@ -359,18 +350,12 @@ public class UserControls {
             case A:
                 ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
                 arcMirror.create();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(arcMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                }
                 arcMirror.openObjectEdit();
                 arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
                 mirrors.add(arcMirror);
                 break;
             case V:
                 FunnyMirror funnyMirror = new FunnyMirror();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    reflectivitySlider = new ParameterSlider(funnyMirror, ValueToChange.Reflectivity, SliderStyle.Primary);
-                }
                 funnyMirror.openObjectEdit();
                 funnyMirror.draw();
                 mirrors.add(funnyMirror);
@@ -385,11 +370,6 @@ public class UserControls {
             case N:
                 GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 gaussianRolloffFilter.create();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
-                    passbandSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.Passband, SliderStyle.Secondary);
-                    FWHMSlider = new ParameterSlider(gaussianRolloffFilter, ValueToChange.FWHM, SliderStyle.Tertiary);
-                }
                 gaussianRolloffFilter.openObjectEdit();
                 gaussianRolloffFilter.scale(mousePos);
                 mirrors.add(gaussianRolloffFilter);
@@ -397,11 +377,6 @@ public class UserControls {
             case M:
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 brickwallFilter.create();
-                if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
-                    startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
-                    endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
-                }
                 brickwallFilter.openObjectEdit();
                 brickwallFilter.scale(mousePos);
                 mirrors.add(brickwallFilter);
@@ -416,10 +391,6 @@ public class UserControls {
             case C:
                 BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                 beamSource.create();
-                if (lightSources.isEmpty()) {
-                    wavelengthSlider = new ParameterSlider(beamSource, ValueToChange.Wavelength, SliderStyle.Primary);
-                    whiteLightToggle = new ParameterToggle(beamSource, ParameterToChange.WhiteLight);
-                }
                 beamSource.openObjectEdit();
                 beamSource.rotate();
                 lightSources.add(beamSource);
@@ -427,10 +398,6 @@ public class UserControls {
             case J:
                 PanelSource panelSource = new PanelSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
                 panelSource.create();
-                if (lightSources.isEmpty()) {
-                    wavelengthSlider = new ParameterSlider(panelSource, ValueToChange.Wavelength, SliderStyle.Primary);
-                    whiteLightToggle = new ParameterToggle(panelSource, ParameterToChange.WhiteLight);
-                }
                 panelSource.openObjectEdit();
                 panelSource.scale(mousePos);
                 lightSources.add(panelSource);
@@ -438,11 +405,6 @@ public class UserControls {
             case L:
                 SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.5, 0.004);
                 sphericalLens.create();
-                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
-                {
-                    coefficientASlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientA, SliderStyle.Primary);
-                    coefficientBSlider = new ParameterSlider(sphericalLens, ValueToChange.CoefficientB, SliderStyle.Secondary);
-                }
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);
                 lenses.add(sphericalLens);
@@ -450,11 +412,6 @@ public class UserControls {
             case P:
                 Prism prism = new Prism(mousePos.getX(), mousePos.getY(),  1.5, 0.004);
                 prism.create();
-                if(lenses.stream().noneMatch(lens -> lens instanceof Slider))
-                {
-                    coefficientASlider = new ParameterSlider(prism, ValueToChange.CoefficientA, SliderStyle.Primary);
-                    coefficientBSlider = new ParameterSlider(prism, ValueToChange.CoefficientB, SliderStyle.Secondary);
-                }
                 prism.openObjectEdit();
                 prism.draw();
                 lenses.add(prism);
@@ -462,24 +419,15 @@ public class UserControls {
             case H:
                 PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);
                 fullPointSource.create();
-                if (lightSources.isEmpty()) {
-                    wavelengthSlider = new ParameterSlider(fullPointSource, ValueToChange.Wavelength, SliderStyle.Primary);
-                    whiteLightToggle = new ParameterToggle(fullPointSource, ParameterToChange.WhiteLight);
-                }
-                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(fullPointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
                 fullPointSource.openObjectEdit();
+                fullPointSource.rotate();
                 lightSources.add(fullPointSource);
                 break;
             case G:
                 PointSource pointSource = new PointSource(mousePos.getX(), mousePos.getY(), Math.PI/2, 0, 6, false);
                 pointSource.create();
-                if (lightSources.isEmpty()) {
-                    wavelengthSlider = new ParameterSlider(pointSource, ValueToChange.Wavelength, SliderStyle.Primary);
-                    whiteLightToggle = new ParameterToggle(pointSource, ParameterToChange.WhiteLight);
-                }
-                if(numberOfRaysSlider == null) numberOfRaysSlider = new ParameterSlider(pointSource, ValueToChange.NumberOfRays, SliderStyle.Secondary);
-                if(fieldOfViewSlider == null) fieldOfViewSlider = new ParameterSlider(pointSource, ValueToChange.FieldOfView, SliderStyle.Tertiary);
                 pointSource.openObjectEdit();
+                pointSource.rotate();
                 lightSources.add(pointSource);
                 break;
         }

@@ -66,8 +66,8 @@ public class LensrStart extends Application {
     public static ParameterSlider endPassbandSlider = new ParameterSlider(null, ValueToChange.EndPassband, SliderStyle.Tertiary);
     public static ParameterSlider coefficientASlider = new ParameterSlider(null, ValueToChange.CoefficientA, SliderStyle.Primary);
     public static ParameterSlider coefficientBSlider = new ParameterSlider(null, ValueToChange.CoefficientB, SliderStyle.Secondary);
-    public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Primary);
-    public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Secondary);
+    public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Secondary);
+    public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Tertiary);
     public static ParameterToggle whiteLightToggle = new ParameterToggle(null, ParameterToChange.WhiteLight);
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);

@@ -130,7 +130,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         }).start();
     }
 
-    private void rotate()
+    public void rotate()
     {
         new Thread(() -> {
             while (isMousePressed && isEdited)
