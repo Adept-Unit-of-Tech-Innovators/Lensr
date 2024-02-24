@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -12,6 +13,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,17 +24,18 @@ import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class PanelSource extends Line implements Editable {
-    public List<OriginRay> originRays = new ArrayList<>();
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public Rotate rotate = new Rotate();
-    double rotation = 0;
-    public Rectangle hitbox;
-    public Group group = new Group();
-    public boolean hasBeenClicked;
-    public boolean isEdited;
-    public double wavelength = 580;
-    public double brightness = 1.0;
+public class PanelSource extends Line implements Editable, Serializable {
+    private transient Group group = new Group();
+    private transient List<OriginRay> originRays = new ArrayList<>();
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient Rotate rotate = new Rotate();
+    private double rotation = 0;
+    private transient Rectangle hitbox;
+    private transient boolean hasBeenClicked;
+    private transient boolean isEdited;
+    private double wavelength = 580;
+    private boolean whiteLight;
+    private double brightness = 1.0;
 
     public PanelSource(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -38,6 +44,7 @@ public class PanelSource extends Line implements Editable {
         setEndY(endY);
     }
 
+    @Override
     public void create() {
         setStroke(Color.GRAY);
         setStrokeWidth(3);
@@ -48,24 +55,27 @@ public class PanelSource extends Line implements Editable {
         double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
         double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
 
-        double angle = Math.atan2(getStartX() - getEndX(), getStartY() - getEndY());
+        double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
         rotate.setPivotX((getEndX() + getStartX()) / 2);
         rotate.setPivotY((getEndY() + getStartY()) / 2);
         rotate.setAngle(Math.toDegrees(angle));
 
-        // Create `panelRayCount` amount of rays distributed evenly across the panel
-        for (int i = 0; i < panelRayCount; i++) {
-            OriginRay originRay = new OriginRay(
-                    getStartX() + dx * i,
-                    getStartY() + dy * i,
-                    getStartX() + dx * i + Math.cos(angle + Math.PI / 2) * SIZE,
-                    getStartY() + dy * i + Math.sin(angle + Math.PI / 2) * SIZE
-                    );
-            originRay.setParentSource(this);
-            originRay.setStrokeWidth(globalStrokeWidth);
-            originRay.setWavelength(wavelength);
-            originRay.setBrightness(brightness);
-            originRays.add(originRay);
+        int rayCount = whiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < rayCount; i++) {
+            for (int j = 0; j < panelRayCount; j++) {
+                OriginRay originRay = new OriginRay(
+                        getStartX() + dx * j,
+                        getStartY() + dy * j,
+                        getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE,
+                        getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
         }
 
         // Place edit points
@@ -238,6 +248,7 @@ public class PanelSource extends Line implements Editable {
             originRay.setEndX(originRay.getEndX() + x);
             originRay.setEndY(originRay.getEndY() + y);
         });
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -290,6 +301,7 @@ public class PanelSource extends Line implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -363,6 +375,7 @@ public class PanelSource extends Line implements Editable {
                     double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
                     double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
 
+
                     int i = 0;
                     for (OriginRay originRay : originRays) {
                         originRay.setStartX(getStartX() + dx * (i % panelRayCount));
@@ -393,10 +406,40 @@ public class PanelSource extends Line implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        rotate = new Rotate();
+        originRays = new ArrayList<>();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        rotation = 0;
+        isEdited = false;
+        hasBeenClicked = false;
+    }
+
     public void setWhiteLight(boolean whiteLight) {
+        this.whiteLight = whiteLight;
         Platform.runLater(() -> {
             group.getChildren().removeAll(originRays);
             originRays.forEach(originRay -> {

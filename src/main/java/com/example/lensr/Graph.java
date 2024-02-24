@@ -112,7 +112,7 @@ public class Graph extends Canvas {
 
         for (double wavelength = graphStart; wavelength < graphEnd; wavelength += (graphEnd - graphStart) /  getWidth()) {
             if (filter.getStartPassband() <= wavelength &&  filter.getEndPassband() >= wavelength) {
-                data.add(filter.getTransmission());
+                data.add(filter.getPeakTransmission());
             }
             else data.add(0.0);
         }

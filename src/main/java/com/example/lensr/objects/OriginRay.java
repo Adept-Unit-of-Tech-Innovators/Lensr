@@ -319,7 +319,7 @@ public class OriginRay extends Ray {
 
                     // Set the brightness of the ray for the brickwall filter profile
                     if (filter.getStartPassband() <= nextRay.getWavelength() && nextRay.getWavelength() <= filter.getEndPassband()) {
-                        nextRay.setBrightness(currentRay.getBrightness() * filter.getTransmission());
+                        nextRay.setBrightness(currentRay.getBrightness() * filter.getPeakTransmission());
                     } else {
                         continue;
                     }
@@ -479,14 +479,14 @@ public class OriginRay extends Ray {
         return new Tuple<>(intersectors.get(intersectors.size() - 2).getCoefficientA(), intersectors.get(intersectors.size() - 2).getCoefficientB());
     }
 
-    private boolean determineTIR(Ray ray, Arc arc, double currRefractiveIndex, double newRefractiveIndex) {
+    private boolean determineTIR(Ray ray, LensArc arc, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
 
-        double normalAngle = arc.getParent().contains(pointX + Math.cos(Math.atan2((pointY - centerY), (pointX - centerX))) * 2, pointY + Math.sin(Math.atan2((pointY - centerY), (pointX - centerX))) * 2)
+        double normalAngle = arc.getParentLens().contains(pointX + Math.cos(Math.atan2((pointY - centerY), (pointX - centerX))) * 2, pointY + Math.sin(Math.atan2((pointY - centerY), (pointX - centerX))) * 2)
                 ? Math.atan2((pointY - centerY), (pointX - centerX)) : Math.atan2((centerY - pointY), (centerX - pointX));
         double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
 

@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.MirrorMethods;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -9,45 +10,57 @@ import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.Intersections.rotatePointAroundOtherByAngle;
 import static com.example.lensr.LensrStart.*;
 
-public class SphericalLens extends Group implements Glass, Editable {
+public class SphericalLens extends Group implements Glass, Editable, Serializable {
 
-    Group group = new Group();
-    List<EditPoint> objectEditPoints = new ArrayList<>();
-    List<EditPoint> arcEditPoints = new ArrayList<>();
-    private EditPoint upperRotateField;
-    private EditPoint lowerRotateField;
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+    private transient Group group = new Group();
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient List<EditPoint> arcEditPoints = new ArrayList<>();
+    private transient EditPoint upperRotateField;
+    private transient EditPoint lowerRotateField;
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
     private double middleHeight;
     private double middleWidth;
-    private double angleOfRotation;
+    private double angleOfRotation = Math.PI/4;
     private double centerX;
     private double centerY;
-    private final LensArc firstArc;
-    private final LensArc secondArc;
-    private final Line firstFlatArc;
-    private final Line secondFlatArc;
-    private final LensLine topLine;
-    private final LensLine bottomLine;
-    public List<Shape> elements = new ArrayList<>();
+    private double lensThickness1;
+    private double lensThickness2;
+    private transient LensArc firstArc;
+    private transient LensArc secondArc;
+    private transient Line firstFlatArc;
+    private transient Line secondFlatArc;
+    private transient LensLine topLine;
+    private transient LensLine bottomLine;
+    public transient List<Shape> elements = new ArrayList<>();
     int arcSnap = 20;
 
     private double coefficientA;
     private double coefficientB;
     private double focalLength;
-
-    private Point2D focalPoint;
+    private transient Point2D focalPoint;
 
     public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double lensThickness1, double lensThickness2, double coefficientA, double coefficientB) {
+        this.middleHeight = middleHeight;
+        this.middleWidth = middleWidth;
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.lensThickness1 = lensThickness1;
+        this.lensThickness2 = lensThickness2;
         this.coefficientA = coefficientA;
         this.coefficientB = coefficientB;
+    }
 
+    @Override
+    public void create() {
         firstFlatArc = new Line();
         secondFlatArc = new Line();
 
@@ -63,9 +76,7 @@ public class SphericalLens extends Group implements Glass, Editable {
         elements.add(bottomLine);
 
         resize(centerX, centerY, middleWidth, middleHeight,Math.toRadians(45));
-    }
 
-    public void create() {
         for (Shape element : elements) {
             element.setStroke(mirrorColor);
             element.setStrokeWidth(globalStrokeWidth);
@@ -128,6 +139,10 @@ public class SphericalLens extends Group implements Glass, Editable {
         objectEditPoints.add(lowerRotateField);
         objectEditPoints.addAll(arcEditPoints);
 
+        // Hide all edit points
+        objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
+        arcEditPoints.forEach(editPoint -> editPoint.setVisible(false));
+
         // Add everything to the group
         group.getChildren().add(this);
         group.getChildren().addAll(elements);
@@ -173,9 +188,13 @@ public class SphericalLens extends Group implements Glass, Editable {
         secondFlatArc.setEndX(bottomLine.getEndX());
         secondFlatArc.setEndY(bottomLine.getEndY());
     }
+
     public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight) {resize(newCenterX, newCenterY, newWidth, newHeight, angleOfRotation);}
+
     public void resize(double newAngleOfRotation) {resize(centerX, centerY, middleWidth, middleHeight, newAngleOfRotation);}
+
     public void resize(double newCenterX, double newCenterY) {resize(newCenterX, newCenterY, middleWidth, middleHeight, angleOfRotation);}
+
     @Override
     public void openObjectEdit() {
         // Setup the sliders
@@ -199,6 +218,7 @@ public class SphericalLens extends Group implements Glass, Editable {
         editPoints.addAll(objectEditPoints);
         editedShape = group;
     }
+
     @Override
     public void closeObjectEdit() {
         coefficientASlider.hide();
@@ -236,9 +256,10 @@ public class SphericalLens extends Group implements Glass, Editable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         });
     }
+
     public void scale(Point2D anchor) {
         taskPool.execute(() -> {
             double newCenterX, newCenterY, newWidth, newHeight;
@@ -311,8 +332,7 @@ public class SphericalLens extends Group implements Glass, Editable {
                     }
                 }
             }
-
-
+            SaveState.autoSave();
         });
     }
 
@@ -346,8 +366,7 @@ public class SphericalLens extends Group implements Glass, Editable {
                     }
                 }
             }
-
-
+            SaveState.autoSave();
         });
     }
 
@@ -363,6 +382,8 @@ public class SphericalLens extends Group implements Glass, Editable {
                 if(shiftPressed) newThickness = roundDownToMultiple(newThickness, arcSnap);
 
                 double finalThickness = newThickness;
+                if (arc == firstArc) lensThickness1 = finalThickness;
+                else lensThickness2 = finalThickness;
 
                 Platform.runLater(() -> {
                     arc.setThickness(finalThickness);
@@ -378,8 +399,39 @@ public class SphericalLens extends Group implements Glass, Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         });
+    }
 
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+        out.defaultWriteObject();
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        arcEditPoints = new ArrayList<>();
+        upperRotateField = new EditPoint(0 ,0);
+        lowerRotateField = new EditPoint(0, 0);
+        isEdited = false;
+        hasBeenClicked = false;
+        firstFlatArc = new Line();
+        secondFlatArc = new Line();
+        firstArc = new LensArc(this, firstFlatArc, lensThickness1);
+        secondArc = new LensArc(this, secondFlatArc, lensThickness2);
+        topLine = new LensLine(this);
+        bottomLine = new LensLine(this);
+        elements = new ArrayList<>();
+        elements.add(firstArc);
+        elements.add(secondArc);
+        elements.add(topLine);
+        elements.add(bottomLine);
+        focalLength = calculateFocalLength();
     }
 
     public void alignEditPoints() {
@@ -419,6 +471,7 @@ public class SphericalLens extends Group implements Glass, Editable {
     @Override
     public void moveBy(double x, double y) {
         resize(centerX + x, centerY + y);
+        SaveState.autoSave();
     }
 
     @Override
@@ -433,8 +486,8 @@ public class SphericalLens extends Group implements Glass, Editable {
 
         return Shape.intersect(bounds, mouseHitbox).getLayoutBounds().getWidth() != -1;
     }
-    public void adjustRotateField()
-    {
+
+    public void adjustRotateField() {
         upperRotateField.setWidth(middleWidth);
         upperRotateField.setRotate(Math.toDegrees(angleOfRotation));
         double rotateFieldHeight = 50;
@@ -445,10 +498,10 @@ public class SphericalLens extends Group implements Glass, Editable {
         lowerRotateField.setRotate(Math.toDegrees(angleOfRotation));
 
     }
+
     public Shape getMiddleBounds() {
         return new Polygon(topLine.getStartX(), topLine.getStartY(), topLine.getEndX(), topLine.getEndY(), bottomLine.getEndX(), bottomLine.getEndY(), bottomLine.getStartX(), bottomLine.getStartY());
     }
-
 
     public int roundDownToMultiple(double number, int multiple)
     {

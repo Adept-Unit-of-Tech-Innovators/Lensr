@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -10,24 +11,35 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class FunnyMirror extends Polyline implements Editable{
-    public Group group = new Group();
+public class FunnyMirror extends Polyline implements Editable, Serializable {
+    public transient Group group = new Group();
     // The outline of the object for ray intersection
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
-    LineMirror closestIntersectionSegment;
+    private transient LineMirror closestIntersectionSegment;
 
     public FunnyMirror() {
 
+    }
+
+    // This method is used for loading the object from a file
+    @Override
+    public void create() {
+        setStrokeWidth(globalStrokeWidth);
+        setStroke(mirrorColor);
+        group.getChildren().add(this);
+        root.getChildren().add(group);
     }
 
     public void draw() {
@@ -64,6 +76,7 @@ public class FunnyMirror extends Polyline implements Editable{
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
     }
 
@@ -77,6 +90,7 @@ public class FunnyMirror extends Polyline implements Editable{
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        SaveState.autoSave();
     }
 
     public void move() {
@@ -123,6 +137,7 @@ public class FunnyMirror extends Polyline implements Editable{
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
     }
 
@@ -184,7 +199,34 @@ public class FunnyMirror extends Polyline implements Editable{
                     throw new RuntimeException(e);
                 }
             }
+            SaveState.autoSave();
         });
+    }
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+        out.defaultWriteObject();
+        out.writeInt(getPoints().size());
+        for (Double point : getPoints()) {
+            out.writeDouble(point);
+        }
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int size = in.readInt();
+        getPoints().clear();
+        for (int i = 0; i < size; i++) {
+            getPoints().add(in.readDouble());
+        }
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
+        closestIntersectionSegment = null;
     }
 
     @Override

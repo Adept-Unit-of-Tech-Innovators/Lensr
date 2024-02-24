@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.Graph;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -12,23 +13,27 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class LightSensor extends Line implements Editable {
-    public Group group = new Group();
-    Rotate rotate = new Rotate();
+public class LightSensor extends Line implements Editable, Serializable {
+    public transient Group group = new Group();
+    private transient Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    public Rectangle hitbox;
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    List<Ray> detectedRays = new ArrayList<>();
-    public Graph graph;
-    double rotation = 0;
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+    private transient Rectangle hitbox;
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    public transient List<Ray> detectedRays = new ArrayList<>();
+    public transient Graph graph;
+    private transient double rotation = 0;
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
 
     public LightSensor(double startX, double startY, double endX, double endY) {
         setStartX(startX);
@@ -37,7 +42,7 @@ public class LightSensor extends Line implements Editable {
         setEndY(endY);
     }
 
-
+    @Override
     public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
@@ -46,6 +51,7 @@ public class LightSensor extends Line implements Editable {
         createRectangleHitbox();
         graph = new Graph(700, 100, 200, 150);
         graph.setDataSource(this);
+        graph.hide();
 
         group.getChildren().add(this);
         group.getChildren().add(hitbox);
@@ -169,6 +175,7 @@ public class LightSensor extends Line implements Editable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -210,6 +217,7 @@ public class LightSensor extends Line implements Editable {
                 }
             }
         }).start();
+        SaveState.autoSave();
     }
 
     public void scale(Point2D anchor) {
@@ -291,7 +299,36 @@ public class LightSensor extends Line implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        rotate = new Rotate();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        detectedRays = new ArrayList<>();
+        rotation = 0;
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
     @Override

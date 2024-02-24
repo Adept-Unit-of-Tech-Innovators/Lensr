@@ -2,6 +2,7 @@ package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
 import com.example.lensr.MirrorMethods;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -11,18 +12,21 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeType;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 
-public class Prism extends Polygon implements Glass, Editable {
-
-    public Group group = new Group();
-    List<EditPoint> objectEditPoints = new ArrayList<>();
+public class Prism extends Polygon implements Glass, Editable, Serializable {
+    private transient Group group = new Group();
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
     public boolean hasBeenClicked;
-    LineMirror closestIntersectionSegment;
+    private transient LineMirror closestIntersectionSegment;
     public double coefficientA;
     public double coefficientB;
 
@@ -59,7 +63,7 @@ public class Prism extends Polygon implements Glass, Editable {
 
     @Override
     public void delete() {
-        mirrors.remove(this);
+        lenses.remove(this);
         root.getChildren().remove(group);
     }
 
@@ -126,6 +130,7 @@ public class Prism extends Polygon implements Glass, Editable {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        SaveState.autoSave();
     }
 
     public void draw() {
@@ -154,6 +159,7 @@ public class Prism extends Polygon implements Glass, Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -186,7 +192,7 @@ public class Prism extends Polygon implements Glass, Editable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         }).start();
     }
 
@@ -199,7 +205,18 @@ public class Prism extends Polygon implements Glass, Editable {
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
                 // Update the UI on the JavaFX application thread
-                Platform.runLater(() -> moveBy(deltaX, deltaY));
+                Platform.runLater(() -> {
+                    List<Double> newPoints = new ArrayList<>();
+                    for (int i = 0; i < getPoints().size(); i++) {
+                        newPoints.add(getPoints().get(i) + (i % 2 == 0 ? deltaX : deltaY));
+                    }
+                    getPoints().setAll(newPoints);
+
+                    objectEditPoints.forEach(editPoint -> {
+                        editPoint.setCenterX(editPoint.getCenterX() + deltaX);
+                        editPoint.setCenterY(editPoint.getCenterY() + deltaY);
+                    });
+                });
 
                 prevMousePos = mousePos;
                 synchronized (lock) {
@@ -210,9 +227,33 @@ public class Prism extends Polygon implements Glass, Editable {
                     }
                 }
             }
-
+            SaveState.autoSave();
         }).start();
     }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        for (int i = 0; i < getPoints().size(); i++) {
+            out.writeDouble(getPoints().get(i));
+        }
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        for (int i = 0; i < 6; i++) {
+            getPoints().add(i, in.readDouble());
+        }
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
+        closestIntersectionSegment = null;
+    }
+
 
     public double getCenterX() {
         return (getPoints().get(0) + getPoints().get(2) + getPoints().get(4)) / 3;        // centroid formula

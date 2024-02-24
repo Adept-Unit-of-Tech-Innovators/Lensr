@@ -110,6 +110,9 @@ public class UserControls {
                                 editable.delete();
                             });
                 }
+                // This has to be here because the `delete` method will be called when loading a project
+                // Because of that it will make a new autosave meaning you can't undo/redo the delete action
+                SaveState.autoSave();
             }
             if (( keyEvent.getCode().toString().equals("ESCAPE") || keyEvent.getCode().toString().equals("ENTER") ) && isEditMode) {
                 closeCurrentEdit();
@@ -171,6 +174,32 @@ public class UserControls {
                             .findFirst()
                             .ifPresent(Editable::copy);
                 }
+            }
+
+            if (keyEvent.getCode().toString().equals("S") && keyEvent.isControlDown() && isEditMode) {
+                System.out.println("Saving project");
+                SaveState.saveProject("projectSave.ser");
+            }
+
+            if (keyEvent.getCode().toString().equals("O") && keyEvent.isControlDown() && isEditMode) {
+                System.out.println("Loading project");
+                LoadState.loadProject("projectSave.ser");
+            }
+
+            if (keyEvent.getCode().toString().equals("Z") && keyEvent.isControlDown() && isEditMode) {
+                if (undoSaves.size() > 1) {
+                    redoSaves.push(undoSaves.pop());
+                    LoadState.loadProject("autosaves/" + undoSaves.peek().getName());
+                }
+                return;
+            }
+
+            if (keyEvent.getCode().toString().equals("Y") && keyEvent.isControlDown() && isEditMode) {
+                if (!redoSaves.isEmpty()) {
+                    LoadState.loadProject("autosaves/" + redoSaves.peek().getName());
+                    undoSaves.push(redoSaves.pop());
+                }
+                return;
             }
 
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
@@ -304,7 +333,6 @@ public class UserControls {
         });
     }
 
-
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
@@ -370,7 +398,7 @@ public class UserControls {
                 BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
                 brickwallFilter.create();
                 if (mirrors.stream().noneMatch(mirror -> mirror instanceof Slider)) {
-                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.Transmission, SliderStyle.Primary);
+                    peakTransmissionSlider = new ParameterSlider(brickwallFilter, ValueToChange.PeakTransmission, SliderStyle.Primary);
                     startPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.StartPassband, SliderStyle.Secondary);
                     endPassbandSlider = new ParameterSlider(brickwallFilter, ValueToChange.EndPassband, SliderStyle.Tertiary);
                 }
@@ -457,7 +485,6 @@ public class UserControls {
         }
     }
 
-
     public static void closeCurrentEdit() {
         if (editedShape instanceof Editable) {
             ((Editable) editedShape).closeObjectEdit();
@@ -470,7 +497,6 @@ public class UserControls {
                     .ifPresent(Editable::closeObjectEdit);
         }
     }
-
 
     public static void resetHasBeenClicked() {
         List<Object> clickableObjects = new ArrayList<>();

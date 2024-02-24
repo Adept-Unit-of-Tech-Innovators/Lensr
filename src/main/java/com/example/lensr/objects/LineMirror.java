@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -11,22 +12,26 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class LineMirror extends Line implements Editable {
-    public Group group = new Group();
-    Rotate rotate = new Rotate();
+public class LineMirror extends Line implements Editable, Serializable {
+    public transient Group group = new Group();
+    private transient Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
-    public Rectangle hitbox;
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    double rotation = 0;
-    public boolean isEdited;
-    public boolean hasBeenClicked;
-    double reflectivity = 0.9;
+    private transient Rectangle hitbox;
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient double rotation = 0;
+    private transient boolean isEdited;
+    private transient boolean hasBeenClicked;
+    private double reflectivity = 0.9;
     public LineMirror(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
@@ -34,7 +39,7 @@ public class LineMirror extends Line implements Editable {
         setEndY(endY);
     }
 
-
+    @Override
     public void create() {
         setFill(Color.TRANSPARENT);
         setStroke(mirrorColor);
@@ -110,7 +115,6 @@ public class LineMirror extends Line implements Editable {
         updateLightSources();
     }
 
-
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
         hitbox.setHeight(mouseHitboxSize);
@@ -121,7 +125,6 @@ public class LineMirror extends Line implements Editable {
         hitbox.getTransforms().add(rotate);
         updateHitbox();
     }
-
 
     private void updateHitbox() {
         hitbox.setY(getStartY() - hitbox.getHeight() / 2);
@@ -137,11 +140,9 @@ public class LineMirror extends Line implements Editable {
         this.reflectivity = reflectivity;
     }
 
-
     public double getReflectivity() {
         return reflectivity;
     }
-
 
     public double getLength() {
         return Math.sqrt(
@@ -162,6 +163,7 @@ public class LineMirror extends Line implements Editable {
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
         updateHitbox();
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -202,6 +204,7 @@ public class LineMirror extends Line implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -284,7 +287,35 @@ public class LineMirror extends Line implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        rotate = new Rotate();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        rotation = 0;
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
     @Override

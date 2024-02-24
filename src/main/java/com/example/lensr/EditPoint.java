@@ -13,10 +13,10 @@ public class EditPoint extends Rectangle {
     public boolean hasBeenClicked;
     EventHandler<MouseEvent> onClickEvent;
     public EditPoint(double centerX, double centerY) {
-        setCenterX(centerX);
-        setCenterY(centerY);
         setWidth(editPointSize);
         setHeight(editPointSize);
+        setCenterX(centerX);
+        setCenterY(centerY);
         setFill(Color.RED);
         setStroke(Color.BLACK);
         setStrokeWidth(1);
@@ -24,10 +24,10 @@ public class EditPoint extends Rectangle {
         toFront();
     }
     public EditPoint(Point2D centerPoint) {
+        setHeight(editPointSize);
+        setWidth(editPointSize);
         setCenterX(centerPoint.getX());
         setCenterY(centerPoint.getY());
-        setWidth(editPointSize);
-        setHeight(editPointSize);
         setFill(Color.RED);
         setStroke(Color.BLACK);
         setStrokeWidth(1);
