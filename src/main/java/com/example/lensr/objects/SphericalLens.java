@@ -34,12 +34,12 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     private double centerY;
     private double lensThickness1;
     private double lensThickness2;
-    private transient final LensArc firstArc;
-    private transient final LensArc secondArc;
-    private transient final Line firstFlatArc;
-    private transient final Line secondFlatArc;
-    private transient final LensLine topLine;
-    private transient final LensLine bottomLine;
+    private transient LensArc firstArc;
+    private transient LensArc secondArc;
+    private transient Line firstFlatArc;
+    private transient Line secondFlatArc;
+    private transient LensLine topLine;
+    private transient LensLine bottomLine;
     public transient List<Shape> elements = new ArrayList<>();
     int arcSnap = 20;
 
@@ -420,8 +420,10 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         lowerRotateField = new EditPoint(0, 0);
         isEdited = false;
         hasBeenClicked = false;
-        firstArc = new LensArc(this, lensThickness1);
-        secondArc = new LensArc(this, lensThickness2);
+        firstFlatArc = new Line();
+        secondFlatArc = new Line();
+        firstArc = new LensArc(this, firstFlatArc, lensThickness1);
+        secondArc = new LensArc(this, secondFlatArc, lensThickness2);
         topLine = new LensLine(this);
         bottomLine = new LensLine(this);
         elements = new ArrayList<>();

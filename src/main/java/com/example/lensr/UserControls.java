@@ -181,7 +181,7 @@ public class UserControls {
                 SaveState.saveProject("projectSave.ser");
             }
 
-            if (keyEvent.getCode().toString().equals("A") && keyEvent.isControlDown() && isEditMode) {
+            if (keyEvent.getCode().toString().equals("O") && keyEvent.isControlDown() && isEditMode) {
                 System.out.println("Loading project");
                 LoadState.loadProject("projectSave.ser");
             }

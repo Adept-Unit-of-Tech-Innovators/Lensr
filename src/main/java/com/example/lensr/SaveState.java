@@ -10,7 +10,6 @@ import static com.example.lensr.LensrStart.*;
 public class SaveState {
     private static final int MAX_AUTOSAVES = 1000;
     public static void saveProject(String filename) {
-        // Save the lineMirror object
         try {
             FileOutputStream fileOut = new FileOutputStream(filename);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -26,7 +25,7 @@ public class SaveState {
             out.close();
             fileOut.close();
         } catch (IOException i) {
-            throw new RuntimeException("Error saving lineMirror", i);
+            throw new RuntimeException("Error saving Project", i);
         }
     }
 

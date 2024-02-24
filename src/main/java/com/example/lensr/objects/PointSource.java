@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -9,30 +10,31 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.scene.transform.Rotate;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
-public class PointSource extends Rectangle implements Editable {
-    
-    public List<OriginRay> originRays = new ArrayList<>();
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    double startAngle = 0;
-    double fieldOfView;
-    public Rectangle hitbox;
-    public Group group = new Group();
+public class PointSource extends Rectangle implements Editable, Serializable {
+    private transient Group group = new Group();
+    private transient List<OriginRay> originRays = new ArrayList<>();
+    private transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private transient Rectangle hitbox;
+    private double startAngle = 0;
     public boolean hasBeenClicked;
     public boolean isEdited;
     public double wavelength = 580;
     public double brightness = 1.0;
-    public int rayCount;
-    boolean isFull;
-    boolean isWhiteLight = false;
+    private double fieldOfView;
+    private int rayCount;
+    private boolean isFull;
+    private boolean isWhiteLight;
     
     public PointSource(double centerX, double centerY, double fieldOfView, double startAngle, int rayCount, boolean isFull)
     {
@@ -71,6 +73,11 @@ public class PointSource extends Rectangle implements Editable {
 
         objectEditPoints.get(0).setOnClickEvent(event -> move());
         objectEditPoints.get(1).setOnClickEvent(event -> rotate());
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setVisible(false);
+            editPoint.hasBeenClicked = false;
+        });
 
         group.getChildren().add(this);
         originRays.forEach(ray -> group.getChildren().add(ray.group));
@@ -119,6 +126,7 @@ public class PointSource extends Rectangle implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -130,9 +138,7 @@ public class PointSource extends Rectangle implements Editable {
                 double mouseAngle = Math.atan2(mousePos.getY() - getCenter().getY(), mousePos.getX() - getCenter().getX());
                 double newStartAngle = mouseAngle - fieldOfView/2;
                 Platform.runLater(() -> {
-
                     setStartAngle(newStartAngle);
-                    System.out.println(Math.toDegrees(startAngle));
 
                     if(objectEditPoints != null) {
                         objectEditPoints.get(1).setCenter(new Point2D(getCenter().getX() + Math.cos(mouseAngle)  * 100, getCenter().getY() + Math.sin(mouseAngle) * 100));
@@ -147,7 +153,34 @@ public class PointSource extends Rectangle implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getX());
+        out.writeDouble(getY());
+        out.writeDouble(getWidth());
+        out.writeDouble(getHeight());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setX(in.readDouble());
+        setY(in.readDouble());
+        setWidth(in.readDouble());
+        setHeight(in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        originRays = new ArrayList<>();
+        hitbox = new Rectangle();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
     }
 
     public void setCenter(double newCenterX, double newCenterY)
@@ -155,6 +188,7 @@ public class PointSource extends Rectangle implements Editable {
         setX(newCenterX - getWidth()/2);
         setY(newCenterY - getHeight()/2);
     }
+
     private void createRectangleHitbox() {
         hitbox = new Rectangle();
         hitbox.setHeight(mouseHitboxSize);
@@ -165,11 +199,13 @@ public class PointSource extends Rectangle implements Editable {
         hitbox.toBack();
         updateHitbox();
     }
+
     private void updateHitbox() {
         Point2D center = getCenter();
         hitbox.setY(center.getY() - hitbox.getHeight() / 2);
         hitbox.setX(center.getX() - hitbox.getHeight() / 2);
     }
+
     public Point2D getCenter() {
         return new Point2D(getX() + getWidth()/2, getY() + getHeight()/2);
     }
@@ -215,12 +251,14 @@ public class PointSource extends Rectangle implements Editable {
         originRays.forEach(Node::toBack);
 
     }
+
     public void setFieldOfView(double fieldOfView)
     {
         double middleAngle = startAngle + this.fieldOfView / 2;
         this.fieldOfView = fieldOfView;
         setStartAngle(middleAngle - fieldOfView/2);
     }
+
     public void setStartAngle(double startAngle)
     {
         this.startAngle = startAngle;
@@ -341,6 +379,7 @@ public class PointSource extends Rectangle implements Editable {
             originRay.setEndX(originRay.getEndX() + x);
             originRay.setEndY(originRay.getEndY() + y);
         });
+        SaveState.autoSave();
     }
 
     public double getFieldOfView()

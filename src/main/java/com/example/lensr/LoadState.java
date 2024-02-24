@@ -1,9 +1,6 @@
 package com.example.lensr;
 
-import com.example.lensr.objects.BeamSource;
-import com.example.lensr.objects.Editable;
-import com.example.lensr.objects.PanelSource;
-import com.example.lensr.objects.SphericalLens;
+import com.example.lensr.objects.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,10 +48,10 @@ public class LoadState {
         for (Serializable object : newObjects) {
             if (object instanceof Editable editable) {
                 editable.create();
-                if (editable instanceof BeamSource || editable instanceof PanelSource) {
+                if (editable instanceof BeamSource || editable instanceof PanelSource || editable instanceof PointSource) {
                     lightSources.add(editable);
                 }
-                else if (editable instanceof SphericalLens) {
+                else if (editable instanceof Glass) {
                     lenses.add(editable);
                 }
                 else {

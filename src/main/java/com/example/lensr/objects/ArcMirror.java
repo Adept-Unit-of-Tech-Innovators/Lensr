@@ -1,6 +1,7 @@
 package com.example.lensr.objects;
 
 import com.example.lensr.EditPoint;
+import com.example.lensr.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -10,19 +11,25 @@ import javafx.scene.shape.Arc;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.MirrorMethods.*;
 
-public class ArcMirror extends Arc implements Editable {
-    public Group group = new Group();
-    public List<EditPoint> objectEditPoints = new ArrayList<>();
-    public boolean isEdited;
-    public boolean hasBeenClicked;
+public class ArcMirror extends Arc implements Editable, Serializable {
+    private transient Group group = new Group();
+    public transient List<EditPoint> objectEditPoints = new ArrayList<>();
+    private boolean isEdited;
+    private boolean hasBeenClicked;
     double reflectivity = 0.9;
-    private Point2D curvePoint;
+    private transient Point2D curvePoint = new Point2D(getCenterX(), getCenterY());
+    private transient Point2D startPoint = new Point2D(getCenterX() + 1, getCenterY());
+    private transient Point2D endPoint = new Point2D(getCenterX(), getCenterY() - 1);
     public ArcMirror(double x, double y) {
         super(x, y, 0, 0, 0, 0);
     }
@@ -32,25 +39,30 @@ public class ArcMirror extends Arc implements Editable {
         setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
 
-        // Place edit points (initially at the center)
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
-        objectEditPoints.add(new EditPoint(getCenterX() + 1, getCenterY() + 1));
+        // Place edit points
+
+        // Start and end points
+        objectEditPoints.add(new EditPoint(startPoint.getX(), startPoint.getY()));
+        objectEditPoints.add(new EditPoint(endPoint.getX(), endPoint.getY()));
 
         // Define what happens when an edit point is clicked
         objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter(), objectEditPoints.get(1), objectEditPoints.get(0)));
-        objectEditPoints.get(1).setOnClickEvent(event -> {
-            scale(objectEditPoints.get(0).getCenter(), objectEditPoints.get(0), objectEditPoints.get(1));
-        });
-        objectEditPoints.get(0).setFill(Color.HOTPINK);
+        objectEditPoints.get(1).setOnClickEvent(event -> scale(objectEditPoints.get(0).getCenter(), objectEditPoints.get(0), objectEditPoints.get(1)));
 
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        // Curve point
+        objectEditPoints.add(new EditPoint(curvePoint.getX(), curvePoint.getY()));
         objectEditPoints.get(2).setOnClickEvent(event -> setVertex());
         objectEditPoints.get(2).setFill(Color.GREEN);
         curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
 
+        // Center point
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
-        objectEditPoints.get(3).setOnClickEvent(event -> move());
         objectEditPoints.get(3).setFill(Color.BLUE);
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setVisible(false);
+            editPoint.hasBeenClicked = false;
+        });
 
         group.getChildren().add(this);
         group.getChildren().addAll(objectEditPoints);
@@ -134,6 +146,10 @@ public class ArcMirror extends Arc implements Editable {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        this.startPoint = new Point2D(objectEditPoints.get(0).getCenterX(), objectEditPoints.get(0).getCenterY());
+        this.endPoint = new Point2D(objectEditPoints.get(1).getCenterX(), objectEditPoints.get(1).getCenterY());
+        this.curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
+        SaveState.autoSave();
     }
 
     private void move() {
@@ -145,7 +161,18 @@ public class ArcMirror extends Arc implements Editable {
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
                 // Update the UI on the JavaFX application thread
-                Platform.runLater(() -> moveBy(deltaX, deltaY));
+                Platform.runLater(() -> {
+                    setCenterX(getCenterX() + deltaX);
+                    setCenterY(getCenterY() + deltaY);
+
+                    objectEditPoints.forEach(editPoint -> {
+                        editPoint.setCenterX(editPoint.getCenterX() + deltaX);
+                        editPoint.setCenterY(editPoint.getCenterY() + deltaY);
+                    });
+                    this.startPoint = new Point2D(objectEditPoints.get(0).getCenterX(), objectEditPoints.get(0).getCenterY());
+                    this.endPoint = new Point2D(objectEditPoints.get(1).getCenterX(), objectEditPoints.get(1).getCenterY());
+                    this.curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
+                });
 
                 prevMousePos = mousePos;
                 synchronized (lock) {
@@ -156,6 +183,7 @@ public class ArcMirror extends Arc implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -191,6 +219,9 @@ public class ArcMirror extends Arc implements Editable {
                     objectEditPoints.get(2).setCenterY(curvePoint.getY());
                     objectEditPoints.get(3).setCenterX(circumcircle.getCenterX());
                     objectEditPoints.get(3).setCenterY(circumcircle.getCenterY());
+                    this.startPoint = new Point2D(objectEditPoints.get(0).getCenterX(), objectEditPoints.get(0).getCenterY());
+                    this.endPoint = new Point2D(objectEditPoints.get(1).getCenterX(), objectEditPoints.get(1).getCenterY());
+                    this.curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
                 });
 
                 synchronized (lock) {
@@ -201,6 +232,7 @@ public class ArcMirror extends Arc implements Editable {
                     }
                 }
             }
+            SaveState.autoSave();
         }).start();
     }
 
@@ -282,6 +314,9 @@ public class ArcMirror extends Arc implements Editable {
                     objectEditPoints.get(2).setCenterY(curvePoint.getY());
                     objectEditPoints.get(3).setCenterX(circumcircle.getCenterX());
                     objectEditPoints.get(3).setCenterY(circumcircle.getCenterY());
+                    this.startPoint = new Point2D(objectEditPoints.get(0).getCenterX(), objectEditPoints.get(0).getCenterY());
+                    this.endPoint = new Point2D(objectEditPoints.get(1).getCenterX(), objectEditPoints.get(1).getCenterY());
+                    this.curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
                 });
 
                 synchronized (lock) {
@@ -292,8 +327,48 @@ public class ArcMirror extends Arc implements Editable {
                     }
                 }
             }
+
+            SaveState.autoSave();
         }).start();
     }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeDouble(getCenterX());
+        out.writeDouble(getCenterY());
+        out.writeDouble(getRadiusX());
+        out.writeDouble(getRadiusY());
+        out.writeDouble(getStartAngle());
+        out.writeDouble(getLength());
+        out.writeDouble(curvePoint.getX());
+        out.writeDouble(curvePoint.getY());
+        out.writeDouble(startPoint.getX());
+        out.writeDouble(startPoint.getY());
+        out.writeDouble(endPoint.getX());
+        out.writeDouble(endPoint.getY());
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        setCenterX(in.readDouble());
+        setCenterY(in.readDouble());
+        setRadiusX(in.readDouble());
+        setRadiusY(in.readDouble());
+        setStartAngle(in.readDouble());
+        setLength(in.readDouble());
+        curvePoint = new Point2D(in.readDouble(), in.readDouble());
+        startPoint = new Point2D(in.readDouble(), in.readDouble());
+        endPoint = new Point2D(in.readDouble(), in.readDouble());
+
+        // Initialize transient fields
+        group = new Group();
+        objectEditPoints = new ArrayList<>();
+        isEdited = false;
+        hasBeenClicked = false;
+    }
+
 
     public Circle getCircumcircle(Point2D start, Point2D end, Point2D curvePoint) {
         // Find the arc starting at the start point, ending at the end point and passing through the curve point
