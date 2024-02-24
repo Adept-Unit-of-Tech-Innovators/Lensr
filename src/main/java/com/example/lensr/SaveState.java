@@ -1,5 +1,7 @@
 package com.example.lensr;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,7 +13,7 @@ public class SaveState {
     private static final int MAX_AUTOSAVES = 1000;
     public static void saveProject(String filename) {
         try {
-            FileOutputStream fileOut = new FileOutputStream(filename);
+            FileOutputStream fileOut = FileUtils.openOutputStream(new File(filename));
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             for (Object mirror : mirrors) {
                 out.writeObject(mirror);

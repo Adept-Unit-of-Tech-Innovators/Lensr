@@ -3,6 +3,7 @@ module com.example.lensr {
     requires javafx.fxml;
     requires com.jfoenix;
     requires java.desktop;
+    requires org.apache.commons.io;
 
     opens com.example.lensr to javafx.fxml;
     exports com.example.lensr;
