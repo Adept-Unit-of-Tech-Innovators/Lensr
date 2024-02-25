@@ -18,15 +18,17 @@ public class Intersections {
         double intersectionX;
         double intersectionY;
 
+        double tolerance = -0.0001; // Tolerance for floating point comparison
+
         // Ray is vertical
-        if (ray.getEndX() - ray.getStartX() == 0) {
+        if (Math.abs(ray.getEndX() - ray.getStartX()) < -tolerance) {
             intersectionX = ray.getStartX();
             lineSlope = (line.getEndY() - line.getStartY()) / (line.getEndX() - line.getStartX());
             lineYIntercept = line.getStartY() - lineSlope * line.getStartX();
             intersectionY = lineSlope * intersectionX + lineYIntercept;
         }
         // Line is vertical
-        else if (line.getEndX() - line.getStartX() == 0) {
+        else if (Math.abs(line.getEndX() - line.getStartX()) < -tolerance) {
             intersectionX = line.getStartX();
             raySlope = (ray.getEndY() - ray.getStartY()) / (ray.getEndX() - ray.getStartX());
             rayYIntercept = ray.getStartY() - raySlope * ray.getStartX();
@@ -56,10 +58,10 @@ public class Intersections {
         }
 
         // Check if the intersection point is within the bounds of the line
-        if ((line.getStartX() > line.getEndX() && (intersectionX < line.getEndX() || intersectionX > line.getStartX())) ||
-                (line.getStartX() < line.getEndX() && (intersectionX > line.getEndX() || intersectionX < line.getStartX())) ||
-                (line.getStartY() > line.getEndY() && (intersectionY < line.getEndY() || intersectionY > line.getStartY())) ||
-                (line.getStartY() < line.getEndY() && (intersectionY > line.getEndY() || intersectionY < line.getStartY()))) {
+        if (intersectionX - Math.min(line.getStartX(), line.getEndX()) < tolerance ||
+                Math.max(line.getStartX(), line.getEndX()) - intersectionX < tolerance ||
+                intersectionY - Math.min(line.getStartY(), line.getEndY()) < tolerance ||
+                Math.max(line.getStartY(), line.getEndY()) - intersectionY < tolerance) {
             return null;
         }
 
@@ -71,6 +73,11 @@ public class Intersections {
 
         if (intersections == null) {
             return null;
+        }
+
+        // If there is only one intersection point, the ellipse is a line. Return the intersection point as a line
+        if (intersections.size() == 1) {
+            return intersections.get(0);
         }
 
         // Check if the intersection points are in the direction of the ray
@@ -126,17 +133,18 @@ public class Intersections {
         double intersection1Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(0).getY() - arc.getCenterY(), intersections.get(0).getX() - arc.getCenterX()))) % 360;
         double intersection2Angle = (360 - Math.toDegrees(Math.atan2(intersections.get(1).getY() - arc.getCenterY(), intersections.get(1).getX() - arc.getCenterX()))) % 360;
 
+        if (arc.getStartAngle() + arc.getLength() > 360 && intersection1Angle < arc.getStartAngle()) {
+            intersection1Angle = intersection1Angle + 360;
+        }
+        if (arc.getStartAngle() + arc.getLength() > 360 && intersection2Angle < arc.getStartAngle()) {
+            intersection2Angle = intersection2Angle + 360;
+        }
+
         // Return the closest intersection point in the direction of the ray that lies on the arc
-        if (dotProduct1 < 0 ||
-                (!(intersection1Angle >= arc.getStartAngle() && intersection1Angle <= arc.getStartAngle() + arc.getLength()) &&
-                        !(intersection1Angle <= arc.getStartAngle() && intersection1Angle >= arc.getStartAngle() + arc.getLength()))
-        ) {
+        if (dotProduct1 < 0 || (intersection1Angle < arc.getStartAngle() || intersection1Angle > arc.getStartAngle() + arc.getLength())) {
             intersections.set(0, null);
         }
-        if (dotProduct2 < 0 ||
-                (!(intersection2Angle >= arc.getStartAngle() && intersection2Angle <= arc.getStartAngle() + arc.getLength()) &&
-                        !(intersection2Angle <= arc.getStartAngle() && intersection2Angle >= arc.getStartAngle() + arc.getLength()))
-        ) {
+        if (dotProduct2 < 0 || (intersection2Angle < arc.getStartAngle() || intersection2Angle > arc.getStartAngle() + arc.getLength())) {
             intersections.set(1, null);
         }
 
@@ -169,7 +177,37 @@ public class Intersections {
 
         double discriminant = b * b - 4 * a * c;
 
-        if (discriminant >= 0) {
+        double tolerance = 0.0001; // Tolerance for floating point comparison
+
+        // Ellipse is a vertical line
+        if (x == 0) {
+            Point2D intersection = getRayLineIntersectionPoint(ray, new Line(ellipse.getCenterX(), ellipse.getCenterY() - ellipse.getRadiusY(), ellipse.getCenterX(), ellipse.getCenterY() + ellipse.getRadiusY()));
+            if (intersection != null) {
+                return new ArrayList<>(List.of(intersection));
+            }
+        }
+        // Ellipse is a horizontal line
+        else if (y == 0) {
+            Point2D intersection = getRayLineIntersectionPoint(ray, new Line(ellipse.getCenterX() - ellipse.getRadiusX(), ellipse.getCenterY(), ellipse.getCenterX() + ellipse.getRadiusX(), ellipse.getCenterY()));
+            if (intersection != null) {
+                return new ArrayList<>(List.of(intersection));
+            }
+        }
+        // Ray is vertical
+        else if (Math.abs(ray.getEndX() - ray.getStartX()) < tolerance) {
+            // Ray is outside the ellipse
+            if (ray.getStartX() < h - x || ray.getStartX() > h + x) {
+                return null;
+            }
+            double intersectionY1 = k + y * Math.sqrt(1 - Math.pow((ray.getStartX() - h) / x, 2));
+            double intersectionY2 = k - y * Math.sqrt(1 - Math.pow((ray.getStartX() - h) / x, 2));
+
+            double intersectionX1 = ray.getStartX();
+            double intersectionX2 = ray.getStartX();
+
+            return new ArrayList<>(List.of(new Point2D(intersectionX1, intersectionY1), new Point2D(intersectionX2, intersectionY2)));
+        }
+        else if (discriminant >= 0) {
             double intersection1X = (-b + Math.sqrt(discriminant)) / (2 * a);
             double intersection2X = (-b - Math.sqrt(discriminant)) / (2 * a);
 

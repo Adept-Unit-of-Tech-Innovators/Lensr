@@ -58,6 +58,7 @@ public class ArcMirror extends Arc implements Editable, Serializable {
         // Center point
         objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
         objectEditPoints.get(3).setFill(Color.BLUE);
+        objectEditPoints.get(3).setOnClickEvent(event -> move());
 
         objectEditPoints.forEach(editPoint -> {
             editPoint.setVisible(false);
@@ -200,14 +201,23 @@ public class ArcMirror extends Arc implements Editable, Serializable {
                 double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
                 double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
 
-                double finalLength = calculateLength(startAngle, endAngle, curvePointAngle);
+                double length = calculateLength(startAngle, endAngle, curvePointAngle);
+
+                if (length < 0) {
+                    startAngle = endAngle;
+                    length = -length;
+                }
+
+                double finalStartAngle = startAngle;
+                double finalLength = length;
+
 
                 Platform.runLater(() -> {
                     setCenterX(circumcircle.getCenterX());
                     setCenterY(circumcircle.getCenterY());
                     setRadiusX(circumcircle.getRadius());
                     setRadiusY(circumcircle.getRadius());
-                    setStartAngle(startAngle);
+                    setStartAngle(finalStartAngle%360);
                     setLength(finalLength);
 
                     // Update editPoints location
@@ -294,14 +304,22 @@ public class ArcMirror extends Arc implements Editable, Serializable {
                 double startAngle = 360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()));
                 double endAngle = 360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()));
 
-                double finalLength = calculateLength(startAngle, endAngle, curvePointAngle);
+                double length = calculateLength(startAngle, endAngle, curvePointAngle);
+
+                if (length < 0) {
+                    startAngle = endAngle;
+                    length = -length;
+                }
+
+                double finalStartAngle = startAngle;
+                double finalLength = length;
 
                 Platform.runLater(() -> {
                     setCenterX(circumcircle.getCenterX());
                     setCenterY(circumcircle.getCenterY());
                     setRadiusX(circumcircle.getRadius());
                     setRadiusY(circumcircle.getRadius());
-                    setStartAngle(startAngle);
+                    setStartAngle(finalStartAngle%360);
                     setLength(finalLength);
 
 

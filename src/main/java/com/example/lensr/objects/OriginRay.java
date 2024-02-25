@@ -109,8 +109,6 @@ public class OriginRay extends Ray {
                         if (mirror instanceof FunnyMirror funnyMirror) {
                             closestIntersectionObject = funnyMirror.getClosestIntersectionSegment();
                         }
-                    } else {
-                        closestIntersectionObject = mirror;
                     }
                 }
 
