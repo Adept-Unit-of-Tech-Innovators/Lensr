@@ -213,8 +213,8 @@ public class OriginRay extends Ray {
                     double reflectionAngle = getLineReflectionAngle(currentRay, mirror);
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * 2 * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * 2 * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + SIZE * 1000 * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + SIZE * 1000 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
@@ -229,8 +229,8 @@ public class OriginRay extends Ray {
                     double reflectionAngle = getArcReflectionAngle(currentRay, mirror);
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() - SIZE * 2 * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() - SIZE * 2 * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() - SIZE * 1000 * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - SIZE * 1000 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(reflectionAngle));
@@ -252,8 +252,8 @@ public class OriginRay extends Ray {
                     }
 
                     // Calculate the end point of the reflected ray
-                    reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() - 1000 * SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - 1000 * SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(reflectionAngle));
@@ -277,8 +277,8 @@ public class OriginRay extends Ray {
                         double reflectionAngle = getLineReflectionAngle(currentRay, intersectionSegment);
 
                         // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                        reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(reflectionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(reflectionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + Math.cos(reflectionAngle));
@@ -294,8 +294,8 @@ public class OriginRay extends Ray {
                     double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
@@ -317,8 +317,8 @@ public class OriginRay extends Ray {
                     double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
@@ -339,8 +339,8 @@ public class OriginRay extends Ray {
                     double reflectionAngle = Math.atan2(currentRay.getEndY() - currentRay.getStartY(), currentRay.getEndX() - currentRay.getStartX());
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(reflectionAngle);
-                    reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(reflectionAngle);
+                    reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(reflectionAngle);
+                    reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
@@ -371,8 +371,8 @@ public class OriginRay extends Ray {
                     else if (!inLens && !totalInternalReflection) intersectors.add(currSphericalLens);
 
                     // Calculate the reflected ray's endpoint based on the reflection angle
-                    reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
-                    reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+                    reflectedX = closestIntersectionPoint.getX() - 1000 * SIZE * Math.cos(refractionAngle);
+                    reflectedY = closestIntersectionPoint.getY() - 1000 * SIZE * Math.sin(refractionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
@@ -399,16 +399,16 @@ public class OriginRay extends Ray {
 
                     if (totalInternalReflection) {
                         // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
-                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+                        reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(refractionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
                     } else {
                         // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
-                        reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+                        reflectedX = closestIntersectionPoint.getX() - 1000 * SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() - 1000 * SIZE * Math.sin(refractionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
@@ -434,16 +434,16 @@ public class OriginRay extends Ray {
 
                     if (totalInternalReflection) {
                         // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() + SIZE * Math.cos(refractionAngle);
-                        reflectedY = closestIntersectionPoint.getY() + SIZE * Math.sin(refractionAngle);
+                        reflectedX = closestIntersectionPoint.getX() + 1000 * SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() + 1000 * SIZE * Math.sin(refractionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(refractionAngle));
                     } else {
                         // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() - SIZE * Math.cos(refractionAngle);
-                        reflectedY = closestIntersectionPoint.getY() - SIZE * Math.sin(refractionAngle);
+                        reflectedX = closestIntersectionPoint.getX() - 1000 * SIZE * Math.cos(refractionAngle);
+                        reflectedY = closestIntersectionPoint.getY() - 1000 * SIZE * Math.sin(refractionAngle);
 
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));

@@ -67,8 +67,9 @@ public class PanelSource extends Line implements Editable, Serializable {
                 OriginRay originRay = new OriginRay(
                         getStartX() + dx * j,
                         getStartY() + dy * j,
-                        getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE,
-                        getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE
+                        getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE * 1000,
+                        getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE * 1000
+
                 );
                 originRay.setParentSource(this);
                 originRay.setStrokeWidth(globalStrokeWidth);
@@ -281,8 +282,8 @@ public class PanelSource extends Line implements Editable, Serializable {
                     for (OriginRay originRay : originRays) {
                         originRay.setStartX(getStartX() + dx * (i % panelRayCount));
                         originRay.setStartY(getStartY() + dy * (i % panelRayCount));
-                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
-                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
                         i++;
                     }
 
@@ -386,8 +387,8 @@ public class PanelSource extends Line implements Editable, Serializable {
                     for (OriginRay originRay : originRays) {
                         originRay.setStartX(getStartX() + dx * (i % panelRayCount));
                         originRay.setStartY(getStartY() + dy * (i % panelRayCount));
-                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
-                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 2 * SIZE);
+                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
                         i++;
                     }
 
@@ -470,8 +471,8 @@ public class PanelSource extends Line implements Editable, Serializable {
                     OriginRay originRay = new OriginRay(
                             getStartX() + dx * j,
                             getStartY() + dy * j,
-                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE,
-                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE
+                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE * 1000,
+                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE * 1000
                     );
                     originRay.setParentSource(this);
                     originRay.setStrokeWidth(globalStrokeWidth);

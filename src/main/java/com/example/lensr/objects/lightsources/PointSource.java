@@ -58,10 +58,12 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         double angleBetweenRays = fieldOfView / rayCount;
 
         for (int i = 0; i < rayCount; i++) {
-            OriginRay originRay = new OriginRay(getCenter().getX(), 
+            OriginRay originRay = new OriginRay(
+                    getCenter().getX(),
                     getCenter().getY(), 
-                    getCenter().getX() + (Math.cos(startAngle + angleBetweenRays * i)) * SIZE,
-                    getCenter().getY() + (Math.sin(startAngle + angleBetweenRays * i)) * SIZE);
+                    getCenter().getX() + (Math.cos(startAngle + angleBetweenRays * i)) * SIZE * 1000,
+                    getCenter().getY() + (Math.sin(startAngle + angleBetweenRays * i)) * SIZE * 1000
+            );
             originRay.setParentSource(this);
             originRay.setStrokeWidth(globalStrokeWidth);
             originRay.setWavelength(wavelength);
@@ -106,8 +108,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
                     {
                         originRay.setStartX(newCenterX);
                         originRay.setStartY(newCenterY);
-                        originRay.setEndX(newCenterX + (Math.cos(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
-                        originRay.setEndY(newCenterY + (Math.sin(startAngle + angleBetweenRays * (i % rayCount))) * SIZE);
+                        originRay.setEndX(newCenterX + (Math.cos(startAngle + angleBetweenRays * (i % rayCount))) * SIZE * 1000);
+                        originRay.setEndY(newCenterY + (Math.sin(startAngle + angleBetweenRays * (i % rayCount))) * SIZE * 1000);
                         i++;
                     }
 
@@ -237,8 +239,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
                 OriginRay originRay = new OriginRay(
                         getCenter().getX(),
                         getCenter().getY(),
-                        getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE,
-                        getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE
+                        getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE * 1000,
+                        getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE * 1000
                 );
                 originRay.setParentSource(this);
                 originRay.setStrokeWidth(globalStrokeWidth);
@@ -265,8 +267,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         this.startAngle = startAngle;
         double angleBetweenRays = fieldOfView / rayCount;
         for (int i = 0; i < originRays.size(); i++) {
-            originRays.get(i).setEndX(getCenter().getX() + Math.cos(startAngle + angleBetweenRays * (i % rayCount)) * SIZE);
-            originRays.get(i).setEndY(getCenter().getY() + Math.sin(startAngle + angleBetweenRays * (i % rayCount)) * SIZE);
+            originRays.get(i).setEndX(getCenter().getX() + Math.cos(startAngle + angleBetweenRays * (i % rayCount)) * SIZE * 1000);
+            originRays.get(i).setEndY(getCenter().getY() + Math.sin(startAngle + angleBetweenRays * (i % rayCount)) * SIZE * 1000);
         }
         update();
     }
@@ -433,8 +435,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
                     OriginRay originRay = new OriginRay(
                             getCenter().getX(),
                             getCenter().getY(),
-                            getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE,
-                            getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE
+                            getCenter().getX() + Math.cos(startAngle + angleBetweenRays * j) * SIZE * 1000,
+                            getCenter().getY() + Math.sin(startAngle + angleBetweenRays * j) * SIZE * 1000
                     );
                     originRay.setParentSource(this);
                     originRay.setStrokeWidth(globalStrokeWidth);
