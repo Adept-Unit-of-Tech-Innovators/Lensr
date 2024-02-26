@@ -64,6 +64,10 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
 
     @Override
     public void delete() {
+        coefficientASlider.hide();
+        coefficientBSlider.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         lenses.remove(this);
         root.getChildren().remove(group);
     }
@@ -74,7 +78,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
         newPrism.getPoints().setAll(getPoints());
         newPrism.create();
         newPrism.moveBy(10, 10);
-        mirrors.add(newPrism);
+        lenses.add(newPrism);
         UserControls.closeCurrentEdit();
         newPrism.openObjectEdit();
     }

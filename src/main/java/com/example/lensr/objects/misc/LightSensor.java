@@ -62,6 +62,9 @@ public class LightSensor extends Line implements Editable, Serializable {
 
     @Override
     public void delete() {
+        graph.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         mirrors.remove(this);
         root.getChildren().remove(group);
     }

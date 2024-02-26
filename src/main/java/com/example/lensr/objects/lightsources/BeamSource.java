@@ -76,7 +76,12 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
 
     @Override
     public void delete() {
+        wavelengthSlider.hide();
+        whiteLightToggle.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         lightSources.remove(this);
+        originRays.clear();
         root.getChildren().remove(group);
     }
 

@@ -18,7 +18,6 @@ import com.example.lensr.saveloadkit.LoadState;
 import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.ui.Dropdown;
 import com.example.lensr.ui.EditPoint;
-import com.example.lensr.ui.ToolbarButton;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -122,8 +121,8 @@ public class UserControls {
                             .map(node -> (Editable) node)
                             .findFirst()
                             .ifPresent(editable -> {
-                                editable.closeObjectEdit();
                                 editable.delete();
+                                updateLightSources();
                             });
                 }
                 // This has to be here because the `delete` method will be called when loading a project

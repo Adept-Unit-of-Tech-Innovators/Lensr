@@ -45,6 +45,8 @@ public class LightEater extends Circle implements Editable, Serializable {
 
     @Override
     public void delete() {
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         mirrors.remove(this);
         root.getChildren().remove(group);
     }

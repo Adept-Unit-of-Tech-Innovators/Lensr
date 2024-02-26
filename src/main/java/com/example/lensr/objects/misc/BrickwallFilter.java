@@ -64,6 +64,13 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
 
     @Override
     public void delete() {
+        peakTransmissionSlider.hide();
+        startPassbandSlider.hide();
+        endPassbandSlider.hide();
+        graph.clear();
+        graph.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         mirrors.remove(this);
         root.getChildren().remove(group);
     }

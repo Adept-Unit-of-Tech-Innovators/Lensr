@@ -402,6 +402,10 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
 
     @Override
     public void delete() {
+        coefficientASlider.hide();
+        coefficientBSlider.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         lenses.remove(this);
         root.getChildren().remove(group);
     }

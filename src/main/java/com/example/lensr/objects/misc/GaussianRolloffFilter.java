@@ -65,6 +65,12 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
 
     @Override
     public void delete() {
+        passbandSlider.hide();
+        peakTransmissionSlider.hide();
+        FWHMSlider.hide();
+        graph.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         mirrors.remove(this);
         root.getChildren().remove(group);
     }

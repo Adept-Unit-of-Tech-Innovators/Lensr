@@ -3,7 +3,6 @@ package com.example.lensr;
 import com.example.lensr.objects.lightsources.BeamSource;
 import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
-import com.example.lensr.objects.mirrors.LineMirror;
 import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -14,7 +13,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-import java.beans.EventHandler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +30,7 @@ public class LensrStart extends Application {
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
     public static final int SIZE = 1000;
-    public static int whiteLightRayCount = 1000;
+    public static int whiteLightRayCount = 50;
     public static int panelRayCount = 30;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, SIZE, SIZE);

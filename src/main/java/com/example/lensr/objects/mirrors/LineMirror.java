@@ -54,6 +54,9 @@ public class LineMirror extends Line implements Editable, Serializable {
 
     @Override
     public void delete() {
+        reflectivitySlider.hide();
+        editPoints.removeAll(objectEditPoints);
+        editedShape = null;
         mirrors.remove(this);
         root.getChildren().remove(group);
     }
