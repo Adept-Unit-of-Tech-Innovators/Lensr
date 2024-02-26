@@ -3,20 +3,21 @@ package com.example.lensr;
 import com.example.lensr.objects.lightsources.BeamSource;
 import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
-import com.example.lensr.ui.ParameterSlider;
-import com.example.lensr.ui.ParameterToggle;
-import com.example.lensr.ui.RayCanvas;
-import com.example.lensr.ui.ToolbarButton;
+import com.example.lensr.objects.mirrors.LineMirror;
+import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Control;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.beans.EventHandler;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
@@ -63,7 +64,7 @@ public class LensrStart extends Application {
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
     public static Object editedShape;
-    public static List<ToolbarButton> toolbar = new ArrayList<>();
+    public static List<Control> toolbar = new ArrayList<>();
     public static ParameterSlider wavelengthSlider = new ParameterSlider(null, ValueToChange.Wavelength, SliderStyle.Primary);
     public static ParameterSlider passbandSlider = new ParameterSlider(null, ValueToChange.Passband, SliderStyle.Secondary);
     public static ParameterSlider peakTransmissionSlider = new ParameterSlider(null, ValueToChange.PeakTransmission, SliderStyle.Primary);
@@ -75,7 +76,7 @@ public class LensrStart extends Application {
     public static ParameterSlider coefficientBSlider = new ParameterSlider(null, ValueToChange.CoefficientB, SliderStyle.Secondary);
     public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Secondary);
     public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Tertiary);
-    public static ParameterToggle whiteLightToggle = new ParameterToggle(null, ParameterToChange.WhiteLight);
+    public static ParameterToggle whiteLightToggle = new ParameterToggle(null, "White Light", ParameterToChange.WhiteLight);
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
@@ -91,47 +92,39 @@ public class LensrStart extends Application {
         rayCanvas.toBack();
 
         // Create toolbar buttons
-        ToolbarButton lineMirrorButton = new ToolbarButton("Line Mirror", Key.Z, 25, 25);
-        ToolbarButton arcMirrorButton = new ToolbarButton("Arc Mirror", Key.A, 150, 25);
-        ToolbarButton ellipseMirrorButton = new ToolbarButton("Ellipse Mirror", Key.X, 275, 25);
-        ToolbarButton funnyMirrorButton = new ToolbarButton("Funny Mirror", Key.V, 400, 25);
-        ToolbarButton lightEaterButton = new ToolbarButton("Light Eater", Key.B, 525, 25);
-        ToolbarButton gaussianFilterButton = new ToolbarButton("Gaussian Filter", Key.N, 650, 25);
-        ToolbarButton brickwallFilterButton = new ToolbarButton("Brickwall Filter", Key.M, 775, 25);
-        ToolbarButton sensorButton = new ToolbarButton("Light Sensor", Key.K, 25, 75);
-        ToolbarButton lensButton = new ToolbarButton("Lens", Key.L, 150, 75);
-        ToolbarButton prismButton = new ToolbarButton("Prism", Key.P, 275, 75);
-        ToolbarButton beamButton = new ToolbarButton("Beam Source", Key.C, 400, 75);
-        ToolbarButton panelButton = new ToolbarButton("Panel Source", Key.J, 525, 75);
-        ToolbarButton fullPointButton = new ToolbarButton("Full PS", Key.H, 650, 75);
-        ToolbarButton pointButton = new ToolbarButton("Part PS", Key.G, 775, 75);
-        toolbar.add(lineMirrorButton);
-        toolbar.add(arcMirrorButton);
-        toolbar.add(ellipseMirrorButton);
-        toolbar.add(funnyMirrorButton);
-        toolbar.add(lightEaterButton);
-        toolbar.add(gaussianFilterButton);
-        toolbar.add(brickwallFilterButton);
-        toolbar.add(sensorButton);
-        toolbar.add(lensButton);
-        toolbar.add(prismButton);
-        toolbar.add(beamButton);
-        toolbar.add(panelButton);
-        toolbar.add(fullPointButton);
-        toolbar.add(pointButton);
+        HashMap<String, Key> lightSourceActions = new HashMap<>();
+        lightSourceActions.put("Beam Source", Key.C);
+        lightSourceActions.put("Panel Source", Key.J);
+        lightSourceActions.put("Full Point Source", Key.H);
+        lightSourceActions.put("Partial Point Source", Key.G);
+        Dropdown lightSources = new Dropdown("Light Sources", lightSourceActions, 25, 25);
+        toolbar.add(lightSources);
 
-        for (ToolbarButton button : toolbar) {
-            button.setOnAction(actionEvent -> {
-                if (keyPressed != button.valueToSet) {
-                    keyPressed = button.valueToSet;
-                }
-                else {
-                    keyPressed = Key.None;
-                }
-                toolbar.forEach(ToolbarButton::updateRender);
+        HashMap<String, Key> mirrorActions = new HashMap<>();
+        mirrorActions.put("Line Mirror", Key.Z);
+        mirrorActions.put("Arc Mirror", Key.A);
+        mirrorActions.put("Ellipse Mirror", Key.X);
+        mirrorActions.put("Funny Mirror", Key.V);
+        Dropdown mirrors = new Dropdown("Mirrors", mirrorActions, 225, 25);
+        toolbar.add(mirrors);
 
-            });
-            button.addToRoot();
+        HashMap<String, Key> glassActions = new HashMap<>();
+        glassActions.put("Lens", Key.L);
+        glassActions.put("Prism", Key.P);
+        Dropdown glass = new Dropdown("Glass", glassActions, 385, 25);
+        toolbar.add(glass);
+
+        HashMap<String, Key> miscActions = new HashMap<>();
+        miscActions.put("Light Eater", Key.B);
+        miscActions.put("Gaussian Filter", Key.N);
+        miscActions.put("Brickwall Filter", Key.M);
+        miscActions.put("Light Sensor", Key.K);
+        Dropdown misc = new Dropdown("Misc", miscActions, 540, 25);
+        toolbar.add(misc);
+
+
+        for (Control button : toolbar) {
+            root.getChildren().add(button);
             button.disableProperty().setValue(true);
         }
 

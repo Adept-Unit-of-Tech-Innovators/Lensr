@@ -1,6 +1,7 @@
 /* Background */
 .root {
     -fx-background-color: rgb(50, 50, 50);
+    -fx-text-fill: white;
 }
 
 /* Primary slider */
@@ -93,3 +94,48 @@
     -fx-font-weight: 700;
     -fx-fill: white;
 }
+
+/* ComboBox */
+.combo-box,
+.choice-box {
+    -fx-font-size: 14px;
+    -fx-prompt-text-fill: white;
+    -fx-text-fill: white;
+    -fx-background-color: #656565;
+    -fx-border-width: 0 0 0 0;
+    -fx-padding: 3 3 3 3;
+    -fx-min-width: 125;
+}
+
+.combo-box .list-cell:filled:selected,
+.choice-box .list-cell:filled:selected {
+    -fx-text-fill: white;
+}
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: #656565;
+    -fx-text-fill: white;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: white;
+    -fx-text-fill: #656565;
+}
+
+.combo-box .arrow,
+.choice-box .arrow {
+    -fx-background-color: white;
+}
+
+.combo-box-selected {
+    -fx-background-color: rgb(77, 102, 204);
+}
+
+/* Switch */
+.switch {
+    -jfx-toggle-color: white;
+    -jfx-toggle-line-color: rgb(77, 102, 204);
+    -jfx-untoggle-line-color: #656565;
+    -fx-padding: 0, 0, 0, 0;
+}
+
+

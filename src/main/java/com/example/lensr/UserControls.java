@@ -16,11 +16,13 @@ import com.example.lensr.objects.misc.LightEater;
 import com.example.lensr.objects.misc.LightSensor;
 import com.example.lensr.saveloadkit.LoadState;
 import com.example.lensr.saveloadkit.SaveState;
+import com.example.lensr.ui.Dropdown;
 import com.example.lensr.ui.EditPoint;
 import com.example.lensr.ui.ToolbarButton;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.control.Control;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,13 +95,13 @@ public class UserControls {
                 keyPressed = Key.None;
 
                 if (isEditMode) {
-                    for (ToolbarButton button : toolbar) {
+                    for (Control button : toolbar) {
                         button.disableProperty().setValue(true);
                     }
                     closeCurrentEdit();
                 }
                 else {
-                    for (ToolbarButton button : toolbar) {
+                    for (Control button : toolbar) {
                         button.disableProperty().setValue(false);
                     }
                 }
@@ -313,8 +315,7 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if(keyEvent.getCode().toString().equals("H") && isEditMode)
-            {
+            else if (keyEvent.getCode().toString().equals("H") && isEditMode) {
                 if (keyPressed == Key.H) {
                     keyPressed = Key.None;
                 } else {
@@ -322,7 +323,11 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            toolbar.forEach(ToolbarButton::updateRender);
+            for (Control button : toolbar) {
+                if (button instanceof Dropdown dropdown) {
+                    dropdown.updateRender();
+                }
+            }
         });
 
         scene.setOnKeyReleased(keyEvent -> {

@@ -5,6 +5,8 @@ import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.saveloadkit.SaveState;
 import com.jfoenix.controls.JFXToggleButton;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.root;
 import static com.example.lensr.LensrStart.toolbar;
@@ -15,29 +17,37 @@ public class ParameterToggle extends JFXToggleButton {
     }
     ParameterToChange parameterToChange;
     Object currentSource;
+    Text label = new Text();
+    VBox switchAndLabel = new VBox();
 
-    public ParameterToggle(Object source, ParameterToChange parameterToChange) {
+    public ParameterToggle(Object source, String labelText, ParameterToChange parameterToChange) {
         this.currentSource = source;
         this.parameterToChange = parameterToChange;
+        this.label.setText(labelText);
 
         // Set up the GUI
-        // TODO: Make this not look abhorrent
         hide();
-        setLayoutX(850);
-        setLayoutY(50);
+        getStyleClass().add("switch");
+        label.getStyleClass().add("label");
 
-        root.getChildren().add(this);
+        switchAndLabel.getChildren().add(label);
+        switchAndLabel.getChildren().add(this);
+        switchAndLabel.setLayoutY(25);
+        switchAndLabel.setLayoutX(875);
+        switchAndLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        root.getChildren().add(switchAndLabel);
+
         setOnAction(event -> {
             if (currentSource instanceof BeamSource beamSource && parameterToChange == ParameterToChange.WhiteLight) {
-                setText("White Light");
+                label.setText("White Light");
                 beamSource.setWhiteLight(isSelected());
             }
             else if (currentSource instanceof PanelSource panelSource && parameterToChange == ParameterToChange.WhiteLight) {
-                setText("White Light");
+                label.setText("White Light");
                 panelSource.setWhiteLight(isSelected());
             }
-            else if(currentSource instanceof PointSource pointSource && parameterToChange == ParameterToChange.WhiteLight) {
-                setText("White Light");
+            else if (currentSource instanceof PointSource pointSource && parameterToChange == ParameterToChange.WhiteLight) {
+                label.setText("White Light");
                 pointSource.setWhiteLight(isSelected());
             }
             SaveState.autoSave();
@@ -52,15 +62,15 @@ public class ParameterToggle extends JFXToggleButton {
 
     public void show() {
         // Update UI
-        toFront();
-        setVisible(true);
+        switchAndLabel.setVisible(true);
+        switchAndLabel.toFront();
         toolbar.forEach(button -> button.setVisible(false));
     }
 
 
     public void hide() {
         // Update UI
-        setVisible(false);
+        switchAndLabel.setVisible(false);
         toolbar.forEach(button -> button.setVisible(true));
     }
 }
