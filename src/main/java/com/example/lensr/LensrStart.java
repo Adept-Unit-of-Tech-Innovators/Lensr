@@ -1,5 +1,12 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.lightsources.BeamSource;
+import com.example.lensr.objects.lightsources.PanelSource;
+import com.example.lensr.objects.lightsources.PointSource;
+import com.example.lensr.ui.ParameterSlider;
+import com.example.lensr.ui.ParameterToggle;
+import com.example.lensr.ui.RayCanvas;
+import com.example.lensr.ui.ToolbarButton;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
@@ -15,8 +22,8 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.example.lensr.ParameterSlider.*;
-import static com.example.lensr.ParameterToggle.*;
+import static com.example.lensr.ui.ParameterSlider.*;
+import static com.example.lensr.ui.ParameterToggle.*;
 
 public class LensrStart extends Application {
     public static final Object lock = new Object();
@@ -134,6 +141,21 @@ public class LensrStart extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
+    }
+
+    public static void updateLightSources() {
+        LensrStart.rayCanvas.clear();
+        for (Object lightSource : LensrStart.lightSources) {
+            if (lightSource instanceof BeamSource beamSource) {
+                beamSource.update();
+            }
+            else if (lightSource instanceof PanelSource panelSource) {
+                panelSource.update();
+            }
+            else if (lightSource instanceof PointSource pointSource) {
+                pointSource.update();
+            }
+        }
     }
 
 

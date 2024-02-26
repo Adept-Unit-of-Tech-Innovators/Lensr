@@ -1,6 +1,6 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
-import com.example.lensr.objects.Ray;
+import com.example.lensr.objects.lightsources.Ray;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.effect.BlendMode;

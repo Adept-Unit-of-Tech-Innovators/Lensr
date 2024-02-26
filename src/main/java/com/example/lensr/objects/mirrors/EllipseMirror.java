@@ -1,43 +1,46 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.mirrors;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
+import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeType;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.*;
 
-public class LightEater extends Circle implements Editable, Serializable {
+public class EllipseMirror extends Ellipse implements Editable, Serializable {
     public transient Group group = new Group();
+    // The outline of the object for ray intersection
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
-
-    public LightEater(double centerX, double centerY, double radius) {
+    double reflectivity = 1;
+    public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
         setCenterX(centerX);
         setCenterY(centerY);
-        setRadius(radius);
+        setRadiusX(radiusX);
+        setRadiusY(radiusY);
     }
 
     @Override
     public void create() {
-        setFill(Color.BLACK);
-        setStroke(Color.BLACK);
+        setFill(Color.TRANSPARENT);
+        setStroke(mirrorColor);
         setStrokeWidth(globalStrokeWidth);
-        setStrokeType(StrokeType.INSIDE);
+        setStrokeType(StrokeType.CENTERED);
 
         group.getChildren().add(this);
         root.getChildren().add(group);
@@ -51,16 +54,23 @@ public class LightEater extends Circle implements Editable, Serializable {
 
     @Override
     public void copy() {
-        LightEater newLightEater = new LightEater(getCenterX(), getCenterY(), getRadius());
-        newLightEater.create();
-        newLightEater.moveBy(10, 10);
-        mirrors.add(newLightEater);
+        EllipseMirror newMirror = new EllipseMirror(getCenterX(), getCenterY(), getRadiusX(), getRadiusY());
+        newMirror.setReflectivity(reflectivity);
+        newMirror.create();
+        newMirror.moveBy(10, 10);
+        mirrors.add(newMirror);
         UserControls.closeCurrentEdit();
-        newLightEater.openObjectEdit();
+        newMirror.openObjectEdit();
     }
 
     @Override
     public void openObjectEdit() {
+        reflectivitySlider.setCurrentSource(this);
+        reflectivitySlider.show();
+
+        // Defocus the text field
+        root.requestFocus();
+
         hasBeenClicked = true;
         isEdited = true;
 
@@ -75,7 +85,7 @@ public class LightEater extends Circle implements Editable, Serializable {
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
                 // Scale the mirror with the opposite edit point as an anchor
-                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint) + 2) % 4));
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
                 scale(oppositeEditPoint.getCenter());
             });
         }
@@ -90,6 +100,7 @@ public class LightEater extends Circle implements Editable, Serializable {
 
     @Override
     public void closeObjectEdit() {
+        reflectivitySlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(objectEditPoints);
@@ -98,6 +109,15 @@ public class LightEater extends Circle implements Editable, Serializable {
         }
         editedShape = null;
         updateLightSources();
+    }
+
+    public void setReflectivity(double reflectivity) {
+        this.reflectivity = reflectivity;
+    }
+
+
+    public double getReflectivity() {
+        return reflectivity;
     }
 
     @Override
@@ -153,43 +173,58 @@ public class LightEater extends Circle implements Editable, Serializable {
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
-            double centerX, centerY, radius;
+            double centerX, centerY, radiusX, radiusY;
 
             while (isMousePressed && isEdited) {
                 // Resizing standard based on Photoshop and MS Paint :)
-                if (altPressed) {
+                if (altPressed && shiftPressed) {
                     centerX = anchor.getX();
                     centerY = anchor.getY();
-                    radius  = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
+                    radiusX = radiusY = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
                 }
-                else {
+                else if (altPressed) {
+                    centerX = anchor.getX();
+                    centerY = anchor.getY();
+                    radiusX = Math.abs(mousePos.getX() - centerX);
+                    radiusY = Math.abs(mousePos.getY() - centerY);
+                }
+                else if (shiftPressed) {
                     double minDistance = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) ) / 2;
                     centerX = anchor.getX() + (mousePos.getX() > anchor.getX() ? minDistance : -minDistance);
                     centerY = anchor.getY() + (mousePos.getY() > anchor.getY() ? minDistance : -minDistance);
-                    radius = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
+                    radiusX = radiusY = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
+                }
+                else {
+                    centerX = anchor.getX() + ( (mousePos.getX() - anchor.getX()) / 2);
+                    centerY = anchor.getY() + ( (mousePos.getY() - anchor.getY()) / 2);
+                    radiusX = Math.abs(mousePos.getX() - centerX);
+                    radiusY = Math.abs(mousePos.getY() - centerY);
                 }
 
                 double finalCenterX = centerX;
                 double finalCenterY = centerY;
-                double finalRadius = radius;
+                double finalRadiusX = radiusX;
+                double finalRadiusY = radiusY;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     setCenterX(finalCenterX);
                     setCenterY(finalCenterY);
-                    setRadius(finalRadius);
+                    setRadiusX(finalRadiusX);
+                    setRadiusY(finalRadiusY);
 
                     // Update editPoints location
                     Bounds mirrorBounds = getLayoutBounds();
 
-                    for (int i = 0; i < objectEditPoints.size(); i++) {
+                    for (int i = 0; i < objectEditPoints.size() - 1; i++) {
                         double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
                         double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
-                    objectEditPoints.get(4).setCenter(new Point2D(getCenterX(), getCenterY()));
+
+                    objectEditPoints.get(4).setCenter(new Point2D(finalCenterX, finalCenterY));
                 });
 
                 synchronized (lock) {
@@ -205,19 +240,21 @@ public class LightEater extends Circle implements Editable, Serializable {
     }
 
     @Serial
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeDouble(getCenterX());
         out.writeDouble(getCenterY());
-        out.writeDouble(getRadius());
+        out.writeDouble(getRadiusX());
+        out.writeDouble(getRadiusY());
     }
 
     @Serial
-    private void readObject(java.io.ObjectInputStream in) throws Exception {
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         setCenterX(in.readDouble());
         setCenterY(in.readDouble());
-        setRadius(in.readDouble());
+        setRadiusX(in.readDouble());
+        setRadiusY(in.readDouble());
 
         // Initialize transient fields
         group = new Group();

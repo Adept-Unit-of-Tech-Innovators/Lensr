@@ -1,4 +1,4 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.glass;
 
 import javafx.scene.shape.Line;
 

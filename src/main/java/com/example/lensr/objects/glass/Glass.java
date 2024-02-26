@@ -1,4 +1,4 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.glass;
 
 public interface Glass {
     double getCoefficientA();

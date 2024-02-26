@@ -1,7 +1,9 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.lightsources;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.objects.misc.LightSensor;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -19,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.updateLightSources;
 
 public class PointSource extends Rectangle implements Editable, Serializable {
     private transient Group group = new Group();

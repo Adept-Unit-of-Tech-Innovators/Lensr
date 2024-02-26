@@ -1,8 +1,9 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.misc;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.Graph;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.ui.Graph;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -22,9 +23,8 @@ import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
-import static com.example.lensr.MirrorMethods.*;
 
-public class GaussianRolloffFilter extends Line implements Editable, Serializable {
+public class BrickwallFilter extends Line implements Editable, Serializable {
     public transient Group group = new Group();
     private transient Rotate rotate = new Rotate();
     // Extended hitbox for easier editing
@@ -34,22 +34,21 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
     private transient double rotation = 0;
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
-    double passband = 580;
-    double peakTransmission = 0.8;
-    double FWHM = 20;
+    private double startPassband = 480;
+    private double endPassband = 680;
+    private double peakTransmission = 0.8;
 
-    public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {
+    public BrickwallFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);
         setStartY(startY);
         setEndX(endX);
         setEndY(endY);
     }
 
-
     @Override
     public void create() {
         setFill(Color.TRANSPARENT);
-        setWavelengthColor();
+        setWavelengthColor((startPassband + endPassband) / 2);
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
@@ -71,26 +70,26 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
 
     @Override
     public void copy() {
-        GaussianRolloffFilter newMirror = new GaussianRolloffFilter(getStartX(), getStartY(), getEndX(), getEndY());
-        newMirror.setPeakTransmission(peakTransmission);
-        newMirror.setPassband(passband);
-        newMirror.setFWHM(FWHM);
-        newMirror.create();
-        newMirror.moveBy(10, 10);
-        mirrors.add(newMirror);
+        BrickwallFilter brickwallFilter = new BrickwallFilter(getStartX(), getStartY(), getEndX(), getEndY());
+        brickwallFilter.setPeakTransmission(peakTransmission);
+        brickwallFilter.setStartPassband(startPassband);
+        brickwallFilter.setEndPassband(endPassband);
+        brickwallFilter.create();
+        brickwallFilter.moveBy(10, 10);
+        mirrors.add(brickwallFilter);
         UserControls.closeCurrentEdit();
-        newMirror.openObjectEdit();
+        brickwallFilter.openObjectEdit();
     }
 
     @Override
     public void openObjectEdit() {
         // Setup sliders
         peakTransmissionSlider.setCurrentSource(this);
-        passbandSlider.setCurrentSource(this);
-        FWHMSlider.setCurrentSource(this);
+        startPassbandSlider.setCurrentSource(this);
+        endPassbandSlider.setCurrentSource(this);
         peakTransmissionSlider.show();
-        passbandSlider.show();
-        FWHMSlider.show();
+        startPassbandSlider.show();
+        endPassbandSlider.show();
 
         graph.drawGraph();
         graph.show();
@@ -124,9 +123,10 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
 
     @Override
     public void closeObjectEdit() {
-        passbandSlider.hide();
+        // Hide sliders
         peakTransmissionSlider.hide();
-        FWHMSlider.hide();
+        startPassbandSlider.hide();
+        endPassbandSlider.hide();
 
         graph.clear();
         graph.hide();
@@ -164,20 +164,11 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
         rotate.setAngle(rotation);
     }
 
-    public void setPeakTransmission(double peakTransmission) {
-        this.peakTransmission = peakTransmission;
-    }
-
-
-    public double getPeakTransmission() {
-        return peakTransmission;
-    }
-
 
     public double getLength() {
         return Math.sqrt(
-                Math.pow( getEndX() - getStartX(), 2) +
-                        Math.pow(getEndY() -getStartY(), 2)
+                Math.pow(getEndX() - getStartX(), 2) +
+                        Math.pow(getEndY() - getStartY(), 2)
         );
     }
 
@@ -348,8 +339,7 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
         hasBeenClicked = false;
     }
 
-
-    private void setWavelengthColor() {
+    private void setWavelengthColor(double passband) {
         double factor;
         double red;
         double green;
@@ -417,23 +407,30 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
         setStroke(Color.rgb((int) red, (int) green, (int) blue));
     }
 
-    public double getPassband() {
-        return passband;
+    public void setPeakTransmission(double peakTransmission) {
+        this.peakTransmission = peakTransmission;
     }
 
-
-    public void setPassband(double passband) {
-        this.passband = passband;
-        setWavelengthColor();
+    public double getPeakTransmission() {
+        return peakTransmission;
     }
 
-
-    public double getFWHM() {
-        return FWHM;
+    public void setStartPassband(double startPassband) {
+        this.startPassband = startPassband;
+        setWavelengthColor((startPassband + endPassband) / 2);
     }
 
-    public void setFWHM(double FWHM) {
-        this.FWHM = FWHM;
+    public double getStartPassband() {
+        return startPassband;
+    }
+
+    public void setEndPassband(double endPassband) {
+        this.endPassband = endPassband;
+        setWavelengthColor((startPassband + endPassband) / 2);
+    }
+
+    public double getEndPassband() {
+        return endPassband;
     }
 
     @Override

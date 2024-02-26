@@ -1,6 +1,23 @@
 package com.example.lensr;
 
 import com.example.lensr.objects.*;
+import com.example.lensr.objects.glass.Prism;
+import com.example.lensr.objects.glass.SphericalLens;
+import com.example.lensr.objects.lightsources.BeamSource;
+import com.example.lensr.objects.lightsources.PanelSource;
+import com.example.lensr.objects.lightsources.PointSource;
+import com.example.lensr.objects.mirrors.ArcMirror;
+import com.example.lensr.objects.mirrors.EllipseMirror;
+import com.example.lensr.objects.mirrors.FunnyMirror;
+import com.example.lensr.objects.mirrors.LineMirror;
+import com.example.lensr.objects.misc.BrickwallFilter;
+import com.example.lensr.objects.misc.GaussianRolloffFilter;
+import com.example.lensr.objects.misc.LightEater;
+import com.example.lensr.objects.misc.LightSensor;
+import com.example.lensr.saveloadkit.LoadState;
+import com.example.lensr.saveloadkit.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.ui.ToolbarButton;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
@@ -403,7 +420,7 @@ public class UserControls {
                 lightSources.add(panelSource);
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(), -20, -20,  1.5, 0.004);
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(),1.5, 0.004);
                 sphericalLens.create();
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);

@@ -1,8 +1,8 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
-import com.example.lensr.objects.BrickwallFilter;
-import com.example.lensr.objects.GaussianRolloffFilter;
-import com.example.lensr.objects.LightSensor;
+import com.example.lensr.objects.misc.BrickwallFilter;
+import com.example.lensr.objects.misc.GaussianRolloffFilter;
+import com.example.lensr.objects.misc.LightSensor;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.TextField;

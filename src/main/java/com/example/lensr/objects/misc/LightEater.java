@@ -1,46 +1,43 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.misc;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.*;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.*;
 
-public class EllipseMirror extends Ellipse implements Editable, Serializable {
+public class LightEater extends Circle implements Editable, Serializable {
     public transient Group group = new Group();
-    // The outline of the object for ray intersection
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
-    double reflectivity = 1;
-    public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
+
+    public LightEater(double centerX, double centerY, double radius) {
         setCenterX(centerX);
         setCenterY(centerY);
-        setRadiusX(radiusX);
-        setRadiusY(radiusY);
+        setRadius(radius);
     }
 
     @Override
     public void create() {
-        setFill(Color.TRANSPARENT);
-        setStroke(mirrorColor);
+        setFill(Color.BLACK);
+        setStroke(Color.BLACK);
         setStrokeWidth(globalStrokeWidth);
-        setStrokeType(StrokeType.CENTERED);
+        setStrokeType(StrokeType.INSIDE);
 
         group.getChildren().add(this);
         root.getChildren().add(group);
@@ -54,23 +51,16 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
 
     @Override
     public void copy() {
-        EllipseMirror newMirror = new EllipseMirror(getCenterX(), getCenterY(), getRadiusX(), getRadiusY());
-        newMirror.setReflectivity(reflectivity);
-        newMirror.create();
-        newMirror.moveBy(10, 10);
-        mirrors.add(newMirror);
+        LightEater newLightEater = new LightEater(getCenterX(), getCenterY(), getRadius());
+        newLightEater.create();
+        newLightEater.moveBy(10, 10);
+        mirrors.add(newLightEater);
         UserControls.closeCurrentEdit();
-        newMirror.openObjectEdit();
+        newLightEater.openObjectEdit();
     }
 
     @Override
     public void openObjectEdit() {
-        reflectivitySlider.setCurrentSource(this);
-        reflectivitySlider.show();
-
-        // Defocus the text field
-        root.requestFocus();
-
         hasBeenClicked = true;
         isEdited = true;
 
@@ -85,7 +75,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
                 // Scale the mirror with the opposite edit point as an anchor
-                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint)) + 2)  % 4);
+                EditPoint oppositeEditPoint = objectEditPoints.get(((objectEditPoints.indexOf(editPoint) + 2) % 4));
                 scale(oppositeEditPoint.getCenter());
             });
         }
@@ -100,7 +90,6 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
 
     @Override
     public void closeObjectEdit() {
-        reflectivitySlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(objectEditPoints);
@@ -109,15 +98,6 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
         }
         editedShape = null;
         updateLightSources();
-    }
-
-    public void setReflectivity(double reflectivity) {
-        this.reflectivity = reflectivity;
-    }
-
-
-    public double getReflectivity() {
-        return reflectivity;
     }
 
     @Override
@@ -173,58 +153,43 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
 
     public void scale(Point2D anchor) {
         new Thread(() -> {
-            double centerX, centerY, radiusX, radiusY;
+            double centerX, centerY, radius;
 
             while (isMousePressed && isEdited) {
                 // Resizing standard based on Photoshop and MS Paint :)
-                if (altPressed && shiftPressed) {
+                if (altPressed) {
                     centerX = anchor.getX();
                     centerY = anchor.getY();
-                    radiusX = radiusY = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
+                    radius  = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) );
                 }
-                else if (altPressed) {
-                    centerX = anchor.getX();
-                    centerY = anchor.getY();
-                    radiusX = Math.abs(mousePos.getX() - centerX);
-                    radiusY = Math.abs(mousePos.getY() - centerY);
-                }
-                else if (shiftPressed) {
+                else {
                     double minDistance = Math.min( Math.abs(anchor.getX() - mousePos.getX()), Math.abs(anchor.getY() - mousePos.getY()) ) / 2;
                     centerX = anchor.getX() + (mousePos.getX() > anchor.getX() ? minDistance : -minDistance);
                     centerY = anchor.getY() + (mousePos.getY() > anchor.getY() ? minDistance : -minDistance);
-                    radiusX = radiusY = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
-                }
-                else {
-                    centerX = anchor.getX() + ( (mousePos.getX() - anchor.getX()) / 2);
-                    centerY = anchor.getY() + ( (mousePos.getY() - anchor.getY()) / 2);
-                    radiusX = Math.abs(mousePos.getX() - centerX);
-                    radiusY = Math.abs(mousePos.getY() - centerY);
+                    radius = Math.min( Math.abs(centerX - mousePos.getX()), Math.abs(centerY - mousePos.getY()) );
                 }
 
                 double finalCenterX = centerX;
                 double finalCenterY = centerY;
-                double finalRadiusX = radiusX;
-                double finalRadiusY = radiusY;
+                double finalRadius = radius;
 
                 // Update the UI on the JavaFX application thread
                 Platform.runLater(() -> {
                     setCenterX(finalCenterX);
                     setCenterY(finalCenterY);
-                    setRadiusX(finalRadiusX);
-                    setRadiusY(finalRadiusY);
+                    setRadius(finalRadius);
 
                     // Update editPoints location
                     Bounds mirrorBounds = getLayoutBounds();
 
-                    for (int i = 0; i < objectEditPoints.size() - 1; i++) {
+                    for (int i = 0; i < objectEditPoints.size(); i++) {
                         double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
                         double y = (i == 2 || i == 3) ? mirrorBounds.getMaxY() : mirrorBounds.getMinY();
 
                         objectEditPoints.get(i).setCenterX(x);
                         objectEditPoints.get(i).setCenterY(y);
                     }
-
-                    objectEditPoints.get(4).setCenter(new Point2D(finalCenterX, finalCenterY));
+                    objectEditPoints.get(4).setCenter(new Point2D(getCenterX(), getCenterY()));
                 });
 
                 synchronized (lock) {
@@ -240,21 +205,19 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
     }
 
     @Serial
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+    private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeDouble(getCenterX());
         out.writeDouble(getCenterY());
-        out.writeDouble(getRadiusX());
-        out.writeDouble(getRadiusY());
+        out.writeDouble(getRadius());
     }
 
     @Serial
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws Exception {
         in.defaultReadObject();
         setCenterX(in.readDouble());
         setCenterY(in.readDouble());
-        setRadiusX(in.readDouble());
-        setRadiusY(in.readDouble());
+        setRadius(in.readDouble());
 
         // Initialize transient fields
         group = new Group();

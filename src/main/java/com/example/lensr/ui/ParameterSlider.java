@@ -1,6 +1,17 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
-import com.example.lensr.objects.*;
+import com.example.lensr.objects.glass.Prism;
+import com.example.lensr.objects.glass.SphericalLens;
+import com.example.lensr.objects.lightsources.BeamSource;
+import com.example.lensr.objects.lightsources.PanelSource;
+import com.example.lensr.objects.lightsources.PointSource;
+import com.example.lensr.objects.mirrors.ArcMirror;
+import com.example.lensr.objects.mirrors.EllipseMirror;
+import com.example.lensr.objects.mirrors.FunnyMirror;
+import com.example.lensr.objects.mirrors.LineMirror;
+import com.example.lensr.objects.misc.BrickwallFilter;
+import com.example.lensr.objects.misc.GaussianRolloffFilter;
+import com.example.lensr.saveloadkit.SaveState;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -15,7 +26,7 @@ import static com.example.lensr.LensrStart.toolbar;
 
 public class ParameterSlider extends JFXSlider {
 
-    enum ValueToChange {
+    public enum ValueToChange {
         Wavelength,
         PeakTransmission,
         Passband,
@@ -29,7 +40,7 @@ public class ParameterSlider extends JFXSlider {
         FieldOfView,
     }
 
-    enum SliderStyle {
+    public enum SliderStyle {
         Primary,
         Secondary,
         Tertiary    

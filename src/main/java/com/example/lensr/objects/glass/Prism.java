@@ -1,8 +1,9 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.glass;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.MirrorMethods;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.objects.mirrors.LineMirror;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -115,7 +116,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
         }
 
         editedShape = null;
-        MirrorMethods.updateLightSources();
+        updateLightSources();
     }
 
     @Override

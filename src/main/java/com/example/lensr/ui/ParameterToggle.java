@@ -1,15 +1,16 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
-import com.example.lensr.objects.BeamSource;
-import com.example.lensr.objects.PanelSource;
-import com.example.lensr.objects.PointSource;
+import com.example.lensr.objects.lightsources.BeamSource;
+import com.example.lensr.objects.lightsources.PanelSource;
+import com.example.lensr.objects.lightsources.PointSource;
+import com.example.lensr.saveloadkit.SaveState;
 import com.jfoenix.controls.JFXToggleButton;
 
 import static com.example.lensr.LensrStart.root;
 import static com.example.lensr.LensrStart.toolbar;
 
 public class ParameterToggle extends JFXToggleButton {
-    enum ParameterToChange {
+    public enum ParameterToChange {
         WhiteLight
     }
     ParameterToChange parameterToChange;

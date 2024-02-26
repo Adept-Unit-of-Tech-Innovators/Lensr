@@ -1,6 +1,10 @@
-package com.example.lensr;
+package com.example.lensr.saveloadkit;
 
 import com.example.lensr.objects.*;
+import com.example.lensr.objects.glass.Glass;
+import com.example.lensr.objects.lightsources.BeamSource;
+import com.example.lensr.objects.lightsources.PanelSource;
+import com.example.lensr.objects.lightsources.PointSource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -60,6 +64,6 @@ public class LoadState {
             }
         }
         // After loading, simulate the new scene
-        MirrorMethods.updateLightSources();
+        updateLightSources();
     }
 }

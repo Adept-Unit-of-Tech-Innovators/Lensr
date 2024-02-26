@@ -1,13 +1,13 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.mirrors;
 
-import com.example.lensr.EditPoint;
-import com.example.lensr.SaveState;
+import com.example.lensr.ui.EditPoint;
+import com.example.lensr.objects.Editable;
+import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
 
@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
-import static com.example.lensr.MirrorMethods.updateLightSources;
 
 public class FunnyMirror extends Polyline implements Editable, Serializable {
     public transient Group group = new Group();

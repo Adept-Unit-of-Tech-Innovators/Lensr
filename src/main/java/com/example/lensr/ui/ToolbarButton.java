@@ -1,9 +1,10 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
+import com.example.lensr.LensrStart;
 import com.jfoenix.controls.JFXButton;
 
 public class ToolbarButton extends JFXButton {
-    LensrStart.Key valueToSet;
+    public LensrStart.Key valueToSet;
     String label;
 
     public ToolbarButton(String label, LensrStart.Key valueToSet, int layoutX, int layoutY) {

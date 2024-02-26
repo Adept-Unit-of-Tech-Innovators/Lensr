@@ -1,5 +1,14 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.lightsources;
 
+import com.example.lensr.objects.misc.BrickwallFilter;
+import com.example.lensr.objects.misc.GaussianRolloffFilter;
+import com.example.lensr.objects.misc.LightEater;
+import com.example.lensr.objects.misc.LightSensor;
+import com.example.lensr.objects.glass.*;
+import com.example.lensr.objects.mirrors.ArcMirror;
+import com.example.lensr.objects.mirrors.EllipseMirror;
+import com.example.lensr.objects.mirrors.FunnyMirror;
+import com.example.lensr.objects.mirrors.LineMirror;
 import javafx.application.Platform;
 import com.example.lensr.Tuple;
 import javafx.geometry.Point2D;
@@ -224,7 +233,7 @@ public class OriginRay extends Ray {
                     reflectedY = closestIntersectionPoint.getY() - SIZE * 2 * Math.sin(reflectionAngle);
 
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() -.001 * Math.cos(reflectionAngle));
+                    nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(reflectionAngle));
                     nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
@@ -479,16 +488,14 @@ public class OriginRay extends Ray {
 
     private boolean determineTIR(Ray ray, LensArc arc, double currRefractiveIndex, double newRefractiveIndex) {
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
+        double criticalAngle = currRefractiveIndex > newRefractiveIndex ? Math.asin(newRefractiveIndex/currRefractiveIndex) : Double.MAX_VALUE;
         double centerX = arc.getCenterX();
         double centerY = arc.getCenterY();
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
 
-        double normalAngle = arc.getParentLens().contains(pointX + Math.cos(Math.atan2((pointY - centerY), (pointX - centerX))) * 2, pointY + Math.sin(Math.atan2((pointY - centerY), (pointX - centerX))) * 2)
-                ? Math.atan2((pointY - centerY), (pointX - centerX)) : Math.atan2((centerY - pointY), (centerX - pointX));
+        double normalAngle = determineNormalAngle(Math.atan((pointY - centerY) / (pointX - centerX)), Math.atan((pointY - centerY) / (pointX - centerX)) + Math.PI, angleOfIncidence);
         double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
-
-        double criticalAngle = Math.asin(newRefractiveIndex/currRefractiveIndex);
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
 

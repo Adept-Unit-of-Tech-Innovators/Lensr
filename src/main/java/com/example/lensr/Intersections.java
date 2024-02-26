@@ -1,7 +1,7 @@
 package com.example.lensr;
 
-import com.example.lensr.objects.LensArc;
-import com.example.lensr.objects.Ray;
+import com.example.lensr.objects.glass.LensArc;
+import com.example.lensr.objects.lightsources.Ray;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.*;
 
@@ -107,7 +107,6 @@ public class Intersections {
     }
 
     public static Point2D getRayArcIntersectionPoint(Ray ray, Arc arc) {
-        if(arc instanceof LensArc && ((LensArc) arc).getThickness() == 0) return getRayLineIntersectionPoint(ray, ((LensArc) arc).getCorrespondingFlatArc());
         List<Point2D> intersections = calculateIntersectionPoints(ray, new Ellipse(arc.getCenterX(), arc.getCenterY(), arc.getRadiusX(), arc.getRadiusY()));
         if (intersections == null) {
             return null;

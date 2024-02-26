@@ -1,4 +1,4 @@
-package com.example.lensr.objects;
+package com.example.lensr.objects.lightsources;
 
 import javafx.geometry.Bounds;
 import javafx.scene.effect.BlendMode;

@@ -1,4 +1,4 @@
-package com.example.lensr;
+package com.example.lensr.ui;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
