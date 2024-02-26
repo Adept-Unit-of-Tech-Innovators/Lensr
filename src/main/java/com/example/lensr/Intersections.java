@@ -65,6 +65,8 @@ public class Intersections {
             return null;
         }
 
+        System.out.println("ray [" + ray.getStartX() + ", " + ray.getStartY() + " " + ray.getEndX() + ", " + ray.getEndY() + "]" + '\n' +
+                        "Intersection: " + intersectionX + ", " + intersectionY);
         return new Point2D(intersectionX, intersectionY);
     }
 

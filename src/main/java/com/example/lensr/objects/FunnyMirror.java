@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.LensrStart.lock;
 import static com.example.lensr.MirrorMethods.updateLightSources;
 
 public class FunnyMirror extends Polyline implements Editable, Serializable {
@@ -71,10 +72,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 }
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -132,10 +135,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -194,10 +199,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 }
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -325,6 +332,15 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
         }
+
+        return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    public Bounds getLineSegmentBounds(Line line) {
+        double minX = Math.min(line.getStartX(), line.getEndX());
+        double minY = Math.min(line.getStartY(), line.getEndY());
+        double maxX = Math.max(line.getStartX(), line.getEndX());
+        double maxY = Math.max(line.getStartY(), line.getEndY());
 
         return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
     }

@@ -75,7 +75,6 @@ public class LensrStart extends Application {
     public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
     public static Stack<File> undoSaves = new Stack<>();
     public static Stack<File> redoSaves = new Stack<>();
-
     @Override
     public void start(Stage primaryStage) {
         scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
