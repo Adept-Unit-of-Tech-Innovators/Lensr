@@ -55,31 +55,32 @@ public class LensArc extends Arc {
         if (start.equals(end)) {
             end = new Point2D(end.getX(), end.getY()+0.01);
         }
-        Point2D curvePoint = vertex;
 
-        Circle circumcircle = getCircumcircle(start, end, curvePoint);
+        Circle circumcircle = getCircumcircle(start, end, vertex);
 
         // Calculate the angles of the start, end and curve point relative to the circumcircle
-        double curvePointAngle = (360 - Math.toDegrees(Math.atan2(curvePoint.getY() - circumcircle.getCenterY(), curvePoint.getX() - circumcircle.getCenterX()))) % 360;
+        double curvePointAngle = (360 - Math.toDegrees(Math.atan2(vertex.getY() - circumcircle.getCenterY(), vertex.getX() - circumcircle.getCenterX()))) % 360;
         double startAngle = (360 - Math.toDegrees(Math.atan2(start.getY() - circumcircle.getCenterY(), start.getX() - circumcircle.getCenterX()))) % 360;
         double endAngle = (360 - Math.toDegrees(Math.atan2(end.getY() - circumcircle.getCenterY(), end.getX() - circumcircle.getCenterX()))) % 360;
 
-        double finalLength = calculateLength(startAngle, endAngle, curvePointAngle);
+        double length = calculateLength(startAngle, endAngle, curvePointAngle);
+        if (length < 0) {
+            startAngle = endAngle;
+            length = -length;
+        }
 
         setCenterX(circumcircle.getCenterX());
         setCenterY(circumcircle.getCenterY());
         setRadiusX(circumcircle.getRadius());
         setRadiusY(circumcircle.getRadius());
         setStartAngle(startAngle);
-        setLength(finalLength);
+        setLength(length);
     }
 
     public void move(double x, double y) {
         setCenterX(getCenterX() + x);
         setCenterY(getCenterY() + y);
     }
-
-
 
     public Circle getCircumcircle(Point2D start, Point2D end, Point2D curvePoint) {
         // Check if curvePoint lies on the line between start and end

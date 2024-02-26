@@ -26,10 +26,12 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     public transient List<Shape> elements = new ArrayList<>();
     private transient Map<EditPoint, Tuple<Shape, String>> editPointParents = new HashMap<>();
     private transient boolean isEdited, hasBeenClicked;
-    private transient double centerX, centerY, height, width, angleOfRotation;
+    private double centerX, centerY, height, width, angleOfRotation;
+    private transient Point2D arc1Vertex = null;
+    private transient Point2D arc2Vertex = null;
 
     // Optical properties
-    private transient double coefficientA, coefficientB, focalLength;
+    private double coefficientA, coefficientB, focalLength;
     private transient Point2D focalPoint;
 
     public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double coefficientA, double coefficientB) {
@@ -48,8 +50,11 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         topLine.scale();
         bottomLine.scale();
 
-        LensArc firstArc = new LensArc(this, Map.of(bottomLine, "start", topLine, "start"), new Point2D(topLine.getStartX(), (topLine.getStartY() + bottomLine.getStartY())/2));
-        LensArc secondArc = new LensArc(this, Map.of(topLine, "end", bottomLine, "end"), new Point2D(topLine.getEndX(), (topLine.getEndY() + bottomLine.getEndY())/2));
+        if (arc1Vertex == null) arc1Vertex = new Point2D(topLine.getStartX(), (topLine.getStartY() + bottomLine.getStartY())/2);
+        if (arc2Vertex == null) arc2Vertex = new Point2D(topLine.getEndX(), (topLine.getEndY() + bottomLine.getEndY())/2);
+
+        LensArc firstArc = new LensArc(this, Map.of(bottomLine, "start", topLine, "start"), arc1Vertex);
+        LensArc secondArc = new LensArc(this, Map.of(topLine, "end", bottomLine, "end"), arc2Vertex);
 
         elements.add(topLine);
         elements.add(bottomLine);
@@ -89,22 +94,22 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             if (element instanceof LensArc arc) {
                 EditPoint arcVertex = new EditPoint(arc.getVertex());
                 arcVertex.setFill(Color.HOTPINK);
-                arcVertex.setOnClickEvent(event -> {
-                    taskPool.execute(() -> {
-                        while (isMousePressed) {
-                            arc.scale(mousePos);
-                            synchronized (lock) {
-                                try {
-                                    lock.wait(10); // Adjust the wait time as needed
-                                } catch (InterruptedException e) {
-                                    throw new RuntimeException("A thread was interrupted while waiting.");
-                                }
+                arcVertex.setOnClickEvent(event -> taskPool.execute(() -> {
+                    while (isMousePressed) {
+                        arc.scale(mousePos);
+                        synchronized (lock) {
+                            try {
+                                lock.wait(10); // Adjust the wait time as needed
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException("A thread was interrupted while waiting.");
                             }
-                            alignEditPoints();
                         }
-                    });
-
-                });
+                        if (arc == firstArc) arc1Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
+                        else arc2Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
+                        alignEditPoints();
+                    }
+                    SaveState.autoSave();
+                }));
                 objectEditPoints.add(arcVertex);
                 editPointParents.put(arcVertex, new Tuple<>(arc, "vertex"));
             }
@@ -182,6 +187,8 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             else if (element instanceof LensArc arc) {
                 if (Math.abs(rotationDelta) == 0) {
                     arc.scale(arc.getVertex());
+                    if (arc == elements.get(2)) arc1Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
+                    else arc2Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
                     continue;
                 }
                 // Calculate the new position of the vertex of the arc
@@ -436,11 +443,17 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
+        out.writeDouble(arc1Vertex.getX());
+        out.writeDouble(arc1Vertex.getY());
+        out.writeDouble(arc2Vertex.getX());
+        out.writeDouble(arc2Vertex.getY());
     }
 
     @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        arc1Vertex = new Point2D(in.readDouble(), in.readDouble());
+        arc2Vertex = new Point2D(in.readDouble(), in.readDouble());
 
         // Initialize transient fields
         group = new Group();
