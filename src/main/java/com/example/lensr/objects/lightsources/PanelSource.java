@@ -35,6 +35,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     private transient boolean hasBeenClicked;
     private transient boolean isEdited;
     private double wavelength = 580;
+    private int rayCount = 25;
     private boolean whiteLight;
     private double brightness = 1.0;
 
@@ -53,17 +54,17 @@ public class PanelSource extends Line implements Editable, Serializable {
 
         createRectangleHitbox();
 
-        double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
-        double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+        double dx = (getEndX() - getStartX()) / (rayCount - 1);
+        double dy = (getEndY() - getStartY()) / (rayCount - 1);
 
         double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
         rotate.setPivotX((getEndX() + getStartX()) / 2);
         rotate.setPivotY((getEndY() + getStartY()) / 2);
         rotate.setAngle(Math.toDegrees(angle));
 
-        int rayCount = whiteLight ? whiteLightRayCount : 1;
-        for (int i = 0; i < rayCount; i++) {
-            for (int j = 0; j < panelRayCount; j++) {
+        int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < whiteRayCount; i++) {
+            for (int j = 0; j < rayCount; j++) {
                 OriginRay originRay = new OriginRay(
                         getStartX() + dx * j,
                         getStartY() + dy * j,
@@ -107,6 +108,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     @Override
     public void delete() {
         wavelengthSlider.hide();
+        numberOfRaysSlider.hide();
         whiteLightToggle.hide();
         brightnessSlider.hide();
         editPoints.removeAll(objectEditPoints);
@@ -171,6 +173,8 @@ public class PanelSource extends Line implements Editable, Serializable {
         wavelengthSlider.show();
         brightnessSlider.setCurrentSource(this);
         brightnessSlider.show();
+        numberOfRaysSlider.setCurrentSource(this);
+        numberOfRaysSlider.show();
         whiteLightToggle.setCurrentSource(this);
         whiteLightToggle.show();
 
@@ -194,6 +198,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     @Override
     public void closeObjectEdit() {
         wavelengthSlider.hide();
+        numberOfRaysSlider.hide();
         brightnessSlider.hide();
         whiteLightToggle.hide();
 
@@ -279,15 +284,15 @@ public class PanelSource extends Line implements Editable, Serializable {
                     this.setEndX(prevEnd.getX() + deltaX);
                     this.setEndY(prevEnd.getY() + deltaY);
 
-                    double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
-                    double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+                    double dx = (getEndX() - getStartX()) / (rayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (rayCount - 1);
 
                     int i = 0;
                     for (OriginRay originRay : originRays) {
-                        originRay.setStartX(getStartX() + dx * (i % panelRayCount));
-                        originRay.setStartY(getStartY() + dy * (i % panelRayCount));
-                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
-                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setStartX(getStartX() + dx * (i % rayCount));
+                        originRay.setStartY(getStartY() + dy * (i % rayCount));
+                        originRay.setEndX(getStartX() + dx * (i % rayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % rayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
                         i++;
                     }
 
@@ -383,16 +388,16 @@ public class PanelSource extends Line implements Editable, Serializable {
                         this.setEndY(finalStartY);
                     }
 
-                    double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
-                    double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+                    double dx = (getEndX() - getStartX()) / (rayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (rayCount - 1);
 
 
                     int i = 0;
                     for (OriginRay originRay : originRays) {
-                        originRay.setStartX(getStartX() + dx * (i % panelRayCount));
-                        originRay.setStartY(getStartY() + dy * (i % panelRayCount));
-                        originRay.setEndX(getStartX() + dx * (i % panelRayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
-                        originRay.setEndY(getStartY() + dy * (i % panelRayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setStartX(getStartX() + dx * (i % rayCount));
+                        originRay.setStartY(getStartY() + dy * (i % rayCount));
+                        originRay.setEndX(getStartX() + dx * (i % rayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
+                        originRay.setEndY(getStartY() + dy * (i % rayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * SIZE);
                         i++;
                     }
 
@@ -465,13 +470,13 @@ public class PanelSource extends Line implements Editable, Serializable {
             });
             originRays.clear();
 
-            double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
-            double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+            double dx = (getEndX() - getStartX()) / (rayCount - 1);
+            double dy = (getEndY() - getStartY()) / (rayCount - 1);
             double angle = Math.toRadians(rotate.getAngle());
 
-            int rayCount = whiteLight ? whiteLightRayCount : 1;
-            for (int i = 0; i < rayCount; i++) {
-                for (int j = 0; j < panelRayCount; j++) {
+            int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < whiteRayCount; i++) {
+                for (int j = 0; j < rayCount; j++) {
                     OriginRay originRay = new OriginRay(
                             getStartX() + dx * j,
                             getStartY() + dy * j,
@@ -490,6 +495,53 @@ public class PanelSource extends Line implements Editable, Serializable {
             originRays.forEach(Node::toBack);
         });
         updateLightSources();
+    }
+
+    public void setRayCount(int rayCount) {
+        this.rayCount = rayCount;
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().remove(originRay.group);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            double dx = (getEndX() - getStartX()) / (rayCount - 1);
+            double dy = (getEndY() - getStartY()) / (rayCount - 1);
+            double angle = Math.toRadians(rotate.getAngle());
+
+            int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < whiteRayCount; i++) {
+                for (int j = 0; j < rayCount; j++) {
+                    OriginRay originRay = new OriginRay(
+                            getStartX() + dx * j,
+                            getStartY() + dy * j,
+                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE * 1000,
+                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE * 1000
+                    );
+                    originRay.setParentSource(this);
+                    originRay.setStrokeWidth(globalStrokeWidth);
+                    originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setBrightness(brightness);
+
+                    originRays.add(originRay);
+                }
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+        });
+        updateLightSources();
+    }
+
+    public int getRayCount() {
+        return rayCount;
     }
 
     public void setWavelength(double wavelength) {
