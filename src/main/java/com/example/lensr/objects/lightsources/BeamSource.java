@@ -343,6 +343,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                 originRay.setWavelength(wavelength);
             }
         }
+        setBrightness(brightness);
     }
 
     public void setBrightness(double brightness) {

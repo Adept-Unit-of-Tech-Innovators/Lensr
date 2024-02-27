@@ -549,6 +549,7 @@ public class PanelSource extends Line implements Editable, Serializable {
         for (OriginRay originRay : originRays) {
             originRay.setWavelength(wavelength);
         }
+        setBrightness(brightness);
     }
 
     public void setBrightness(double brightness) {
