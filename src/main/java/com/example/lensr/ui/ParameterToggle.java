@@ -8,8 +8,8 @@ import com.jfoenix.controls.JFXToggleButton;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import static com.example.lensr.LensrStart.menuBar;
 import static com.example.lensr.LensrStart.root;
-import static com.example.lensr.LensrStart.toolbar;
 
 public class ParameterToggle extends JFXToggleButton {
     public enum ParameterToChange {
@@ -64,13 +64,13 @@ public class ParameterToggle extends JFXToggleButton {
         // Update UI
         switchAndLabel.setVisible(true);
         switchAndLabel.toFront();
-        toolbar.forEach(button -> button.setVisible(false));
+        menuBar.getMenus().forEach(menu -> menu.setDisable(true));
     }
 
 
     public void hide() {
         // Update UI
         switchAndLabel.setVisible(false);
-        toolbar.forEach(button -> button.setVisible(true));
+        menuBar.getMenus().forEach(menu -> menu.setDisable(false));
     }
 }

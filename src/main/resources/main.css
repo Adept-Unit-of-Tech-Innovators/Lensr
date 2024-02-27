@@ -1,7 +1,7 @@
+
 /* Background */
 .root {
-    -fx-background-color: rgb(50, 50, 50);
-    -fx-text-fill: white;
+    -fx-background-color: -fx-my-background-color;
 }
 
 /* Primary slider */
@@ -90,44 +90,94 @@
 }
 
 .label {
-    -fx-font-size: 13;
-    -fx-font-weight: 700;
-    -fx-fill: white;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 15;
 }
 
 /* ComboBox */
-.combo-box,
-.choice-box {
-    -fx-font-size: 14px;
-    -fx-prompt-text-fill: white;
-    -fx-text-fill: white;
-    -fx-background-color: #656565;
-    -fx-border-width: 0 0 0 0;
-    -fx-padding: 3 3 3 3;
-    -fx-min-width: 125;
+/* VARIABLE DEFINITIONS: Only these 4 variables have to be adjusted, the rest is copy-paste */
+* {
+    -fx-my-background-color: #292a2d;            /* Change according to your needs */
+    -fx-my-menu-color: #313338;                  /* Change according to your needs */
+    -fx-my-menu-color-highlighted: #3A3C42;      /* Change according to your needs */
+    -fx-my-menu-font-color: #b5bac1;             /* Change according to your needs */
+    -fx-my-menu-font-color-highlighted: #DBDEDC; /* Change according to your needs */
+    -fx-my-border-color: #26282c;                /* Change according to your needs */
 }
 
-.combo-box .list-cell:filled:selected,
-.choice-box .list-cell:filled:selected {
-    -fx-text-fill: white;
-}
-.combo-box-popup .list-view .list-cell {
-    -fx-background-color: #656565;
-    -fx-text-fill: white;
-}
-
-.combo-box-popup .list-view .list-cell:hover {
-    -fx-background-color: white;
-    -fx-text-fill: #656565;
+/* MENU BAR + Top-level MENU BUTTONS */
+/*** The menu bar itself ***/
+.menu-bar {
+    -fx-background-color: -fx-my-menu-color;
+    -fx-padding: 0.5em 0.5em 0.5em 1em;
+    -fx-border-style: hidden hidden solid hidden;
+    -fx-border-width: 0.1em;
+    -fx-border-color: -fx-my-border-color;
 }
 
-.combo-box .arrow,
-.choice-box .arrow {
-    -fx-background-color: white;
+/*** Top-level menu itself (not selected / hovered) ***/
+.menu-bar > .container > .menu-button {
+    -fx-background-color: -fx-my-menu-color;
 }
 
-.combo-box-selected {
-    -fx-background-color: rgb(77, 102, 204);
+/*** Top-level menu's label (not selected / hovered) ***/
+.menu-bar > .container > .menu-button > .label {
+    -fx-text-fill: -fx-my-menu-font-color;
+}
+
+/*** Top-level menu's label (disabled) ***/
+.menu-bar > .container > .menu-button > .label:disabled {
+    -fx-opacity: 1.0;
+}
+
+/*** Top-level menu itself (selected / hovered) ***/
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: -fx-my-menu-color-highlighted;
+    -fx-background-radius: 3px;
+}
+
+/*** Top-level menu's label (selected / hovered) ***/
+.menu-bar > .container > .menu-button:hover > .label,
+.menu-bar > .container > .menu-button:focused > .label,
+.menu-bar > .container > .menu-button:showing > .label {
+    -fx-text-fill: -fx-my-menu-font-color-highlighted;
+}
+
+/* MENU ITEM (children of a MENU BUTTON) */
+/*** The item itself (not hovered / focused) ***/
+.menu-item {
+    -fx-background-color: -fx-my-menu-color;
+}
+
+/*** The item's label (not hovered / focused) ***/
+.menu-item .label {
+    -fx-text-fill: -fx-my-menu-font-color;
+}
+
+/*** The item's label (disabled) ***/
+.menu-item .label:disabled {
+    -fx-opacity: 1.0;
+}
+
+/*** The item itself (hovered / focused) ***/
+.menu-item:focused, .menu-item:hover {
+    -fx-background-color: -fx-my-menu-color-highlighted;
+    -fx-background-radius: 3px;
+}
+
+/*** The item's label (hovered / focused) ***/
+.menu-item:focused .label, .menu-item:hover .label {
+    -fx-text-fill: -fx-my-menu-font-color-highlighted;
+}
+
+/* CONTEXT MENU */
+/*** The context menu that contains a menu's menu items ***/
+.context-menu {
+    -fx-background-color: -fx-my-menu-color;
+    -fx-background-radius: 3px;
+    -fx-padding: 0.5em 0.5em 0.5em 0.5em;
 }
 
 /* Switch */

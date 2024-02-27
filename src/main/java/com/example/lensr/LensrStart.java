@@ -7,17 +7,15 @@ import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Control;
+import javafx.scene.control.MenuBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -62,7 +60,7 @@ public class LensrStart extends Application {
     public static boolean isEditMode = false;
     public static boolean isMousePressed = false;
     public static Object editedShape;
-    public static List<Control> toolbar = new ArrayList<>();
+    public static MenuBar menuBar = new MenuBar();
     public static ParameterSlider wavelengthSlider = new ParameterSlider(null, ValueToChange.Wavelength, SliderStyle.Primary);
     public static ParameterSlider passbandSlider = new ParameterSlider(null, ValueToChange.Passband, SliderStyle.Secondary);
     public static ParameterSlider peakTransmissionSlider = new ParameterSlider(null, ValueToChange.PeakTransmission, SliderStyle.Primary);
@@ -85,47 +83,54 @@ public class LensrStart extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/main.css")).toExternalForm());
 
         root.getChildren().add(rayCanvas);
         rayCanvas.toBack();
 
         // Create toolbar buttons
+        List<String> fileActions = new ArrayList<>();
+        fileActions.add("New (Ctrl+N)");
+        fileActions.add("Undo (Ctrl+Z)");
+        fileActions.add("Redo (Ctrl+Y)");
+        fileActions.add("Save (Ctrl+S)");
+        fileActions.add("Export (Ctrl+E)");
+        fileActions.add("Open (Ctrl+O)");
+        Dropdown file = new Dropdown("File", fileActions);
+        menuBar.getMenus().add(file);
+
         HashMap<String, Key> lightSourceActions = new HashMap<>();
         lightSourceActions.put("Beam Source", Key.C);
         lightSourceActions.put("Panel Source", Key.J);
         lightSourceActions.put("Full Point Source", Key.H);
         lightSourceActions.put("Partial Point Source", Key.G);
-        Dropdown lightSources = new Dropdown("Light Sources", lightSourceActions, 25, 25);
-        toolbar.add(lightSources);
+        Dropdown lightSources = new Dropdown("Light Sources", lightSourceActions);
+        menuBar.getMenus().add(lightSources);
 
         HashMap<String, Key> mirrorActions = new HashMap<>();
         mirrorActions.put("Line Mirror", Key.Z);
         mirrorActions.put("Arc Mirror", Key.A);
         mirrorActions.put("Ellipse Mirror", Key.X);
         mirrorActions.put("Funny Mirror", Key.V);
-        Dropdown mirrors = new Dropdown("Mirrors", mirrorActions, 225, 25);
-        toolbar.add(mirrors);
+        Dropdown mirrors = new Dropdown("Mirrors", mirrorActions);
+        menuBar.getMenus().add(mirrors);
 
         HashMap<String, Key> glassActions = new HashMap<>();
         glassActions.put("Lens", Key.L);
         glassActions.put("Prism", Key.P);
-        Dropdown glass = new Dropdown("Glass", glassActions, 385, 25);
-        toolbar.add(glass);
+        Dropdown glass = new Dropdown("Glass", glassActions);
+        menuBar.getMenus().add(glass);
 
         HashMap<String, Key> miscActions = new HashMap<>();
         miscActions.put("Light Eater", Key.B);
         miscActions.put("Gaussian Filter", Key.N);
         miscActions.put("Brickwall Filter", Key.M);
         miscActions.put("Light Sensor", Key.K);
-        Dropdown misc = new Dropdown("Misc", miscActions, 540, 25);
-        toolbar.add(misc);
+        Dropdown misc = new Dropdown("Misc", miscActions);
+        menuBar.getMenus().add(misc);
 
-
-        for (Control button : toolbar) {
-            root.getChildren().add(button);
-            button.disableProperty().setValue(true);
-        }
+        root.getChildren().add(menuBar);
+        menuBar.setPrefWidth(SIZE);
 
         UserControls.setUserControls();
 

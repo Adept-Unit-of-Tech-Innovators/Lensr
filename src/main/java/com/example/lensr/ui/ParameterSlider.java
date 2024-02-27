@@ -21,8 +21,8 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
+import static com.example.lensr.LensrStart.menuBar;
 import static com.example.lensr.LensrStart.root;
-import static com.example.lensr.LensrStart.toolbar;
 
 public class ParameterSlider extends JFXSlider {
 
@@ -257,17 +257,14 @@ public class ParameterSlider extends JFXSlider {
         // Update UI
         hBox.setVisible(false);
         hBox.setDisable(true);
-        toolbar.forEach(button -> {
-            button.setVisible(true);
-            button.toFront();
-        });
+        menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(false)));
     }
 
     public void show() {
         // Update UI
         hBox.setVisible(true);
         hBox.setDisable(false);
-        toolbar.forEach(button -> button.setVisible(false));
+        menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(true)));
         toFront();
     }
 

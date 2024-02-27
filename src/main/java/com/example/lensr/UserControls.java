@@ -14,14 +14,13 @@ import com.example.lensr.objects.misc.BrickwallFilter;
 import com.example.lensr.objects.misc.GaussianRolloffFilter;
 import com.example.lensr.objects.misc.LightEater;
 import com.example.lensr.objects.misc.LightSensor;
+import com.example.lensr.saveloadkit.Actions;
 import com.example.lensr.saveloadkit.LoadState;
 import com.example.lensr.saveloadkit.SaveState;
-import com.example.lensr.ui.Dropdown;
 import com.example.lensr.ui.EditPoint;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.control.Control;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,15 +93,11 @@ public class UserControls {
                 keyPressed = Key.None;
 
                 if (isEditMode) {
-                    for (Control button : toolbar) {
-                        button.disableProperty().setValue(true);
-                    }
+                    menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(true)));
                     closeCurrentEdit();
                 }
                 else {
-                    for (Control button : toolbar) {
-                        button.disableProperty().setValue(false);
-                    }
+                    menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(false)));
                 }
 
                 isEditMode = !isEditMode;
@@ -191,29 +186,33 @@ public class UserControls {
                 }
             }
 
+            if (keyEvent.getCode().toString().equals("N") && keyEvent.isControlDown() && isEditMode) {
+                Actions.clear();
+                return;
+            }
+
+            if (keyEvent.getCode().toString().equals("Z") && keyEvent.isControlDown() && !keyEvent.isShiftDown() && isEditMode) {
+                Actions.undo();
+                return;
+            }
+
+            if (keyEvent.getCode().toString().equals("Y") && keyEvent.isControlDown() && isEditMode || keyEvent.getCode().toString().equals("Z") && keyEvent.isControlDown() && keyEvent.isShiftDown() && isEditMode) {
+                Actions.redo();
+                return;
+            }
+
             if (keyEvent.getCode().toString().equals("S") && keyEvent.isControlDown() && isEditMode) {
-                System.out.println("Saving project");
-                SaveState.saveProject("projectSave.ser");
-            }
-
-            if (keyEvent.getCode().toString().equals("O") && keyEvent.isControlDown() && isEditMode) {
-                System.out.println("Loading project");
-                LoadState.loadProject("projectSave.ser");
-            }
-
-            if (keyEvent.getCode().toString().equals("Z") && keyEvent.isControlDown() && isEditMode) {
-                if (undoSaves.size() > 1) {
-                    redoSaves.push(undoSaves.pop());
-                    LoadState.loadProject("autosaves/" + undoSaves.peek().getName());
+                if (Actions.lastSave == null) {
+                    Actions.exportProject();
+                }
+                else {
+                    SaveState.saveProject(Actions.lastSave.getName());
                 }
                 return;
             }
 
-            if (keyEvent.getCode().toString().equals("Y") && keyEvent.isControlDown() && isEditMode) {
-                if (!redoSaves.isEmpty()) {
-                    LoadState.loadProject("autosaves/" + redoSaves.peek().getName());
-                    undoSaves.push(redoSaves.pop());
-                }
+            if (keyEvent.getCode().toString().equals("O") && keyEvent.isControlDown() && isEditMode) {
+                Actions.importProject();
                 return;
             }
 
@@ -321,11 +320,6 @@ public class UserControls {
                     keyPressed = Key.H;
                 }
                 closeCurrentEdit();
-            }
-            for (Control button : toolbar) {
-                if (button instanceof Dropdown dropdown) {
-                    dropdown.updateRender();
-                }
             }
         });
 

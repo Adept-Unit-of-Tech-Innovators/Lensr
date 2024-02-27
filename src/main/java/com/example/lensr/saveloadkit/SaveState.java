@@ -13,7 +13,7 @@ public class SaveState {
     private static final int MAX_AUTOSAVES = 1000;
     public static void saveProject(String filename) {
         try {
-            FileOutputStream fileOut = FileUtils.openOutputStream(new File(filename));
+            FileOutputStream fileOut = FileUtils.openOutputStream(new File(filename), false);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             for (Object mirror : mirrors) {
                 out.writeObject(mirror);
@@ -35,7 +35,7 @@ public class SaveState {
     public static void autoSave() {
         StringBuilder filename = new StringBuilder("autosaves/autosave");
         filename.append(System.currentTimeMillis());
-        filename.append(".ser");
+        filename.append(".lensr");
         saveProject(filename.toString());
         File file = new File(filename.toString());
         file.deleteOnExit();
