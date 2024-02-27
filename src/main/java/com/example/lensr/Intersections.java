@@ -305,6 +305,7 @@ public class Intersections {
         double pointY = ray.getEndY();
 
         double normalAngle = determineNormalAngle(Math.atan2((pointY - centerY), (pointX - centerX)), Math.atan2((centerY - pointY), (centerX - pointX)), angleOfIncidence);
+
         double reversedNormalAngle = normalAngle + Math.PI;
         double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
 
@@ -332,7 +333,6 @@ public class Intersections {
         if (angle2 > Math.PI) {
             angle2 = -Math.PI + (angle2 - Math.PI);
         }
-        return Math.abs(angleOfIncidence - angle1) < Math.abs(angleOfIncidence - angle2) ? angle1 : angle2;
+        return Math.abs(Math.abs(angleOfIncidence) - Math.abs(angle1)) < Math.abs(Math.abs(angleOfIncidence) - Math.abs(angle2)) ? angle1 : angle2;
     }
-
 }

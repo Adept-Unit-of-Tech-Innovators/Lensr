@@ -28,6 +28,7 @@ public class ParameterSlider extends JFXSlider {
 
     public enum ValueToChange {
         Wavelength,
+        Brightness,
         PeakTransmission,
         Passband,
         FWHM,
@@ -43,7 +44,8 @@ public class ParameterSlider extends JFXSlider {
     public enum SliderStyle {
         Primary,
         Secondary,
-        Tertiary    
+        Tertiary,
+        Quaternary
     }
 
     enum DisplayedType {
@@ -94,11 +96,16 @@ public class ParameterSlider extends JFXSlider {
                 this.getStyleClass().add("tertiary-slider");
                 hBox.setLayoutX(650);
                 break;
+            case Quaternary:
+                this.getStyleClass().add("quaternary-slider");
+                hBox.setLayoutX(50);
+                break;
         }
 
         // Set values for the slider
         this.currentSource = source;
         hBox.setLayoutY(25);
+        if (sliderStyle == SliderStyle.Quaternary) hBox.setLayoutY(80);
         setPrefHeight(40);
         setPrefWidth(150);
 
@@ -147,6 +154,18 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Wavelength) {
                 if(!pointSource.getIsWhiteLight()) pointSource.setWavelength(roundedValue);
+                return;
+            }
+            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Brightness) {
+                beamSource.setBrightness(roundedValue);
+                return;
+            }
+            if (currentSource instanceof PanelSource panelSource && valueToChange == ValueToChange.Brightness) {
+                panelSource.setBrightness(roundedValue);
+                return;
+            }
+            if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Brightness) {
+                pointSource.setBrightness(roundedValue);
                 return;
             }
             if (currentSource instanceof GaussianRolloffFilter filter && valueToChange == ValueToChange.PeakTransmission) {
@@ -266,17 +285,35 @@ public class ParameterSlider extends JFXSlider {
             startingVal = beamSource.getWavelength();
             label.setText("Wavelength");
         }
-        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PanelSource panelSource) {
+        else if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PanelSource panelSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = panelSource.getWavelength();
             label.setText("Wavelength");
         }
-        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PointSource pointSource) {
+        else if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PointSource pointSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = pointSource.getWavelength();
             label.setText("Wavelength");
+        }
+        else if (valueToChange == ValueToChange.Brightness && currentSource instanceof BeamSource beamSource) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = beamSource.getBrightness();
+            label.setText("Brightness");
+        }
+        else if (valueToChange == ValueToChange.Brightness && currentSource instanceof PanelSource panelSource) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = panelSource.getBrightness();
+            label.setText("Brightness");
+        }
+        else if (valueToChange == ValueToChange.Brightness && currentSource instanceof PointSource pointSource) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = pointSource.getBrightness();
+            label.setText("Brightness");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
             minVal = 0;

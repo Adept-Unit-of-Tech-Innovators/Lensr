@@ -299,6 +299,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         whiteLightToggle.show();
         numberOfRaysSlider.setCurrentSource(this);
         numberOfRaysSlider.show();
+        brightnessSlider.setCurrentSource(this);
+        brightnessSlider.show();
 
         wavelengthSlider.setDisable(isWhiteLight);
 
@@ -329,6 +331,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         wavelengthSlider.hide();
         whiteLightToggle.hide();
         numberOfRaysSlider.hide();
+        brightnessSlider.hide();
         if(fieldOfViewSlider != null) fieldOfViewSlider.hide();
 
         isEdited = false;
@@ -349,6 +352,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     public void delete() {
         wavelengthSlider.hide();
         numberOfRaysSlider.hide();
+        brightnessSlider.hide();
         if(!isFull) fieldOfViewSlider.hide();
         whiteLightToggle.hide();
         editPoints.removeAll(objectEditPoints);
@@ -458,6 +462,18 @@ public class PointSource extends Rectangle implements Editable, Serializable {
             originRay.setWavelength(wavelength);
         }
     }
+
+    public void setBrightness(double brightness) {
+        this.brightness = brightness;
+        for (OriginRay originRay : originRays) {
+            originRay.setBrightness(brightness);
+        }
+    }
+
+    public double getBrightness() {
+        return this.brightness;
+    }
+
     @Override
     public void setHasBeenClicked(boolean hasBeenClicked) {
         this.hasBeenClicked = hasBeenClicked;
