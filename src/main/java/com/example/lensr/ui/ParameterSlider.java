@@ -206,6 +206,9 @@ public class ParameterSlider extends JFXSlider {
             if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientB) {
                 prism.setCoefficientB(roundedValue);
             }
+            if (currentSource instanceof PanelSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
+                pointSource.setRayCount((int)roundedValue);
+            }
             if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
                 pointSource.setRayCount((int)roundedValue);
             }
@@ -364,6 +367,12 @@ public class ParameterSlider extends JFXSlider {
             maxVal = 180;
             startingVal = Math.toDegrees(pointSource.getFieldOfView());
             label.setText("Field of view");
+        }
+        else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PanelSource panelSource) {
+            minVal = 1;
+            maxVal = 100;
+            startingVal = panelSource.getRayCount();
+            label.setText("Number of rays");
         }
         else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PointSource pointSource) {
             minVal = 1;

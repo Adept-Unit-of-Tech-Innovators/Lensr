@@ -36,7 +36,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     private int rayCount;
     private boolean isFull;
     private boolean isWhiteLight;
-    
+
     public PointSource(double centerX, double centerY, double fieldOfView, double startAngle, int rayCount, boolean isFull)
     {
         setWidth(10);
@@ -55,7 +55,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         
         createRectangleHitbox();
         
-        double angleBetweenRays = fieldOfView / rayCount;
+        double angleBetweenRays = fieldOfView / (rayCount - 1);
 
         for (int i = 0; i < rayCount; i++) {
             OriginRay originRay = new OriginRay(
@@ -92,7 +92,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     private void move()
     {
         new Thread(() -> {
-            double angleBetweenRays = fieldOfView / rayCount;
+            double angleBetweenRays = fieldOfView / (rayCount - 1);
 
 
             while (isMousePressed && isEdited)
@@ -226,7 +226,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
 //            System.out.println("ray removed");
 //        }
 
-        double angleBetweenRays = fieldOfView / rayCount;
+        double angleBetweenRays = fieldOfView / (rayCount - 1);
 
         originRays.forEach(ray -> {
             root.getChildren().remove(ray.group);
@@ -265,7 +265,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     public void setStartAngle(double startAngle)
     {
         this.startAngle = startAngle;
-        double angleBetweenRays = fieldOfView / rayCount;
+        double angleBetweenRays = fieldOfView / (rayCount - 1);
         for (int i = 0; i < originRays.size(); i++) {
             originRays.get(i).setEndX(getCenter().getX() + Math.cos(startAngle + angleBetweenRays * (i % rayCount)) * SIZE * 1000);
             originRays.get(i).setEndY(getCenter().getY() + Math.sin(startAngle + angleBetweenRays * (i % rayCount)) * SIZE * 1000);
