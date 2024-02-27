@@ -5,11 +5,12 @@ import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.saveloadkit.SaveState;
 import com.jfoenix.controls.JFXToggleButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-import static com.example.lensr.LensrStart.menuBar;
-import static com.example.lensr.LensrStart.root;
+import static com.example.lensr.LensrStart.*;
 
 public class ParameterToggle extends JFXToggleButton {
     public enum ParameterToChange {
@@ -18,7 +19,7 @@ public class ParameterToggle extends JFXToggleButton {
     ParameterToChange parameterToChange;
     Object currentSource;
     Text label = new Text();
-    VBox switchAndLabel = new VBox();
+    HBox switchAndLabel = new HBox();
 
     public ParameterToggle(Object source, String labelText, ParameterToChange parameterToChange) {
         this.currentSource = source;
@@ -29,11 +30,13 @@ public class ParameterToggle extends JFXToggleButton {
         hide();
         getStyleClass().add("switch");
         label.getStyleClass().add("label");
+        label.setFill(Color.web("#DBDEDC"));
 
         switchAndLabel.getChildren().add(label);
         switchAndLabel.getChildren().add(this);
-        switchAndLabel.setLayoutY(25);
-        switchAndLabel.setLayoutX(875);
+        switchAndLabel.setLayoutY(-2);
+        switchAndLabel.setLayoutX(WIDTH - 155);
+        switchAndLabel.setSpacing(10);
         switchAndLabel.setAlignment(javafx.geometry.Pos.CENTER);
         root.getChildren().add(switchAndLabel);
 
@@ -64,13 +67,11 @@ public class ParameterToggle extends JFXToggleButton {
         // Update UI
         switchAndLabel.setVisible(true);
         switchAndLabel.toFront();
-        menuBar.getMenus().forEach(menu -> menu.setDisable(true));
     }
 
 
     public void hide() {
         // Update UI
         switchAndLabel.setVisible(false);
-        menuBar.getMenus().forEach(menu -> menu.setDisable(false));
     }
 }

@@ -2,6 +2,7 @@
 /* Background */
 .root {
     -fx-background-color: -fx-my-background-color;
+    -fx-text-fill: white;
 }
 
 /* Primary slider */
@@ -70,6 +71,28 @@
     -fx-show-tick-marks: false;
 }
 
+/* Quaternary slider */
+.quaternary-slider > .track {
+    -fx-background-color: #656565;
+    -fx-pref-height: 350%;
+}
+
+.quaternary-slider > .thumb {
+    -fx-background-color: #edd642;
+}
+
+.quaternary-slider > .colored-track {
+    -fx-background-color: #edd642;
+}
+
+.quaternary-slider > .animated-thumb {
+    -fx-opacity: 0;
+}
+
+.quaternary-slider {
+    -fx-show-tick-marks: false;
+}
+
 /* Button */
 .button {
     -fx-padding: 0.7em 0.57em;
@@ -85,11 +108,13 @@
 }
 
 .text-field {
-    -fx-background-color: #656565;
-    -fx-text-fill: white;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-background-color: -fx-my-menu-color;
+    -fx-text-fill: -fx-my-menu-font-color;
 }
 
 .label {
+    -fx-text-fill: -fx-my-menu-font-color;
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 15;
 }
@@ -118,6 +143,7 @@
 /*** Top-level menu itself (not selected / hovered) ***/
 .menu-bar > .container > .menu-button {
     -fx-background-color: -fx-my-menu-color;
+    -fx-mark-color: -fx-my-menu-font-color;
 }
 
 /*** Top-level menu's label (not selected / hovered) ***/

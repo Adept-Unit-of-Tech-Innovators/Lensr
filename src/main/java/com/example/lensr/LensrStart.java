@@ -7,11 +7,12 @@ import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -27,10 +28,11 @@ public class LensrStart extends Application {
     public static final Color mirrorColor = Color.WHITE;
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
-    public static final int SIZE = 1000;
+    public static final int WIDTH = (int) Screen.getPrimary().getBounds().getWidth()*3/4;
+    public static final int HEIGHT = (int) Screen.getPrimary().getBounds().getHeight()*3/4;
     public static int whiteLightRayCount = 50;
     public static Pane root = new Pane();
-    public static Scene scene = new Scene(root, SIZE, SIZE);
+    public static Scene scene = new Scene(root, WIDTH, HEIGHT);
     public static List<Object> lightSources = new ArrayList<>();
     public static List<Object> mirrors = new ArrayList<>();
     public static List<Rectangle> editPoints = new ArrayList<>();
@@ -69,14 +71,14 @@ public class LensrStart extends Application {
     public static ParameterSlider endPassbandSlider = new ParameterSlider(null, ValueToChange.EndPassband, SliderStyle.Tertiary);
     public static ParameterSlider coefficientASlider = new ParameterSlider(null, ValueToChange.CoefficientA, SliderStyle.Primary);
     public static ParameterSlider coefficientBSlider = new ParameterSlider(null, ValueToChange.CoefficientB, SliderStyle.Secondary);
-    public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Secondary);
-    public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Tertiary);
-    public static ParameterSlider brightnessSlider = new ParameterSlider(null, ValueToChange.Brightness, SliderStyle.Quaternary);
+    public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Tertiary);
+    public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Quaternary);
+    public static ParameterSlider brightnessSlider = new ParameterSlider(null, ValueToChange.Brightness, SliderStyle.Secondary);
     public static ParameterToggle whiteLightToggle = new ParameterToggle(null, "White Light", ParameterToChange.WhiteLight);
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);
     public static ExecutorService taskPool = Executors.newFixedThreadPool(5);
-    public static RayCanvas rayCanvas = new RayCanvas(SIZE, SIZE);
+    public static RayCanvas rayCanvas = new RayCanvas(WIDTH, HEIGHT);
     public static Stack<File> undoSaves = new Stack<>();
     public static Stack<File> redoSaves = new Stack<>();
 
@@ -95,15 +97,26 @@ public class LensrStart extends Application {
         fileActions.add("Save (Ctrl+S)");
         fileActions.add("Export (Ctrl+E)");
         fileActions.add("Open (Ctrl+O)");
-        Dropdown file = new Dropdown("File", fileActions);
+        ToolbarMenu file = new ToolbarMenu("File", fileActions);
         menuBar.getMenus().add(file);
+
+        List<String> editActions = new ArrayList<>();
+        editActions.add("Edit Mode (E)");
+        editActions.add("Delete (Delete)");
+        editActions.add("Duplicate (Ctrl+D)");
+        ToolbarMenu edit = new ToolbarMenu("Edit", editActions);
+        menuBar.getMenus().add(edit);
+
+        Menu spacer = new Menu();
+        spacer.setDisable(true); // Disable it so it can't be clicked
+        menuBar.getMenus().add(spacer);
 
         HashMap<String, Key> lightSourceActions = new HashMap<>();
         lightSourceActions.put("Beam Source", Key.C);
         lightSourceActions.put("Panel Source", Key.J);
         lightSourceActions.put("Full Point Source", Key.H);
         lightSourceActions.put("Partial Point Source", Key.G);
-        Dropdown lightSources = new Dropdown("Light Sources", lightSourceActions);
+        ToolbarMenu lightSources = new ToolbarMenu("Light Sources", lightSourceActions);
         menuBar.getMenus().add(lightSources);
 
         HashMap<String, Key> mirrorActions = new HashMap<>();
@@ -111,13 +124,13 @@ public class LensrStart extends Application {
         mirrorActions.put("Arc Mirror", Key.A);
         mirrorActions.put("Ellipse Mirror", Key.X);
         mirrorActions.put("Funny Mirror", Key.V);
-        Dropdown mirrors = new Dropdown("Mirrors", mirrorActions);
+        ToolbarMenu mirrors = new ToolbarMenu("Mirrors", mirrorActions);
         menuBar.getMenus().add(mirrors);
 
         HashMap<String, Key> glassActions = new HashMap<>();
         glassActions.put("Lens", Key.L);
         glassActions.put("Prism", Key.P);
-        Dropdown glass = new Dropdown("Glass", glassActions);
+        ToolbarMenu glass = new ToolbarMenu("Glass", glassActions);
         menuBar.getMenus().add(glass);
 
         HashMap<String, Key> miscActions = new HashMap<>();
@@ -125,11 +138,11 @@ public class LensrStart extends Application {
         miscActions.put("Gaussian Filter", Key.N);
         miscActions.put("Brickwall Filter", Key.M);
         miscActions.put("Light Sensor", Key.K);
-        Dropdown misc = new Dropdown("Misc", miscActions);
+        ToolbarMenu misc = new ToolbarMenu("Misc", miscActions);
         menuBar.getMenus().add(misc);
 
         root.getChildren().add(menuBar);
-        menuBar.setPrefWidth(SIZE);
+        menuBar.setPrefWidth(WIDTH);
 
         UserControls.setUserControls();
 

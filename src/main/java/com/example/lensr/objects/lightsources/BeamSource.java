@@ -57,8 +57,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             OriginRay originRay = new OriginRay(
                     getCenterX() + Math.cos(rotation) * getWidth() / 2,
                     getCenterY() + Math.sin(rotation) * getWidth() / 2,
-                    getCenterX() + 1000 * SIZE * Math.cos(rotation),
-                    getCenterY() + 1000 * SIZE * Math.sin(rotation)
+                    getCenterX() + 1000 * WIDTH * Math.cos(rotation),
+                    getCenterY() + 1000 * WIDTH * Math.sin(rotation)
             );
             originRay.setParentSource(this);
             originRay.setStrokeWidth(globalStrokeWidth);
@@ -101,8 +101,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             OriginRay newOriginRay = new OriginRay(
                     newLightSource.getCenterX() + Math.cos(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
                     newLightSource.getCenterY() + Math.sin(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
-                    newLightSource.getCenterX() + 1000 * SIZE * Math.cos(Math.toRadians(newLightSource.rotate.getAngle())),
-                    newLightSource.getCenterY() + 1000 * SIZE * Math.sin(Math.toRadians(newLightSource.rotate.getAngle()))
+                    newLightSource.getCenterX() + 1000 * WIDTH * Math.cos(Math.toRadians(newLightSource.rotate.getAngle())),
+                    newLightSource.getCenterY() + 1000 * WIDTH * Math.sin(Math.toRadians(newLightSource.rotate.getAngle()))
             );
             newOriginRay.setParentSource(newLightSource);
             newOriginRay.setStrokeWidth(globalStrokeWidth);
@@ -190,8 +190,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
             originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
 
-            originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * SIZE);
-            originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * SIZE);
+            originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
+            originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
         });
         SaveState.autoSave();
     }
@@ -221,8 +221,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                     originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
                     originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
 
-                    originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * SIZE);
-                    originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * SIZE);
+                    originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
+                    originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
                 }
 
                 objectEditPoints.get(0).setX(objectEditPoints.get(0).getX() + deltaX);
@@ -271,8 +271,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                 for (OriginRay originRay : originRays) {
                     originRay.setStartX(getCenterX() + Math.cos(rotation) * this.getWidth() / 2);
                     originRay.setStartY(getCenterY() + Math.sin(rotation) * this.getWidth() / 2);
-                    originRay.setEndX(originRay.getStartX() + Math.cos(rotation) * 1000 * SIZE);
-                    originRay.setEndY(originRay.getStartY() + Math.sin(rotation) * 1000 * SIZE);
+                    originRay.setEndX(originRay.getStartX() + Math.cos(rotation) * 1000 * WIDTH);
+                    originRay.setEndY(originRay.getStartY() + Math.sin(rotation) * 1000 * WIDTH);
                 }
 
                 synchronized (lock) {
@@ -375,8 +375,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                 OriginRay originRay = new OriginRay(
                             getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
                         getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                        getCenterX() + 1000 * SIZE * Math.cos(Math.toRadians(rotate.getAngle())),
-                        getCenterY() + 1000 * SIZE * Math.sin(Math.toRadians(rotate.getAngle()))
+                        getCenterX() + 1000 * WIDTH * Math.cos(Math.toRadians(rotate.getAngle())),
+                        getCenterY() + 1000 * WIDTH * Math.sin(Math.toRadians(rotate.getAngle()))
                 );
                 originRay.setParentSource(this);
                 originRay.setStrokeWidth(globalStrokeWidth);

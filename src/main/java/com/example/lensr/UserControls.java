@@ -91,15 +91,6 @@ public class UserControls {
                 // If mode was switched during an edit, finish the edit
 
                 keyPressed = Key.None;
-
-                if (isEditMode) {
-                    menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(true)));
-                    closeCurrentEdit();
-                }
-                else {
-                    menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(false)));
-                }
-
                 isEditMode = !isEditMode;
             }
 
@@ -110,19 +101,7 @@ public class UserControls {
                 altPressed = true;
             }
             if (keyEvent.getCode().toString().equals("DELETE") && isEditMode) {
-                if (editedShape instanceof Group group) {
-                    group.getChildren().stream()
-                            .filter(node -> node instanceof Editable)
-                            .map(node -> (Editable) node)
-                            .findFirst()
-                            .ifPresent(editable -> {
-                                editable.delete();
-                                updateLightSources();
-                            });
-                }
-                // This has to be here because the `delete` method will be called when loading a project
-                // Because of that it will make a new autosave meaning you can't undo/redo the delete action
-                SaveState.autoSave();
+                deleteCurrentObject();
             }
             if (( keyEvent.getCode().toString().equals("ESCAPE") || keyEvent.getCode().toString().equals("ENTER") ) && isEditMode) {
                 closeCurrentEdit();
@@ -176,14 +155,9 @@ public class UserControls {
                 }
             }
 
+            // Control shortcuts
             if (keyEvent.getCode().toString().equals("D") && keyEvent.isControlDown() && isEditMode) {
-                if (editedShape instanceof Group group) {
-                    group.getChildren().stream()
-                            .filter(node -> node instanceof Editable)
-                            .map(node -> (Editable) node)
-                            .findFirst()
-                            .ifPresent(Editable::copy);
-                }
+                copyCurrentObject();
             }
 
             if (keyEvent.getCode().toString().equals("N") && keyEvent.isControlDown() && isEditMode) {
@@ -216,6 +190,7 @@ public class UserControls {
                 return;
             }
 
+            // Object shortcuts
             if (keyEvent.getCode().toString().equals("X") && isEditMode) {
                 if (keyPressed == Key.X) {
                     keyPressed = Key.None;
@@ -459,6 +434,31 @@ public class UserControls {
                     .findFirst()
                     .ifPresent(Editable::closeObjectEdit);
         }
+    }
+
+    public static void deleteCurrentObject() {
+        if (editedShape instanceof Group group) {
+            group.getChildren().stream()
+                    .filter(node -> node instanceof Editable)
+                    .map(node -> (Editable) node)
+                    .findFirst()
+                    .ifPresent(editable -> {
+                        editable.delete();
+                        updateLightSources();
+                    });
+        }
+        SaveState.autoSave();
+    }
+
+    public static void copyCurrentObject() {
+        if (editedShape instanceof Group group) {
+            group.getChildren().stream()
+                    .filter(node -> node instanceof Editable)
+                    .map(node -> (Editable) node)
+                    .findFirst()
+                    .ifPresent(Editable::copy);
+        }
+        SaveState.autoSave();
     }
 
     public static void resetHasBeenClicked() {

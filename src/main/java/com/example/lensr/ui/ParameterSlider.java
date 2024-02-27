@@ -19,6 +19,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import static com.example.lensr.LensrStart.menuBar;
@@ -86,27 +87,26 @@ public class ParameterSlider extends JFXSlider {
         switch (sliderStyle) {
             case Primary:
                 this.getStyleClass().add("primary-slider");
-                hBox.setLayoutX(50);
+                hBox.setLayoutX(25);
                 break;
             case Secondary:
                 this.getStyleClass().add("secondary-slider");
-                hBox.setLayoutX(350);
+                hBox.setLayoutX(275);
                 break;
             case Tertiary:
                 this.getStyleClass().add("tertiary-slider");
-                hBox.setLayoutX(650);
+                hBox.setLayoutX(525);
                 break;
             case Quaternary:
                 this.getStyleClass().add("quaternary-slider");
-                hBox.setLayoutX(50);
+                hBox.setLayoutX(775);
                 break;
         }
 
         // Set values for the slider
         this.currentSource = source;
-        hBox.setLayoutY(25);
-        if (sliderStyle == SliderStyle.Quaternary) hBox.setLayoutY(80);
-        setPrefHeight(40);
+        hBox.setLayoutY(60);
+        setPrefHeight(30);
         setPrefWidth(150);
 
         textField.setLayoutY(32.5);
@@ -114,6 +114,8 @@ public class ParameterSlider extends JFXSlider {
         textField.setText(String.valueOf(Math.round(valueProperty().doubleValue() * 1000.0) / 1000.0));
 
         label.getStyleClass().add("label");
+        label.setFill(Color.web("#DBDEDC"));
+        label.setFont(javafx.scene.text.Font.font("Segoe UI Semibold", 10));
 
         hBox.setAlignment(javafx.geometry.Pos.CENTER);
         hBox.setSpacing(10);
@@ -260,14 +262,12 @@ public class ParameterSlider extends JFXSlider {
         // Update UI
         hBox.setVisible(false);
         hBox.setDisable(true);
-        menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(false)));
     }
 
     public void show() {
         // Update UI
         hBox.setVisible(true);
         hBox.setDisable(false);
-        menuBar.getMenus().forEach(menu -> menu.getItems().forEach(item -> item.setDisable(true)));
         toFront();
     }
 
