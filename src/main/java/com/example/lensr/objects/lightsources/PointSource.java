@@ -453,6 +453,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         for (OriginRay originRay : originRays) {
             originRay.setWavelength(wavelength);
         }
+        setBrightness(brightness);
     }
 
     public void setBrightness(double brightness) {
