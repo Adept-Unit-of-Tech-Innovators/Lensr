@@ -58,7 +58,7 @@ public class LensrStart extends Application {
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
     public static boolean altPressed = false;
-    public static boolean isEditMode = false;
+    public static boolean isEditMode = true;
     public static boolean isMousePressed = false;
     public static Object editedShape;
     public static MenuBar menuBar = new MenuBar();
