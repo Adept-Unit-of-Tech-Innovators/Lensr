@@ -218,14 +218,6 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         rayCount = newRayCount;
         int rayNumber = isWhiteLight ? whiteLightRayCount : 1;
 
-//        while (originRays.size() > rayCount * rayNumber) {
-//            OriginRay toDelete = originRays.get(originRays.size() - 1);
-//            root.getChildren().remove(toDelete.group);
-//            group.getChildren().remove(toDelete.group);
-//            originRays.remove(toDelete);
-//            System.out.println("ray removed");
-//        }
-
         double angleBetweenRays = fieldOfView / (rayCount - 1);
 
         originRays.forEach(ray -> {

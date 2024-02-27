@@ -284,8 +284,8 @@ public class Intersections {
         double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
 
         double normalAngle = determineNormalAngle(lineAngle - Math.PI/2, lineAngle + Math.PI/2, angleOfIncidence);
-        double reversedNormalAngle = normalAngle + Math.PI;
-        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+        double reversedNormalAngle = normalAngle < 0 ? normalAngle + Math.PI : normalAngle - Math.PI;
+        double normalizedAngleOfIncidence = normalizeIntersectionAngle(angleOfIncidence, normalAngle);
 
         if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
             return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
@@ -304,10 +304,11 @@ public class Intersections {
         double pointX = ray.getEndX();
         double pointY = ray.getEndY();
 
+
         double normalAngle = determineNormalAngle(Math.atan2((pointY - centerY), (pointX - centerX)), Math.atan2((centerY - pointY), (centerX - pointX)), angleOfIncidence);
 
-        double reversedNormalAngle = normalAngle + Math.PI;
-        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+        double reversedNormalAngle = normalAngle < 0 ? normalAngle + Math.PI : normalAngle - Math.PI;
+        double normalizedAngleOfIncidence = normalizeIntersectionAngle(angleOfIncidence, normalAngle);
 
         if (Math.abs(normalizedAngleOfIncidence) < criticalAngle) {
             return reversedNormalAngle + Math.asin(currRefractiveIndex / newRefractiveIndex * Math.sin(normalizedAngleOfIncidence));
@@ -327,12 +328,51 @@ public class Intersections {
     }
 
     public static double determineNormalAngle (double angle1, double angle2, double angleOfIncidence) {
-        if (angle1 > Math.PI) {
-            angle1 = -Math.PI + (angle1 - Math.PI);
+        // Determine length between first angle and angle of incidence
+        double length1;
+        double biggerAngle1 = Math.abs(angle1) > Math.abs(angleOfIncidence) ? angle1 : angleOfIncidence;
+        double smallerAngle1 = biggerAngle1 == angleOfIncidence ? angle1 : angleOfIncidence;
+        if (angle1 > 0 && angleOfIncidence > 0) {
+            length1 = biggerAngle1 - smallerAngle1;
         }
-        if (angle2 > Math.PI) {
-            angle2 = -Math.PI + (angle2 - Math.PI);
+        else if (angle1 < 0 && angleOfIncidence < 0) {
+            length1 = Math.abs(Math.abs(biggerAngle1) - Math.abs(smallerAngle1));
         }
-        return Math.abs(Math.abs(angleOfIncidence) - Math.abs(angle1)) < Math.abs(Math.abs(angleOfIncidence) - Math.abs(angle2)) ? angle1 : angle2;
+        else {
+            length1 = Math.abs(Math.max(angle1, angleOfIncidence) - Math.min(angle1, angleOfIncidence));
+            if (length1 > Math.PI) {
+                length1 = 2 * Math.PI - length1;
+            }
+
+        }
+
+        // Determine length between second angle and angle of incidence
+        double length2;
+        double biggerAngle2 = Math.abs(angle2) > Math.abs(angleOfIncidence) ? angle2 : angleOfIncidence;
+        double smallerAngle2 = biggerAngle2 == angleOfIncidence ? angle2 : angleOfIncidence;
+        if (angle2 > 0 && angleOfIncidence > 0) {
+            length2 = biggerAngle2 - smallerAngle2;
+        }
+        else if (angle2 < 0 && angleOfIncidence < 0) {
+            length2 = Math.abs(Math.abs(biggerAngle2) - Math.abs(smallerAngle2));
+        }
+        else {
+            length2 = Math.abs(Math.max(angle2, angleOfIncidence) - Math.min(angle2, angleOfIncidence));
+            if (length2 > Math.PI) {
+                length2 = 2 * Math.PI - length2;
+            }
+        }
+
+        return length1 < length2 ? angle1 : angle2;
+
+    }
+
+    public static double normalizeIntersectionAngle(double intersectionAngle, double normalAngle) {
+        double normalizedAngle = intersectionAngle - normalAngle;
+        if (Math.abs(normalizedAngle) < Math.PI) {
+            return normalizedAngle;
+        }
+        double direction = normalizedAngle < 0 ? 1 : -1;
+        return direction * (2 * Math.PI - Math.abs(normalizedAngle));
     }
 }

@@ -495,7 +495,8 @@ public class OriginRay extends Ray {
         double pointY = ray.getEndY();
 
         double normalAngle = determineNormalAngle(Math.atan((pointY - centerY) / (pointX - centerX)), Math.atan((pointY - centerY) / (pointX - centerX)) + Math.PI, angleOfIncidence);
-        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+        double normalizedAngleOfIncidence = normalizeIntersectionAngle(angleOfIncidence, normalAngle);
+
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
 
@@ -505,7 +506,7 @@ public class OriginRay extends Ray {
         double lineAngle = Math.atan2(line.getEndY() - line.getStartY(), line.getEndX() - line.getStartX());
 
         double normalAngle = determineNormalAngle(lineAngle - Math.PI/2, lineAngle + Math.PI/2, angleOfIncidence);
-        double normalizedAngleOfIncidence = angleOfIncidence - normalAngle;
+        double normalizedAngleOfIncidence = normalizeIntersectionAngle(angleOfIncidence, normalAngle);
 
         return Math.abs(normalizedAngleOfIncidence) > criticalAngle;
     }
