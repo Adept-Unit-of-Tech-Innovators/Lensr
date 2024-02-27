@@ -108,6 +108,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     public void delete() {
         wavelengthSlider.hide();
         whiteLightToggle.hide();
+        brightnessSlider.hide();
         editPoints.removeAll(objectEditPoints);
         editedShape = null;
         lightSources.remove(this);
@@ -168,6 +169,8 @@ public class PanelSource extends Line implements Editable, Serializable {
     public void openObjectEdit() {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
+        brightnessSlider.setCurrentSource(this);
+        brightnessSlider.show();
         whiteLightToggle.setCurrentSource(this);
         whiteLightToggle.show();
 
@@ -191,6 +194,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     @Override
     public void closeObjectEdit() {
         wavelengthSlider.hide();
+        brightnessSlider.hide();
         whiteLightToggle.hide();
 
         isEdited = false;
@@ -495,8 +499,19 @@ public class PanelSource extends Line implements Editable, Serializable {
         }
     }
 
+    public void setBrightness(double brightness) {
+        this.brightness = brightness;
+        for (OriginRay originRay : originRays) {
+            originRay.setBrightness(brightness);
+        }
+    }
+
     public double getWavelength() {
         return this.wavelength;
+    }
+
+    public double getBrightness() {
+        return this.brightness;
     }
 
     @Override
