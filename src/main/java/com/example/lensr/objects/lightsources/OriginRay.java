@@ -64,6 +64,7 @@ public class OriginRay extends Ray {
                         // Iterate through the segments of the funny mirror to find the closest intersection point
                         for (int i = 0; i + 2 < funnyMirror.getPoints().size(); i = i + 2) {
                             LineMirror segment = new LineMirror(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i + 1), funnyMirror.getPoints().get(i + 2), funnyMirror.getPoints().get(i + 3));
+                            segment.setReflectivity(funnyMirror.getReflectivity());
                             Point2D segmentIntersectionPoint = null;
                             if (currentRay.getMinimalDistanceToBounds(segment.getLayoutBounds()) < shortestSegmentIntersectionDistance && currentRay.getMinimalDistanceToBounds(segment.getLayoutBounds()) < shortestIntersectionDistance) {
                                 segmentIntersectionPoint = getRayLineIntersectionPoint(currentRay, segment);
