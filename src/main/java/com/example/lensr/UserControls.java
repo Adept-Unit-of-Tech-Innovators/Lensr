@@ -393,7 +393,7 @@ public class UserControls {
                 lightSources.add(panelSource);
                 break;
             case L:
-                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(),1.5, 0.004);
+                SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(),1.5, 0.004, new Point2D(mousePos.getX()-50, mousePos.getY()), new Point2D(mousePos.getX()+50, mousePos.getY()));
                 sphericalLens.create();
                 sphericalLens.openObjectEdit();
                 sphericalLens.scale(mousePos);

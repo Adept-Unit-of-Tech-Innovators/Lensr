@@ -38,13 +38,15 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     private double coefficientA, coefficientB, focalLength;
     private transient Point2D focalPoint;
 
-    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double coefficientA, double coefficientB) {
+    public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double coefficientA, double coefficientB, Point2D arc1Vertex, Point2D arc2Vertex) {
         this.height = middleHeight;
         this.width = middleWidth;
         this.centerX = centerX;
         this.centerY = centerY;
         this.coefficientA = coefficientA;
         this.coefficientB = coefficientB;
+        this.arc1Vertex = arc1Vertex;
+        this.arc2Vertex = arc2Vertex;
     }
 
     @Override
@@ -53,9 +55,6 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         LensLine bottomLine = new LensLine(this, Math.PI);
         topLine.scale();
         bottomLine.scale();
-
-        if (arc1Vertex == null) arc1Vertex = new Point2D(topLine.getStartX(), (topLine.getStartY() + bottomLine.getStartY())/2);
-        if (arc2Vertex == null) arc2Vertex = new Point2D(topLine.getEndX(), (topLine.getEndY() + bottomLine.getEndY())/2);
 
         LensArc firstArc = new LensArc(this, Map.of(bottomLine, "start", topLine, "start"), arc1Vertex);
         LensArc secondArc = new LensArc(this, Map.of(topLine, "end", bottomLine, "end"), arc2Vertex);
@@ -397,7 +396,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
 
     @Override
     public void copy() {
-        SphericalLens newLens = new SphericalLens(height, width, centerX, centerY, coefficientA, coefficientB);
+        SphericalLens newLens = new SphericalLens(height, width, centerX, centerY, coefficientA, coefficientB, arc1Vertex, arc2Vertex);
         newLens.create();
         newLens.moveBy(10, 10);
         lenses.add(newLens);
@@ -407,7 +406,17 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
 
     @Override
     public void moveBy(double x, double y) {
-        resize(centerX + x, centerY + y);
+        for (Shape element : elements) {
+            if (element instanceof LensArc arc) {
+                arc.move(x, y);
+            }
+            else if (element instanceof LensLine line) {
+                line.move(x, y);
+            }
+        }
+        centerX += x;
+        centerY += y;
+        alignEditPoints();
         SaveState.autoSave();
     }
 
