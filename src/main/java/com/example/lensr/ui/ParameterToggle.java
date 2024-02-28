@@ -38,6 +38,7 @@ public class ParameterToggle extends JFXToggleButton {
         switchAndLabel.setLayoutX(WIDTH - 155);
         switchAndLabel.setSpacing(10);
         switchAndLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        switchAndLabel.setViewOrder(-3);
         root.getChildren().add(switchAndLabel);
 
         setOnAction(event -> {

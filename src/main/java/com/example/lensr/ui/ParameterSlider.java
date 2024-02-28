@@ -133,6 +133,7 @@ public class ParameterSlider extends JFXSlider {
         }
 
         hBox.setBlendMode(BlendMode.SRC_ATOP);
+        hBox.setViewOrder(-1);
         root.getChildren().add(hBox);
 
         this.valueChangingProperty().addListener((observable, wasChanging, isChanging) -> {

@@ -36,7 +36,7 @@ public class EditPoint extends Rectangle {
         setStrokeWidth(1);
         setStroke(Color.web("3A3C42"));
         setStrokeType(StrokeType.OUTSIDE);
-        toFront();
+        setViewOrder(-1);
     }
 
 

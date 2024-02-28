@@ -85,6 +85,7 @@ public class LensrStart extends Application {
     public void start(Stage primaryStage) {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/main.css")).toExternalForm());
 
+        // Resize menuBar when window is resized
         primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
             WIDTH = newVal.intValue();
             menuBar.setPrefWidth(WIDTH);
@@ -152,6 +153,7 @@ public class LensrStart extends Application {
         menuBar.getMenus().add(misc);
 
         root.getChildren().add(menuBar);
+        menuBar.setViewOrder(-2);
         menuBar.setPrefWidth(WIDTH);
 
         UserControls.setUserControls();

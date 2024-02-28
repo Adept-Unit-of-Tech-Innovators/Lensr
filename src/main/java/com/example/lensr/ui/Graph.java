@@ -88,6 +88,7 @@ public class Graph extends Canvas {
 
         group.getChildren().addAll(dataStartTextField, dataEndTextField, yAxisMaxLabel, yAxisMinLabel);
         group.getChildren().add(this);
+        group.setViewOrder(-1);
 
         root.requestFocus();
     }
