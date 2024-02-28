@@ -87,13 +87,6 @@ public class UserControls {
         });
 
         scene.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode().toString().equals("E")) {
-                // If mode was switched during an edit, finish the edit
-
-                keyPressed = Key.None;
-                isEditMode = !isEditMode;
-            }
-
             if (keyEvent.getCode().toString().equals("SHIFT") && isEditMode) {
                 shiftPressed = true;
             }

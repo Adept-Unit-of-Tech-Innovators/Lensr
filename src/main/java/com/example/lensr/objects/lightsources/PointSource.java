@@ -283,13 +283,6 @@ public class PointSource extends Rectangle implements Editable, Serializable {
 
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-            mirrors.forEach(mirror -> {
-                if (mirror instanceof LightSensor lightSensor) {
-                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
-                    lightSensor.getDetectedRays().remove(originRay);
-                }
-            });
-
             originRay.simulate();
         }
     }

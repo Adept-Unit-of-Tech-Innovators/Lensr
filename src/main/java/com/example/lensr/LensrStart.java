@@ -3,6 +3,7 @@ package com.example.lensr;
 import com.example.lensr.objects.lightsources.BeamSource;
 import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
+import com.example.lensr.objects.misc.LightSensor;
 import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -165,6 +166,7 @@ public class LensrStart extends Application {
     }
 
     public static void updateLightSources() {
+        mirrors.stream().filter(mirror -> mirror instanceof LightSensor).forEach(mirror -> ((LightSensor) mirror).getDetectedRays().clear());
         LensrStart.rayCanvas.clear();
         for (Object lightSource : LensrStart.lightSources) {
             if (lightSource instanceof BeamSource beamSource) {

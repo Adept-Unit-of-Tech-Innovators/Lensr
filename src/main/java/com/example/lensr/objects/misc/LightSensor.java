@@ -335,6 +335,8 @@ public class LightSensor extends Line implements Editable, Serializable {
         hasBeenClicked = false;
     }
 
+
+
     @Override
     public void setHasBeenClicked(boolean hasBeenClicked) {
         this.hasBeenClicked = hasBeenClicked;

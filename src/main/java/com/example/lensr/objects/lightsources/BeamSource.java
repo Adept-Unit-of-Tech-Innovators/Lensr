@@ -133,12 +133,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
 
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-            mirrors.forEach(mirror -> {
-                if (mirror instanceof LightSensor lightSensor) {
-                    lightSensor.detectedRays.removeAll(originRay.rayReflections);
-                    lightSensor.getDetectedRays().remove(originRay);
-                }
-            });
+
             // Reset the end point of the ray to ensure deterministic behavior
             originRay.setEndX(originRay.getStartX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
             originRay.setEndY(originRay.getStartY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
