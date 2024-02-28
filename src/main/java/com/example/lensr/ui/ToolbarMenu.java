@@ -49,7 +49,7 @@ public class ToolbarMenu extends Menu {
                         if (Actions.lastSave == null) {
                             Actions.exportProject();
                         } else {
-                            SaveState.saveProject(Actions.lastSave.getName());
+                            SaveState.saveProject(Actions.lastSave.getAbsolutePath());
                         }
                     }
                     else if (option.equals("Export (Ctrl+E)")) {

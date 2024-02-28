@@ -180,7 +180,7 @@ public class UserControls {
                     Actions.exportProject();
                 }
                 else {
-                    SaveState.saveProject(Actions.lastSave.getName());
+                    SaveState.saveProject(Actions.lastSave.getAbsolutePath());
                 }
                 return;
             }
