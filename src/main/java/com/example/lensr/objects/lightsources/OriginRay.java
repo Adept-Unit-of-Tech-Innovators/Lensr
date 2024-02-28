@@ -11,8 +11,6 @@ import com.example.lensr.objects.mirrors.FunnyMirror;
 import com.example.lensr.objects.mirrors.LineMirror;
 import javafx.application.Platform;
 import com.example.lensr.Tuple;
-import javafx.geometry.BoundingBox;
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.shape.*;
@@ -345,6 +343,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(reflectionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(reflectionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * arc.getParentLens().getTransparency());
                     }
 
                     else {
@@ -356,6 +356,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * arc.getParentLens().getTransparency());
                     }
                 }
 
@@ -383,6 +385,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * line.getParentLens().getTransparency());
                     } else {
                         double refractionAngle = getLineRefractionAngle(currentRay, line, currentRefractiveIndex, newRefractiveIndex);
                         // Calculate the reflected ray's endpoint based on the reflection angle
@@ -392,6 +396,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * line.getParentLens().getTransparency());
                     }
                 }
 
@@ -419,6 +425,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * segment.getParentPrism().getTransparency());
                     } else {
                         double refractionAngle = getLineRefractionAngle(currentRay, segment, currentRefractiveIndex, newRefractiveIndex);
                         // Calculate the reflected ray's endpoint based on the reflection angle
@@ -428,6 +436,8 @@ public class OriginRay extends Ray {
                         // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                         nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(refractionAngle));
                         nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(refractionAngle));
+
+                        nextRay.setBrightness(currentRay.getBrightness() * segment.getParentPrism().getTransparency());
                     }
                 }
 
