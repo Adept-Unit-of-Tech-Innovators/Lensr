@@ -30,6 +30,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     private transient LineMirror closestIntersectionSegment;
     public double coefficientA;
     public double coefficientB;
+    private double transparency = 0.5;
 
     public Prism(double x, double y, double coefficientA, double coefficientB) {
         super(x, y, x, y, x, y);
@@ -66,6 +67,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     public void delete() {
         coefficientASlider.hide();
         coefficientBSlider.hide();
+        transparencySlider.hide();
         editPoints.removeAll(objectEditPoints);
         editedShape = null;
         lenses.remove(this);
@@ -87,8 +89,10 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     public void openObjectEdit() {
         coefficientASlider.setCurrentSource(this);
         coefficientBSlider.setCurrentSource(this);
+        transparencySlider.setCurrentSource(this);
         coefficientASlider.show();
         coefficientBSlider.show();
+        transparencySlider.show();
 
         // Defocus the text fields
         root.requestFocus();
@@ -110,6 +114,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     public void closeObjectEdit() {
         coefficientASlider.hide();
         coefficientBSlider.hide();
+        transparencySlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group) {
             editPoints.removeAll(objectEditPoints);
@@ -301,5 +306,13 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     @Override
     public boolean intersectsMouseHitbox() {
         return Shape.intersect(this, mouseHitbox).getBoundsInLocal().getWidth() != -1;
+    }
+
+    public double getTransparency() {
+        return transparency;
+    }
+
+    public void setTransparency(double transparency) {
+        this.transparency = transparency;
     }
 }

@@ -77,6 +77,7 @@ public class LensrStart extends Application {
     public static ParameterSlider numberOfRaysSlider = new ParameterSlider(null, ValueToChange.NumberOfRays, SliderStyle.Tertiary);
     public static ParameterSlider fieldOfViewSlider = new ParameterSlider(null, ValueToChange.FieldOfView, SliderStyle.Quaternary);
     public static ParameterSlider brightnessSlider = new ParameterSlider(null, ValueToChange.Brightness, SliderStyle.Secondary);
+    public static ParameterSlider transparencySlider = new ParameterSlider(null, ValueToChange.Transparency, SliderStyle.Tertiary);
     public static ParameterToggle whiteLightToggle = new ParameterToggle(null, "White Light", ParameterToChange.WhiteLight);
     public static final double mouseHitboxSize = 20;
     public static Rectangle mouseHitbox = new Rectangle(0, 0, mouseHitboxSize, mouseHitboxSize);

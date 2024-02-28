@@ -22,7 +22,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-import static com.example.lensr.LensrStart.menuBar;
 import static com.example.lensr.LensrStart.root;
 
 public class ParameterSlider extends JFXSlider {
@@ -40,6 +39,7 @@ public class ParameterSlider extends JFXSlider {
         CoefficientB,
         NumberOfRays,
         FieldOfView,
+        Transparency
     }
 
     public enum SliderStyle {
@@ -221,6 +221,12 @@ public class ParameterSlider extends JFXSlider {
             }
             if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.CoefficientB) {
                 sphericalLens.setCoefficientB(roundedValue);
+            }
+            if (currentSource instanceof SphericalLens sphericalLens && valueToChange == ValueToChange.Transparency) {
+                sphericalLens.setTransparency(roundedValue);
+            }
+            if (currentSource instanceof Prism prism && valueToChange == ValueToChange.Transparency) {
+                prism.setTransparency(roundedValue);
             }
             if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientA) {
                 prism.setCoefficientA(roundedValue);
@@ -414,6 +420,18 @@ public class ParameterSlider extends JFXSlider {
             maxVal = 100;
             startingVal = pointSource.getRayCount();
             label.setText("Number of rays");
+        }
+        else if (valueToChange == ValueToChange.Transparency && currentSource instanceof SphericalLens sphericalLens) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = sphericalLens.getTransparency();
+            label.setText("Transparency");
+        }
+        else if (valueToChange == ValueToChange.Transparency && currentSource instanceof Prism prism) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = prism.getTransparency();
+            label.setText("Transparency");
         }
         setMin(minVal);
         setMax(maxVal);

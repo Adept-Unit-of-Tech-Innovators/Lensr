@@ -7,13 +7,10 @@ import com.example.lensr.ui.EditPoint;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
-import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +30,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     private double centerX, centerY, height, width, angleOfRotation;
     private transient Point2D arc1Vertex = null;
     private transient Point2D arc2Vertex = null;
+    private double transparency = 0.5;
 
     // Optical properties
     private double coefficientA, coefficientB, focalLength;
@@ -135,8 +133,10 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         // Set up the sliders
         coefficientASlider.setCurrentSource(this);
         coefficientBSlider.setCurrentSource(this);
+        transparencySlider.setCurrentSource(this);
         coefficientASlider.show();
         coefficientBSlider.show();
+        transparencySlider.show();
 
         objectEditPoints.forEach(editPoint -> {
             editPoint.setVisible(true);
@@ -157,6 +157,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     public void closeObjectEdit() {
         coefficientASlider.hide();
         coefficientBSlider.hide();
+        transparencySlider.hide();
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group) {
             editPoints.removeAll(objectEditPoints);
@@ -382,6 +383,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     public void delete() {
         coefficientASlider.hide();
         coefficientBSlider.hide();
+        transparencySlider.hide();
         editPoints.removeAll(objectEditPoints);
         editedShape = null;
         lenses.remove(this);
@@ -518,4 +520,11 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     public double getWidth() {return width;}
 
 
+    public double getTransparency() {
+        return transparency;
+    }
+
+    public void setTransparency(double transparency) {
+        this.transparency = transparency;
+    }
 }
