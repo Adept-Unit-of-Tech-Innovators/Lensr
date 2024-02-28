@@ -1,12 +1,11 @@
 package com.example.lensr.ui;
 
+import com.example.lensr.objects.lightsources.RaySource;
 import com.example.lensr.objects.lightsources.BeamSource;
-import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.saveloadkit.SaveState;
 import com.jfoenix.controls.JFXToggleButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
@@ -42,13 +41,13 @@ public class ParameterToggle extends JFXToggleButton {
         root.getChildren().add(switchAndLabel);
 
         setOnAction(event -> {
-            if (currentSource instanceof BeamSource beamSource && parameterToChange == ParameterToChange.WhiteLight) {
+            if (currentSource instanceof RaySource raySource && parameterToChange == ParameterToChange.WhiteLight) {
+                label.setText("White Light");
+                raySource.setWhiteLight(isSelected());
+            }
+            else if (currentSource instanceof BeamSource beamSource && parameterToChange == ParameterToChange.WhiteLight) {
                 label.setText("White Light");
                 beamSource.setWhiteLight(isSelected());
-            }
-            else if (currentSource instanceof PanelSource panelSource && parameterToChange == ParameterToChange.WhiteLight) {
-                label.setText("White Light");
-                panelSource.setWhiteLight(isSelected());
             }
             else if (currentSource instanceof PointSource pointSource && parameterToChange == ParameterToChange.WhiteLight) {
                 label.setText("White Light");

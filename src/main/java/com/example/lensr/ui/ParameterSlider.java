@@ -2,8 +2,8 @@ package com.example.lensr.ui;
 
 import com.example.lensr.objects.glass.Prism;
 import com.example.lensr.objects.glass.SphericalLens;
+import com.example.lensr.objects.lightsources.RaySource;
 import com.example.lensr.objects.lightsources.BeamSource;
-import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.objects.mirrors.ArcMirror;
 import com.example.lensr.objects.mirrors.EllipseMirror;
@@ -147,24 +147,24 @@ public class ParameterSlider extends JFXSlider {
         valueProperty().addListener((observable, oldValue, newValue) -> {
             double roundedValue = Math.round(newValue.doubleValue() * 1000.0) / 1000.0;
             textField.setText(String.valueOf(roundedValue));
-            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
-                beamSource.setWavelength(roundedValue);
+            if (currentSource instanceof RaySource raySource && valueToChange == ValueToChange.Wavelength) {
+                raySource.setWavelength(roundedValue);
                 return;
             }
-            if (currentSource instanceof PanelSource panelSource && valueToChange == ValueToChange.Wavelength) {
-                panelSource.setWavelength(roundedValue);
+            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Wavelength) {
+                beamSource.setWavelength(roundedValue);
                 return;
             }
             if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Wavelength) {
                 if(!pointSource.getIsWhiteLight()) pointSource.setWavelength(roundedValue);
                 return;
             }
-            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Brightness) {
-                beamSource.setBrightness(roundedValue);
+            if (currentSource instanceof RaySource raySource && valueToChange == ValueToChange.Brightness) {
+                raySource.setBrightness(roundedValue);
                 return;
             }
-            if (currentSource instanceof PanelSource panelSource && valueToChange == ValueToChange.Brightness) {
-                panelSource.setBrightness(roundedValue);
+            if (currentSource instanceof BeamSource beamSource && valueToChange == ValueToChange.Brightness) {
+                beamSource.setBrightness(roundedValue);
                 return;
             }
             if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.Brightness) {
@@ -234,7 +234,7 @@ public class ParameterSlider extends JFXSlider {
             if (currentSource instanceof Prism prism && valueToChange == ValueToChange.CoefficientB) {
                 prism.setCoefficientB(roundedValue);
             }
-            if (currentSource instanceof PanelSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
+            if (currentSource instanceof BeamSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
                 pointSource.setRayCount((int)roundedValue);
             }
             if (currentSource instanceof PointSource pointSource && valueToChange == ValueToChange.NumberOfRays) {
@@ -283,16 +283,16 @@ public class ParameterSlider extends JFXSlider {
         minVal = 0;
         maxVal = 1;
 
-        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof BeamSource beamSource) {
+        if (valueToChange == ValueToChange.Wavelength && currentSource instanceof RaySource raySource) {
+            minVal = 380;
+            maxVal = 780;
+            startingVal = raySource.getWavelength();
+            label.setText("Wavelength");
+        }
+        else if (valueToChange == ValueToChange.Wavelength && currentSource instanceof BeamSource beamSource) {
             minVal = 380;
             maxVal = 780;
             startingVal = beamSource.getWavelength();
-            label.setText("Wavelength");
-        }
-        else if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PanelSource panelSource) {
-            minVal = 380;
-            maxVal = 780;
-            startingVal = panelSource.getWavelength();
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.Wavelength && currentSource instanceof PointSource pointSource) {
@@ -301,16 +301,16 @@ public class ParameterSlider extends JFXSlider {
             startingVal = pointSource.getWavelength();
             label.setText("Wavelength");
         }
+        else if (valueToChange == ValueToChange.Brightness && currentSource instanceof RaySource raySource) {
+            minVal = 0;
+            maxVal = 1;
+            startingVal = raySource.getBrightness();
+            label.setText("Brightness");
+        }
         else if (valueToChange == ValueToChange.Brightness && currentSource instanceof BeamSource beamSource) {
             minVal = 0;
             maxVal = 1;
             startingVal = beamSource.getBrightness();
-            label.setText("Brightness");
-        }
-        else if (valueToChange == ValueToChange.Brightness && currentSource instanceof PanelSource panelSource) {
-            minVal = 0;
-            maxVal = 1;
-            startingVal = panelSource.getBrightness();
             label.setText("Brightness");
         }
         else if (valueToChange == ValueToChange.Brightness && currentSource instanceof PointSource pointSource) {
@@ -409,10 +409,10 @@ public class ParameterSlider extends JFXSlider {
             startingVal = Math.toDegrees(pointSource.getFieldOfView());
             label.setText("Field of view");
         }
-        else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PanelSource panelSource) {
+        else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof BeamSource beamSource) {
             minVal = 1;
             maxVal = 100;
-            startingVal = panelSource.getRayCount();
+            startingVal = beamSource.getRayCount();
             label.setText("Number of rays");
         }
         else if (valueToChange == ValueToChange.NumberOfRays && currentSource instanceof PointSource pointSource) {

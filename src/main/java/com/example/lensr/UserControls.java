@@ -3,8 +3,8 @@ package com.example.lensr;
 import com.example.lensr.objects.*;
 import com.example.lensr.objects.glass.Prism;
 import com.example.lensr.objects.glass.SphericalLens;
+import com.example.lensr.objects.lightsources.RaySource;
 import com.example.lensr.objects.lightsources.BeamSource;
-import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.objects.mirrors.ArcMirror;
 import com.example.lensr.objects.mirrors.EllipseMirror;
@@ -15,7 +15,6 @@ import com.example.lensr.objects.misc.GaussianRolloffFilter;
 import com.example.lensr.objects.misc.LightEater;
 import com.example.lensr.objects.misc.LightSensor;
 import com.example.lensr.saveloadkit.Actions;
-import com.example.lensr.saveloadkit.LoadState;
 import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.ui.EditPoint;
 import javafx.geometry.Point2D;
@@ -329,18 +328,18 @@ public class UserControls {
         // Place objects
         switch (keyPressed) {
             case Q:
-                BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
-                beamSource.create();
-                beamSource.openObjectEdit();
-                beamSource.rotate();
-                lightSources.add(beamSource);
+                RaySource raySource = new RaySource(mousePos.getX(), mousePos.getY());
+                raySource.create();
+                raySource.openObjectEdit();
+                raySource.rotate();
+                lightSources.add(raySource);
                 break;
             case W:
-                PanelSource panelSource = new PanelSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
-                panelSource.create();
-                panelSource.openObjectEdit();
-                panelSource.scale(mousePos);
-                lightSources.add(panelSource);
+                BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
+                beamSource.create();
+                beamSource.openObjectEdit();
+                beamSource.scale(mousePos);
+                lightSources.add(beamSource);
                 break;
             case E:
                 PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);

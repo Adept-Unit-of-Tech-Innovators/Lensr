@@ -1,17 +1,14 @@
 package com.example.lensr;
 
+import com.example.lensr.objects.lightsources.RaySource;
 import com.example.lensr.objects.lightsources.BeamSource;
-import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 import com.example.lensr.objects.misc.LightSensor;
 import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -123,8 +120,8 @@ public class LensrStart extends Application {
         menuBar.getMenus().add(edit);
 
         LinkedHashMap<String, Key> lightSourceActions = new LinkedHashMap<>();
-        lightSourceActions.put("Beam Source (Q)", Key.Q);
-        lightSourceActions.put("Panel Source (W)", Key.W);
+        lightSourceActions.put("Ray Source (Q)", Key.Q);
+        lightSourceActions.put("Beam Source (W)", Key.W);
         lightSourceActions.put("Full Point Source (E)", Key.E);
         lightSourceActions.put("Partial Point Source (R)", Key.R);
         ToolbarMenu lightSources = new ToolbarMenu("Light Sources", lightSourceActions);
@@ -168,11 +165,11 @@ public class LensrStart extends Application {
         mirrors.stream().filter(mirror -> mirror instanceof LightSensor).forEach(mirror -> ((LightSensor) mirror).getDetectedRays().clear());
         LensrStart.rayCanvas.clear();
         for (Object lightSource : LensrStart.lightSources) {
-            if (lightSource instanceof BeamSource beamSource) {
-                beamSource.update();
+            if (lightSource instanceof RaySource raySource) {
+                raySource.update();
             }
-            else if (lightSource instanceof PanelSource panelSource) {
-                panelSource.update();
+            else if (lightSource instanceof BeamSource beamSource) {
+                beamSource.update();
             }
             else if (lightSource instanceof PointSource pointSource) {
                 pointSource.update();

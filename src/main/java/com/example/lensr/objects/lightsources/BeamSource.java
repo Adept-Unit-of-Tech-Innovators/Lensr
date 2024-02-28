@@ -10,6 +10,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Rotate;
@@ -24,52 +25,82 @@ import java.util.List;
 import static com.example.lensr.LensrStart.*;
 import static com.example.lensr.LensrStart.lock;
 
-public class BeamSource extends Rectangle implements Editable, Serializable {
+public class BeamSource extends Line implements Editable, Serializable {
     private transient Group group = new Group();
     private transient List<OriginRay> originRays = new ArrayList<>();
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     private transient Rotate rotate = new Rotate();
     private double rotation = 0;
+    private transient Rectangle hitbox;
     private transient boolean hasBeenClicked;
     private transient boolean isEdited;
     private double wavelength = 580;
+    private int rayCount = 25;
     private boolean isWhiteLight;
     private double brightness = 1.0;
 
-    public BeamSource(double centerX, double centerY) {
-        setCenterX(centerX);
-        setCenterY(centerY);
-        setWidth(100);
-        setHeight(50);
+    public BeamSource(double startX, double startY, double endX, double endY) {
+        setStartX(startX);
+        setStartY(startY);
+        setEndX(endX);
+        setEndY(endY);
     }
 
     @Override
     public void create() {
-        setFill(Color.GRAY);
+        setStroke(Color.GRAY);
+        setStrokeWidth(3);
         toBack();
-        rotate.setPivotX(getCenterX());
-        rotate.setPivotY(getCenterY());
-        rotate.setAngle(Math.toDegrees(rotation));
-        getTransforms().add(rotate);
 
-        int rayCount = isWhiteLight ? whiteLightRayCount : 1;
-        for (int i = 0; i < rayCount; i++) {
-            OriginRay originRay = new OriginRay(
-                    getCenterX() + Math.cos(rotation) * getWidth() / 2,
-                    getCenterY() + Math.sin(rotation) * getWidth() / 2,
-                    getCenterX() + 1000 * WIDTH * Math.cos(rotation),
-                    getCenterY() + 1000 * WIDTH * Math.sin(rotation)
-            );
-            originRay.setParentSource(this);
-            originRay.setStrokeWidth(globalStrokeWidth);
-            originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
-            originRay.setBrightness(brightness);
+        createRectangleHitbox();
 
-            originRays.add(originRay);
+        double dx = (getEndX() - getStartX()) / (rayCount - 1);
+        double dy = (getEndY() - getStartY()) / (rayCount - 1);
+
+        double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
+        rotate.setPivotX((getEndX() + getStartX()) / 2);
+        rotate.setPivotY((getEndY() + getStartY()) / 2);
+        rotate.setAngle(Math.toDegrees(angle));
+
+        int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < whiteRayCount; i++) {
+            for (int j = 0; j < rayCount; j++) {
+                OriginRay originRay = new OriginRay(
+                        getStartX() + dx * j,
+                        getStartY() + dy * j,
+                        getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH * 1000,
+                        getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * WIDTH * 1000
+
+                );
+                originRay.setParentSource(this);
+                originRay.setStrokeWidth(globalStrokeWidth);
+                originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setBrightness(brightness);
+
+                originRays.add(originRay);
+            }
         }
+
+        // Place edit points
+        objectEditPoints.add(new EditPoint(getStartX(), getStartY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getEndX(), getEndY(), EditPoint.Style.Primary));
+
+        // Define what happens when an edit point is clicked
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
+                scale(oppositeEditPoint.getCenter());
+            });
+        }
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2, EditPoint.Style.Secondary));
+        objectEditPoints.get(2).setOnClickEvent(event -> move());
+
+        objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
 
         group.getChildren().add(this);
         originRays.forEach(ray -> group.getChildren().add(ray.group));
+        group.getChildren().addAll(objectEditPoints);
         root.getChildren().add(group);
         originRays.forEach(Node::toBack);
     }
@@ -77,8 +108,9 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     @Override
     public void delete() {
         wavelengthSlider.hide();
-        brightnessSlider.hide();
+        numberOfRaysSlider.hide();
         whiteLightToggle.hide();
+        brightnessSlider.hide();
         editPoints.removeAll(objectEditPoints);
         editedShape = null;
         lightSources.remove(this);
@@ -88,42 +120,51 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
 
     @Override
     public void copy() {
-        BeamSource newLightSource = new BeamSource(getCenterX() - getWidth() / 2, getCenterY() - getHeight() / 2);
-        newLightSource.setFill(Color.GRAY);
-        newLightSource.toBack();
-        newLightSource.setWavelength(wavelength);
-        newLightSource.setBrightness(brightness);
-        newLightSource.rotate.setPivotX(rotate.getPivotX());
-        newLightSource.rotate.setPivotY(rotate.getPivotY());
-        newLightSource.rotate.setAngle(rotate.getAngle());
-        newLightSource.getTransforms().addAll(newLightSource.rotate);
-        // Reset the transformations of the group
-        newLightSource.group.getTransforms().clear();
+        // TODO: CHECK OUT WHAT `panelSource.clone()` IS
+        BeamSource newBeamSource = new BeamSource(getStartX(), getStartY(), getEndX(), getEndY());
+        newBeamSource.setStroke(Color.GRAY);
+        newBeamSource.setStrokeWidth(3);
+        newBeamSource.toBack();
 
-        originRays.forEach(originRay -> {
-            OriginRay newOriginRay = new OriginRay(
-                    newLightSource.getCenterX() + Math.cos(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
-                    newLightSource.getCenterY() + Math.sin(Math.toRadians(newLightSource.rotate.getAngle())) * newLightSource.getWidth() / 2,
-                    newLightSource.getCenterX() + 1000 * WIDTH * Math.cos(Math.toRadians(newLightSource.rotate.getAngle())),
-                    newLightSource.getCenterY() + 1000 * WIDTH * Math.sin(Math.toRadians(newLightSource.rotate.getAngle()))
-            );
-            newOriginRay.setParentSource(newLightSource);
+        newBeamSource.createRectangleHitbox();
+
+        newBeamSource.setWavelength(wavelength);
+        newBeamSource.setRayCount(rayCount);
+        newBeamSource.setBrightness(brightness);
+
+        for (OriginRay originRay : originRays) {
+            OriginRay newOriginRay = new OriginRay(originRay.getStartX(), originRay.getStartY(), originRay.getEndX(), originRay.getEndY());
+            newOriginRay.setParentSource(newBeamSource);
+            newOriginRay.setWavelength(originRay.getWavelength());
             newOriginRay.setStrokeWidth(globalStrokeWidth);
-            newOriginRay.setWavelength(wavelength);
             newOriginRay.setBrightness(brightness);
+            newBeamSource.originRays.add(newOriginRay);
+        }
 
-            newLightSource.originRays.add(newOriginRay);
-        });
+        newBeamSource.objectEditPoints.add(new EditPoint(newBeamSource.getStartX(), newBeamSource.getStartY(), EditPoint.Style.Primary));
+        newBeamSource.objectEditPoints.add(new EditPoint(newBeamSource.getEndX(), newBeamSource.getEndY(), EditPoint.Style.Primary));
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
+                scale(oppositeEditPoint.getCenter());
+            });
+        }
+        newBeamSource.objectEditPoints.add(new EditPoint(newBeamSource.getStartX() + newBeamSource.getEndX() / 2, newBeamSource.getStartY() + newBeamSource.getEndY() / 2, EditPoint.Style.Secondary));
+        newBeamSource.objectEditPoints.get(2).setOnClickEvent(event -> newBeamSource.move());
+        newBeamSource.objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
 
-        lightSources.add(newLightSource);
-        newLightSource.group.getChildren().add(newLightSource);
-        newLightSource.originRays.forEach(originRay -> newLightSource.group.getChildren().add(originRay.group));
-        root.getChildren().add(newLightSource.group);
 
-        newLightSource.moveBy(10, 10);
+        lightSources.add(newBeamSource);
+        newBeamSource.group.getChildren().addAll(newBeamSource.objectEditPoints);
+        newBeamSource.group.getChildren().add(newBeamSource);
+        newBeamSource.originRays.forEach(originRay -> newBeamSource.group.getChildren().add(originRay.group));
+        newBeamSource.originRays.forEach(Node::toBack);
+        root.getChildren().add(newBeamSource.group);
 
+        newBeamSource.moveBy(10, 10);
         UserControls.closeCurrentEdit();
-        newLightSource.openObjectEdit();
+        newBeamSource.openObjectEdit();
     }
 
     public void update() {
@@ -131,113 +172,171 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             return;
         }
 
+        // Reset the end point of the ray to ensure deterministic behavior
+        double dx = (getEndX() - getStartX()) / (rayCount - 1);
+        double dy = (getEndY() - getStartY()) / (rayCount - 1);
+
+        double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
+
+        int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < whiteRayCount; i++) {
+            for (int j = 0; j < rayCount; j++) {
+                originRays.get(i * rayCount + j).setEndX(getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH * 1000);
+                originRays.get(i * rayCount + j).setEndY(getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * WIDTH * 1000);
+            }
+        }
+
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
-
-            // Reset the end point of the ray to ensure deterministic behavior
-            originRay.setEndX(originRay.getStartX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
-            originRay.setEndY(originRay.getStartY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
             originRay.simulate();
         }
     }
 
-    @Override
     public void openObjectEdit() {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
         brightnessSlider.setCurrentSource(this);
         brightnessSlider.show();
+        numberOfRaysSlider.setCurrentSource(this);
+        numberOfRaysSlider.show();
         whiteLightToggle.setCurrentSource(this);
         whiteLightToggle.setSelected(isWhiteLight);
         whiteLightToggle.show();
 
-        // Defocus the text fields
+        // Defocus the text field
         root.requestFocus();
+
+        objectEditPoints.forEach(editPoint -> {
+            editPoint.setVisible(true);
+            editPoint.toFront();
+        });
 
         Platform.runLater(() -> rayCanvas.clear());
 
         hasBeenClicked = true;
         isEdited = true;
 
-        // Place edit points
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary));
-        objectEditPoints.add(new EditPoint(
-                getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 100,
-                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100,
-                EditPoint.Style.Primary
-        ));
-
-        // Define what happens when an edit point is clicked
-        objectEditPoints.get(0).setOnClickEvent(event -> move());
-        objectEditPoints.get(1).setOnClickEvent(event -> rotate());
-
         editPoints.addAll(objectEditPoints);
-        group.getChildren().addAll(objectEditPoints);
         editedShape = group;
     }
 
     @Override
-    public void moveBy(double x, double y) {
-        setX(getX() + x);
-        setY(getY() + y);
+    public void closeObjectEdit() {
+        wavelengthSlider.hide();
+        numberOfRaysSlider.hide();
+        brightnessSlider.hide();
+        whiteLightToggle.hide();
 
-        rotate.setPivotX(getCenterX());
-        rotate.setPivotY(getCenterY());
+        isEdited = false;
+        if (objectEditPoints != null && editedShape instanceof Group) {
+            editPoints.removeAll(objectEditPoints);
+            objectEditPoints.forEach(editPoint -> {
+                editPoint.setVisible(false);
+                editPoint.hasBeenClicked = false;
+            });
+        }
+        editedShape = null;
+        updateLightSources();
+    }
+
+    private void createRectangleHitbox() {
+        hitbox = new Rectangle();
+        hitbox.setHeight(mouseHitboxSize);
+        hitbox.setFill(Color.TRANSPARENT);
+        hitbox.setStroke(Color.BLACK);
+        hitbox.setStrokeWidth(0);
+        hitbox.toBack();
+        hitbox.getTransforms().add(rotate);
+        updateHitbox();
+    }
+
+    private void updateHitbox() {
+        hitbox.setY(getStartY() - hitbox.getHeight() / 2);
+        hitbox.setX(getStartX() - hitbox.getHeight() / 2);
+        rotate.setPivotX(getStartX());
+        rotate.setPivotY(getStartY());
+        rotation = Math.toDegrees(Math.atan2(getEndY() - getStartY(), getEndX() - getStartX()));
+        hitbox.setWidth(getLength() + hitbox.getHeight());
+        rotate.setAngle(rotation);
+    }
+
+    public double getLength() {
+        return Math.sqrt(
+                Math.pow( getEndX() - getStartX(), 2) +
+                        Math.pow(getEndY() -getStartY(), 2)
+        );
+    }
+
+    @Override
+    public void moveBy(double x, double y) {
+        setStartX(getStartX() + x);
+        setStartY(getStartY() + y);
+        setEndX(getEndX() + x);
+        setEndY(getEndY() + y);
+
+        rotate.setPivotX((getStartX() + getEndX()) / 2);
+        rotate.setPivotY((getStartY() + getEndY()) / 2);
 
         objectEditPoints.forEach(editPoint -> {
             editPoint.setCenterX(editPoint.getCenterX() + x);
             editPoint.setCenterY(editPoint.getCenterY() + y);
         });
+        updateHitbox();
 
         originRays.forEach(originRay -> {
-            originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
-            originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
-
-            originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
-            originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
+            originRay.setStartX(originRay.getStartX() + x);
+            originRay.setStartY(originRay.getStartY() + y);
+            originRay.setEndX(originRay.getEndX() + x);
+            originRay.setEndY(originRay.getEndY() + y);
         });
         SaveState.autoSave();
     }
 
     private void move() {
         new Thread(() -> {
-            Platform.runLater(() -> {
-                for (OriginRay originRay : originRays) {
-                    group.getChildren().removeAll(originRay.rayReflections);
-                    originRay.rayReflections.clear();
-                }
-            });
-
             Point2D prevMousePos = mousePos;
+            Point2D prevStart = new Point2D(getStartX(), getStartY());
+            Point2D prevEnd = new Point2D(getEndX(), getEndY());
 
             while (isMousePressed && isEdited) {
                 double deltaX = mousePos.getX() - prevMousePos.getX();
                 double deltaY = mousePos.getY() - prevMousePos.getY();
 
-                setX(getX() + deltaX);
-                setY(getY() + deltaY);
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    this.setStartX(prevStart.getX() + deltaX);
+                    this.setStartY(prevStart.getY() + deltaY);
+                    this.setEndX(prevEnd.getX() + deltaX);
+                    this.setEndY(prevEnd.getY() + deltaY);
 
-                rotate.setPivotX(getCenterX());
-                rotate.setPivotY(getCenterY());
+                    double dx = (getEndX() - getStartX()) / (rayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (rayCount - 1);
 
-                for (OriginRay originRay : originRays) {
-                    originRay.setStartX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
-                    originRay.setStartY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2);
+                    int i = 0;
+                    for (OriginRay originRay : originRays) {
+                        originRay.setStartX(getStartX() + dx * (i % rayCount));
+                        originRay.setStartY(getStartY() + dy * (i % rayCount));
+                        originRay.setEndX(getStartX() + dx * (i % rayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * WIDTH);
+                        originRay.setEndY(getStartY() + dy * (i % rayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * WIDTH);
+                        i++;
+                    }
 
-                    originRay.setEndX(getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
-                    originRay.setEndY(getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 1000 * WIDTH);
-                }
+                    // Update editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                    objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
+                    }
 
-                objectEditPoints.get(0).setX(objectEditPoints.get(0).getX() + deltaX);
-                objectEditPoints.get(0).setY(objectEditPoints.get(0).getY() + deltaY);
-                objectEditPoints.get(1).setX(objectEditPoints.get(1).getX() + deltaX);
-                objectEditPoints.get(1).setY(objectEditPoints.get(1).getY() + deltaY);
-
-                prevMousePos = mousePos;
+                    updateHitbox();
+                });
 
                 synchronized (lock) {
                     try {
-                        lock.wait(10);
+                        lock.wait(10); // Adjust the sleep time as needed
                     } catch (InterruptedException e) {
                         throw new RuntimeException("A thread was interrupted while waiting.");
                     }
@@ -247,40 +346,102 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
         }).start();
     }
 
-    public void rotate() {
+    public void scale(Point2D anchor) {
         new Thread(() -> {
-            Platform.runLater(() -> {
-                for (OriginRay originRay : originRays) {
-                    group.getChildren().removeAll(originRay.rayReflections);
-                    originRay.rayReflections.clear();
-                }
-            });
+            double startX, startY, endX, endY;
 
             while (isMousePressed && isEdited) {
-                rotation = Math.atan2(mousePos.getY() - getCenterY(), mousePos.getX() - getCenterX());
+                if (altPressed && shiftPressed) {
+                    // Shift-mode calculations for actually half the mirror
+                    double deltaX = mousePos.getX() - anchor.getX();
+                    double deltaY = mousePos.getY() - anchor.getY();
+                    double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                    double angle = Math.atan2(deltaY, deltaX);
+                    double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
+                    double snappedX = anchor.getX() + distance * Math.cos(shiftedAngle);
+                    double snappedY = anchor.getY() + distance * Math.sin(shiftedAngle);
 
-                // Rotate the light source
-                rotate.setAngle(Math.toDegrees(rotation));
-                rotate.setPivotX(getCenterX());
-                rotate.setPivotY(getCenterY());
-
-                // Adjust the ray and edit point positions
-                if (!objectEditPoints.isEmpty()) {
-                    objectEditPoints.get(1).setCenterX(getCenterX() + Math.cos(rotation) * 100);
-                    objectEditPoints.get(1).setCenterY(getCenterY() + Math.sin(rotation) * 100);
+                    // Alt-mode calculations to determine the "other half of the mirror"
+                    startX = anchor.getX() - (snappedX - anchor.getX());
+                    startY = anchor.getY() - (snappedY - anchor.getY());
+                    endX = snappedX;
+                    endY = snappedY;
+                }
+                else if (altPressed) {
+                    // Calculate first because funny java threading
+                    startX = anchor.getX() - (mousePos.getX() - anchor.getX());
+                    startY = anchor.getY() - (mousePos.getY() - anchor.getY());
+                    endX = mousePos.getX();
+                    endY = mousePos.getY();
+                }
+                else if (shiftPressed) {
+                    startX = anchor.getX();
+                    startY = anchor.getY();
+                    double deltaX = mousePos.getX() - startX;
+                    double deltaY = mousePos.getY() - startY;
+                    double distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                    double angle = Math.atan2(deltaY, deltaX);
+                    double shiftedAngle = Math.round(angle * 4 / Math.PI) * Math.PI / 4;
+                    endX = startX + distance * Math.cos(shiftedAngle);
+                    endY = startY + distance * Math.sin(shiftedAngle);
+                }
+                else {
+                    startX = anchor.getX();
+                    startY = anchor.getY();
+                    endX = mousePos.getX();
+                    endY = mousePos.getY();
                 }
 
+                double finalStartX = startX;
+                double finalStartY = startY;
+                double finalEndX = endX;
+                double finalEndY = endY;
 
-                for (OriginRay originRay : originRays) {
-                    originRay.setStartX(getCenterX() + Math.cos(rotation) * this.getWidth() / 2);
-                    originRay.setStartY(getCenterY() + Math.sin(rotation) * this.getWidth() / 2);
-                    originRay.setEndX(originRay.getStartX() + Math.cos(rotation) * 1000 * WIDTH);
-                    originRay.setEndY(originRay.getStartY() + Math.sin(rotation) * 1000 * WIDTH);
-                }
+                // Update the UI on the JavaFX application thread
+                Platform.runLater(() -> {
+                    // TODO: Might be worth rethinking the variable names here
+                    if (anchor.equals(objectEditPoints.get(0).getCenter())) {
+                        this.setStartX(finalStartX);
+                        this.setStartY(finalStartY);
+                        this.setEndX(finalEndX);
+                        this.setEndY(finalEndY);
+                    }
+                    else {
+                        this.setStartX(finalEndX);
+                        this.setStartY(finalEndY);
+                        this.setEndX(finalStartX);
+                        this.setEndY(finalStartY);
+                    }
+
+                    double dx = (getEndX() - getStartX()) / (rayCount - 1);
+                    double dy = (getEndY() - getStartY()) / (rayCount - 1);
+
+
+                    int i = 0;
+                    for (OriginRay originRay : originRays) {
+                        originRay.setStartX(getStartX() + dx * (i % rayCount));
+                        originRay.setStartY(getStartY() + dy * (i % rayCount));
+                        originRay.setEndX(getStartX() + dx * (i % rayCount) + Math.cos(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * WIDTH);
+                        originRay.setEndY(getStartY() + dy * (i % rayCount) + Math.sin(Math.toRadians(rotate.getAngle()) + Math.PI / 2) * 1000 * WIDTH);
+                        i++;
+                    }
+
+                    // Update editPoints location
+                    if (!objectEditPoints.isEmpty()) {
+                        objectEditPoints.get(0).setCenterX(getStartX());
+                        objectEditPoints.get(0).setCenterY(getStartY());
+                        objectEditPoints.get(1).setCenterX(getEndX());
+                        objectEditPoints.get(1).setCenterY(getEndY());
+                        objectEditPoints.get(2).setCenterX((getStartX() + getEndX()) / 2);
+                        objectEditPoints.get(2).setCenterY((getStartY() + getEndY()) / 2);
+                    }
+
+                    updateHitbox();
+                });
 
                 synchronized (lock) {
                     try {
-                        lock.wait(10);
+                        lock.wait(10); // Adjust the sleep time as needed
                     } catch (InterruptedException e) {
                         throw new RuntimeException("A thread was interrupted while waiting.");
                     }
@@ -293,58 +454,125 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        out.writeDouble(getX());
-        out.writeDouble(getY());
-        out.writeDouble(getWidth());
-        out.writeDouble(getHeight());
+        out.writeDouble(getStartX());
+        out.writeDouble(getStartY());
+        out.writeDouble(getEndX());
+        out.writeDouble(getEndY());
     }
 
     @Serial
     private void readObject(java.io.ObjectInputStream in) throws Exception {
         in.defaultReadObject();
-        setX(in.readDouble());
-        setY(in.readDouble());
-        setWidth(in.readDouble());
-        setHeight(in.readDouble());
+        setStartX(in.readDouble());
+        setStartY(in.readDouble());
+        setEndX(in.readDouble());
+        setEndY(in.readDouble());
 
         // Initialize transient fields
         group = new Group();
         rotate = new Rotate();
         originRays = new ArrayList<>();
+        hitbox = new Rectangle();
         objectEditPoints = new ArrayList<>();
+        rotation = 0;
         isEdited = false;
         hasBeenClicked = false;
     }
 
-    @Override
-    public void closeObjectEdit() {
-        wavelengthSlider.hide();
-        brightnessSlider.hide();
-        whiteLightToggle.hide();
-        isEdited = false;
-        if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
-            editedGroup.getChildren().removeAll(objectEditPoints);
-            editPoints.removeAll(objectEditPoints);
-            objectEditPoints.clear();
-        }
-        editedShape = null;
+    public void setWhiteLight(boolean whiteLight) {
+        this.isWhiteLight = whiteLight;
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().remove(originRay.group);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            double dx = (getEndX() - getStartX()) / (rayCount - 1);
+            double dy = (getEndY() - getStartY()) / (rayCount - 1);
+            double angle = Math.toRadians(rotate.getAngle());
+
+            int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < whiteRayCount; i++) {
+                for (int j = 0; j < rayCount; j++) {
+                    OriginRay originRay = new OriginRay(
+                            getStartX() + dx * j,
+                            getStartY() + dy * j,
+                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH * 1000,
+                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * WIDTH * 1000
+                    );
+                    originRay.setParentSource(this);
+                    originRay.setStrokeWidth(globalStrokeWidth);
+                    originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setBrightness(brightness);
+
+                    originRays.add(originRay);
+                }
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+        });
         updateLightSources();
     }
 
-    private double getCenterX() {
-        return getX() + getWidth() / 2;
+    public void setRayCount(int rayCount) {
+        this.rayCount = rayCount;
+        Platform.runLater(() -> {
+            group.getChildren().removeAll(originRays);
+            originRays.forEach(originRay -> {
+                group.getChildren().remove(originRay.group);
+                mirrors.forEach(mirror -> {
+                    if (mirror instanceof LightSensor lightSensor) {
+                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
+                        lightSensor.getDetectedRays().remove(originRay);
+                    }
+                });
+                originRay.rayReflections.clear();
+            });
+            originRays.clear();
+
+            double dx = (getEndX() - getStartX()) / (rayCount - 1);
+            double dy = (getEndY() - getStartY()) / (rayCount - 1);
+            double angle = Math.toRadians(rotate.getAngle());
+
+            int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
+            for (int i = 0; i < whiteRayCount; i++) {
+                for (int j = 0; j < rayCount; j++) {
+                    OriginRay originRay = new OriginRay(
+                            getStartX() + dx * j,
+                            getStartY() + dy * j,
+                            getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH * 1000,
+                            getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * WIDTH * 1000
+                    );
+                    originRay.setParentSource(this);
+                    originRay.setStrokeWidth(globalStrokeWidth);
+                    originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setBrightness(brightness);
+
+                    originRays.add(originRay);
+                }
+            }
+            originRays.forEach(ray -> group.getChildren().add(ray.group));
+            originRays.forEach(Node::toBack);
+        });
+        updateLightSources();
     }
 
-    private double getCenterY() {
-        return getY() + getHeight() / 2;
+    public int getRayCount() {
+        return rayCount;
     }
 
     public void setWavelength(double wavelength) {
         this.wavelength = wavelength;
-        if (!isWhiteLight) {
-            for (OriginRay originRay : originRays) {
-                originRay.setWavelength(wavelength);
-            }
+        for (OriginRay originRay : originRays) {
+            originRay.setWavelength(wavelength);
         }
         setBrightness(brightness);
     }
@@ -356,47 +584,8 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
         }
     }
 
-    public void setWhiteLight(boolean whiteLight) {
-        this.isWhiteLight = whiteLight;
-        Platform.runLater(() -> {
-            group.getChildren().removeAll(originRays);
-            originRays.forEach(originRay -> {
-                group.getChildren().removeAll(originRay.rayReflections);
-                group.getChildren().removeAll(originRay.group);
-                mirrors.forEach(mirror -> {
-                    if (mirror instanceof LightSensor lightSensor) {
-                        lightSensor.detectedRays.removeAll(originRay.rayReflections);
-                        lightSensor.getDetectedRays().remove(originRay);
-                    }
-                });
-                originRay.rayReflections.clear();
-            });
-
-            originRays.clear();
-
-            int rayCount = whiteLight ? whiteLightRayCount : 1;
-            for (int i = 0; i < rayCount; i++) {
-                OriginRay originRay = new OriginRay(
-                            getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                        getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * getWidth() / 2,
-                        getCenterX() + 1000 * WIDTH * Math.cos(Math.toRadians(rotate.getAngle())),
-                        getCenterY() + 1000 * WIDTH * Math.sin(Math.toRadians(rotate.getAngle()))
-                );
-                originRay.setParentSource(this);
-                originRay.setStrokeWidth(globalStrokeWidth);
-                originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
-                originRay.setBrightness(brightness);
-
-                originRays.add(originRay);
-            }
-            originRays.forEach(ray -> group.getChildren().add(ray.group));
-            originRays.forEach(Node::toBack);
-            updateLightSources();
-        });
-    }
-
     public double getWavelength() {
-        return wavelength;
+        return this.wavelength;
     }
 
     public double getBrightness() {
@@ -411,14 +600,6 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     @Override
     public boolean getHasBeenClicked() {
         return hasBeenClicked;
-    }
-
-    private void setCenterY(double centerY) {
-        setY(centerY + getHeight() / 2);
-    }
-
-    private void setCenterX(double centerX) {
-        setX(centerX + getWidth() / 2);
     }
 
     @Override

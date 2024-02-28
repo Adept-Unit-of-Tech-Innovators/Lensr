@@ -2,8 +2,8 @@ package com.example.lensr.saveloadkit;
 
 import com.example.lensr.objects.*;
 import com.example.lensr.objects.glass.Glass;
+import com.example.lensr.objects.lightsources.RaySource;
 import com.example.lensr.objects.lightsources.BeamSource;
-import com.example.lensr.objects.lightsources.PanelSource;
 import com.example.lensr.objects.lightsources.PointSource;
 
 import java.io.FileInputStream;
@@ -52,7 +52,7 @@ public class LoadState {
         for (Serializable object : newObjects) {
             if (object instanceof Editable editable) {
                 editable.create();
-                if (editable instanceof BeamSource || editable instanceof PanelSource || editable instanceof PointSource) {
+                if (editable instanceof RaySource || editable instanceof BeamSource || editable instanceof PointSource) {
                     lightSources.add(editable);
                 }
                 else if (editable instanceof Glass) {
