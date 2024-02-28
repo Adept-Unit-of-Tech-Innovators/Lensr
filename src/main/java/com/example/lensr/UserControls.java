@@ -184,19 +184,35 @@ public class UserControls {
             }
 
             // Object shortcuts
-            if (keyEvent.getCode().toString().equals("X") && isEditMode) {
-                if (keyPressed == Key.X) {
+            if (keyEvent.getCode().toString().equals("Q") && isEditMode) {
+                if (keyPressed == Key.Q) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.X;
+                    keyPressed = Key.Q;
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
-                if (keyPressed == Key.Z) {
+            else if (keyEvent.getCode().toString().equals("W") && isEditMode) {
+                if (keyPressed == Key.W) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.Z;
+                    keyPressed = Key.W;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("E") && isEditMode) {
+                if (keyPressed == Key.E) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.E;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("R") && isEditMode) {
+                if (keyPressed == Key.R) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.R;
                 }
                 closeCurrentEdit();
             }
@@ -208,44 +224,44 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
-                if (keyPressed == Key.V) {
+            else if (keyEvent.getCode().toString().equals("S") && isEditMode) {
+                if (keyPressed == Key.S) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.V;
+                    keyPressed = Key.S;
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("B") && isEditMode) {
-                if (keyPressed == Key.B) {
+            else if (keyEvent.getCode().toString().equals("D") && isEditMode) {
+                if (keyPressed == Key.D) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.B;
+                    keyPressed = Key.D;
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("N") && isEditMode) {
-                if (keyPressed == Key.N) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.N;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("M") && isEditMode) {
-                if (keyPressed == Key.M) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.M;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("K") && isEditMode) {
-                if (keyPressed == Key.K) {
+            else if (keyEvent.getCode().toString().equals("F") && isEditMode) {
+                if (keyPressed == Key.F) {
                     keyPressed = Key.None;
                 }
                 else {
-                    keyPressed = Key.K;
+                    keyPressed = Key.F;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("Z") && isEditMode) {
+                if (keyPressed == Key.Z) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.Z;
+                }
+                closeCurrentEdit();
+            }
+            else if (keyEvent.getCode().toString().equals("X") && isEditMode) {
+                if (keyPressed == Key.X) {
+                    keyPressed = Key.None;
+                } else {
+                    keyPressed = Key.X;
                 }
                 closeCurrentEdit();
             }
@@ -257,11 +273,11 @@ public class UserControls {
                 }
                 closeCurrentEdit();
             }
-            else if (keyEvent.getCode().toString().equals("J") && isEditMode) {
-                if (keyPressed == Key.J) {
+            else if (keyEvent.getCode().toString().equals("V") && isEditMode) {
+                if (keyPressed == Key.V) {
                     keyPressed = Key.None;
                 } else {
-                    keyPressed = Key.J;
+                    keyPressed = Key.V;
                 }
                 closeCurrentEdit();
             }
@@ -278,14 +294,6 @@ public class UserControls {
                     keyPressed = Key.None;
                 } else {
                     keyPressed = Key.P;
-                }
-                closeCurrentEdit();
-            }
-            else if (keyEvent.getCode().toString().equals("H") && isEditMode) {
-                if (keyPressed == Key.H) {
-                    keyPressed = Key.None;
-                } else {
-                    keyPressed = Key.H;
                 }
                 closeCurrentEdit();
             }
@@ -316,74 +324,60 @@ public class UserControls {
     public static void placeNewObject() {
         // Place objects
         switch (keyPressed) {
-            case Z:
-                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                lineMirror.create();
-                lineMirror.openObjectEdit();
-                lineMirror.scale(mousePos);
-                mirrors.add(lineMirror);
-                break;
-            case X:
-                EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
-                ellipseMirror.create();
-                ellipseMirror.openObjectEdit();
-                ellipseMirror.scale(mousePos);
-                mirrors.add(ellipseMirror);
-                break;
-            case A:
-                ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
-                arcMirror.create();
-                arcMirror.openObjectEdit();
-                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
-                mirrors.add(arcMirror);
-                break;
-            case V:
-                FunnyMirror funnyMirror = new FunnyMirror();
-                funnyMirror.openObjectEdit();
-                funnyMirror.draw();
-                mirrors.add(funnyMirror);
-                break;
-            case B:
-                LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
-                lightEater.create();
-                lightEater.openObjectEdit();
-                lightEater.scale(mousePos);
-                mirrors.add(lightEater);
-                break;
-            case N:
-                GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                gaussianRolloffFilter.create();
-                gaussianRolloffFilter.openObjectEdit();
-                gaussianRolloffFilter.scale(mousePos);
-                mirrors.add(gaussianRolloffFilter);
-                break;
-            case M:
-                BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                brickwallFilter.create();
-                brickwallFilter.openObjectEdit();
-                brickwallFilter.scale(mousePos);
-                mirrors.add(brickwallFilter);
-                break;
-            case K:
-                LightSensor lightSensor = new LightSensor(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
-                lightSensor.create();
-                lightSensor.openObjectEdit();
-                lightSensor.scale(mousePos);
-                mirrors.add(lightSensor);
-                break;
-            case C:
+            case Q:
                 BeamSource beamSource = new BeamSource(mousePos.getX(), mousePos.getY());
                 beamSource.create();
                 beamSource.openObjectEdit();
                 beamSource.rotate();
                 lightSources.add(beamSource);
                 break;
-            case J:
+            case W:
                 PanelSource panelSource = new PanelSource(mousePos.getX(), mousePos.getY(), mousePos.getX() + 100, mousePos.getY() + 100);
                 panelSource.create();
                 panelSource.openObjectEdit();
                 panelSource.scale(mousePos);
                 lightSources.add(panelSource);
+                break;
+            case E:
+                PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);
+                fullPointSource.create();
+                fullPointSource.openObjectEdit();
+                fullPointSource.rotate();
+                lightSources.add(fullPointSource);
+                break;
+            case R:
+                PointSource pointSource = new PointSource(mousePos.getX(), mousePos.getY(), Math.PI/2, 0, 6, false);
+                pointSource.create();
+                pointSource.openObjectEdit();
+                pointSource.rotate();
+                lightSources.add(pointSource);
+                break;
+            case A:
+                LineMirror lineMirror = new LineMirror(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lineMirror.create();
+                lineMirror.openObjectEdit();
+                lineMirror.scale(mousePos);
+                mirrors.add(lineMirror);
+                break;
+            case S:
+                EllipseMirror ellipseMirror = new EllipseMirror(mousePos.getX(), mousePos.getY(), 0, 0);
+                ellipseMirror.create();
+                ellipseMirror.openObjectEdit();
+                ellipseMirror.scale(mousePos);
+                mirrors.add(ellipseMirror);
+                break;
+            case D:
+                ArcMirror arcMirror = new ArcMirror(mousePos.getX(), mousePos.getY());
+                arcMirror.create();
+                arcMirror.openObjectEdit();
+                arcMirror.scale(arcMirror.objectEditPoints.get(1).getCenter(), arcMirror.objectEditPoints.get(0), arcMirror.objectEditPoints.get(1));
+                mirrors.add(arcMirror);
+                break;
+            case F:
+                FunnyMirror funnyMirror = new FunnyMirror();
+                funnyMirror.openObjectEdit();
+                funnyMirror.draw();
+                mirrors.add(funnyMirror);
                 break;
             case L:
                 SphericalLens sphericalLens = new SphericalLens(50, 50, mousePos.getX(), mousePos.getY(),1.5, 0.004, new Point2D(mousePos.getX()-50, mousePos.getY()), new Point2D(mousePos.getX()+50, mousePos.getY()));
@@ -399,19 +393,33 @@ public class UserControls {
                 prism.draw();
                 lenses.add(prism);
                 break;
-            case H:
-                PointSource fullPointSource = new PointSource(mousePos.getX(), mousePos.getY(), 2 * Math.PI, 0, 6, true);
-                fullPointSource.create();
-                fullPointSource.openObjectEdit();
-                fullPointSource.rotate();
-                lightSources.add(fullPointSource);
+            case Z:
+                GaussianRolloffFilter gaussianRolloffFilter = new GaussianRolloffFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                gaussianRolloffFilter.create();
+                gaussianRolloffFilter.openObjectEdit();
+                gaussianRolloffFilter.scale(mousePos);
+                mirrors.add(gaussianRolloffFilter);
                 break;
-            case G:
-                PointSource pointSource = new PointSource(mousePos.getX(), mousePos.getY(), Math.PI/2, 0, 6, false);
-                pointSource.create();
-                pointSource.openObjectEdit();
-                pointSource.rotate();
-                lightSources.add(pointSource);
+            case X:
+                BrickwallFilter brickwallFilter = new BrickwallFilter(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                brickwallFilter.create();
+                brickwallFilter.openObjectEdit();
+                brickwallFilter.scale(mousePos);
+                mirrors.add(brickwallFilter);
+                break;
+            case C:
+                LightSensor lightSensor = new LightSensor(mousePos.getX(), mousePos.getY(), mousePos.getX(), mousePos.getY());
+                lightSensor.create();
+                lightSensor.openObjectEdit();
+                lightSensor.scale(mousePos);
+                mirrors.add(lightSensor);
+                break;
+            case V:
+                LightEater lightEater = new LightEater(mousePos.getX(), mousePos.getY(), 0);
+                lightEater.create();
+                lightEater.openObjectEdit();
+                lightEater.scale(mousePos);
+                mirrors.add(lightEater);
                 break;
         }
     }
