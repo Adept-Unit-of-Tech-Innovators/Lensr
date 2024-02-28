@@ -78,10 +78,12 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         objectEditPoints.get(1).setOnClickEvent(event -> rotate());
 
         objectEditPoints.forEach(editPoint -> {
+            editPoint.toFront();
             editPoint.setVisible(false);
             editPoint.hasBeenClicked = false;
         });
 
+        lightSources.add(this);
         group.getChildren().add(this);
         originRays.forEach(ray -> group.getChildren().add(ray.group));
         group.getChildren().addAll(objectEditPoints);
@@ -243,8 +245,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
             }
         }
         originRays.forEach(ray -> group.getChildren().add(ray.group));
-        originRays.forEach(Node::toBack);
-
+        objectEditPoints.forEach(Node::toFront);
     }
 
     public void setFieldOfView(double fieldOfView)
@@ -359,11 +360,11 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         PointSource newPointSource = new PointSource(getCenter().getX(), getCenter().getY(), fieldOfView, startAngle, rayCount, isFull);
         newPointSource.create();
 
-        lightSources.add(newPointSource);
-        newPointSource.group.getChildren().add(newPointSource);
-        newPointSource.originRays.forEach(originRay -> newPointSource.group.getChildren().add(originRay.group));
-        newPointSource.originRays.forEach(Node::toBack);
-        root.getChildren().add(newPointSource.group);
+        newPointSource.setWavelength(wavelength);
+        newPointSource.setBrightness(brightness);
+        newPointSource.setWhiteLight(isWhiteLight);
+        newPointSource.setRayCount(rayCount);
+        newPointSource.setFieldOfView(fieldOfView);
 
         newPointSource.moveBy(10, 10);
         UserControls.closeCurrentEdit();
@@ -373,7 +374,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     @Override
     public void moveBy(double x, double y)
     {
-        setCenter(x, y);
+        setCenter(getCenter().getX() + x, getCenter().getY() + y);
         objectEditPoints.get(0).setCenter(new Point2D(x, y));
         objectEditPoints.get(1).setCenter(new Point2D(x + Math.cos(startAngle + fieldOfView/2) * 100, y + Math.sin(startAngle + fieldOfView/2) * 100));
 
