@@ -77,13 +77,13 @@ public class Graph extends Canvas {
         });
 
         yAxisMinLabel = new Text("0.0");
-        yAxisMinLabel.setFill(Color.WHITE);
-        yAxisMinLabel.setTranslateX(x - 20);
+        yAxisMinLabel.setFill(Color.web("#DBDEDC"));
+        yAxisMinLabel.setTranslateX(x - 25);
         yAxisMinLabel.setTranslateY(y + height);
 
         yAxisMaxLabel = new Text("1.0");
-        yAxisMaxLabel.setFill(Color.WHITE);
-        yAxisMaxLabel.setTranslateX(x - 20);
+        yAxisMaxLabel.setFill(Color.web("#DBDEDC"));
+        yAxisMaxLabel.setTranslateX(x - 25);
         yAxisMaxLabel.setTranslateY(y + 10);
 
         group.getChildren().addAll(dataStartTextField, dataEndTextField, yAxisMaxLabel, yAxisMinLabel);
