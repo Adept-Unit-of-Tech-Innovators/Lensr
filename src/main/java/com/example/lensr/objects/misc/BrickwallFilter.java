@@ -52,7 +52,7 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
         setStrokeWidth(globalStrokeWidth);
 
         createRectangleHitbox();
-        graph = new Graph(700, 100, 200, 150);
+        graph = new Graph(WIDTH-225, 60, 200, 150);
         graph.setDataSource(this);
         graph.hide();
 

@@ -9,7 +9,11 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +65,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         elements.add(firstArc);
         elements.add(secondArc);
 
-        resize(centerX, centerY, width, height, Math.toRadians(0));
+        resize(centerX, centerY, width, height, Math.toRadians(0), new Point2D(centerX, centerY));
 
         // Add the elements' edit points and set the elements' stroke
         for (Shape element : elements) {
@@ -171,8 +175,11 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         updateLightSources();
     }
 
-    public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight, double newAngleOfRotation) {
+    public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight, double newAngleOfRotation, Point2D anchor) {
         // Scale appropriately all the elements
+        Point2D oldCenter = new Point2D(getCenterX(), getCenterY());
+        double oldWidth = getWidth();
+        double oldHeight = getHeight();
         centerX = newCenterX;
         centerY = newCenterY;
         height = newHeight;
@@ -186,7 +193,23 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             }
             else if (element instanceof LensArc arc) {
                 if (Math.abs(rotationDelta) == 0) {
-                    arc.scale(arc.getVertex());
+                    // Calculate the new position of the vertex from the change in width, height and center
+                    if (arc.getAnchors().a().equals(anchor) || arc.getAnchors().b().equals(anchor)) {
+                        arc.scale(arc.getVertex());
+                        if (arc == elements.get(2)) arc1Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
+                        else arc2Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
+                        continue;
+                    }
+                    double centerDeltaX = 2*(newCenterX - oldCenter.getX());
+                    double centerDeltaY = 2*(newCenterY - oldCenter.getY());
+                    Point2D oldMiddlePoint = (arc.getAnchors().a().midpoint(arc.getAnchors().b()));
+                    Point2D adjustedAnchor1 = new Point2D(arc.getAnchors().a().getX() + centerDeltaX, arc.getAnchors().a().getY() + centerDeltaY);
+                    Point2D adjustedAnchor2 = new Point2D(arc.getAnchors().b().getX() + centerDeltaX, arc.getAnchors().b().getY() + centerDeltaY);
+                    Point2D newMiddlePoint = adjustedAnchor1.midpoint(adjustedAnchor2);
+                    double deltaX = newMiddlePoint.getX() - oldMiddlePoint.getX();
+                    double deltaY = newMiddlePoint.getY() - oldMiddlePoint.getY();
+                    Point2D newVertex = new Point2D(arc.getVertex().getX() + deltaX, arc.getVertex().getY() + deltaY);
+                    arc.scale(newVertex);
                     if (arc == elements.get(2)) arc1Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
                     else arc2Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
                     continue;
@@ -237,53 +260,15 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             double newCenterX, newCenterY, newWidth, newHeight;
 
             while (isMousePressed) {
-                if (altPressed && shiftPressed) {
-                    newCenterX = anchor.getX();
-                    newCenterY = anchor.getY();
+                newCenterX = mousePos.getX() + (anchor.getX() - mousePos.getX()) / 2;
+                newCenterY = mousePos.getY() + (anchor.getY() - mousePos.getY()) / 2;
 
-                    double ratio = height / width;
+                Point2D centerPoint = new Point2D(newCenterX, newCenterY);
+                Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, centerPoint, -angleOfRotation);
+                Point2D unrotatedAnchorPos = rotatePointAroundOtherByAngle(anchor, centerPoint, -angleOfRotation);
 
-                    newWidth = 2 * Math.abs(newCenterX - mousePos.getX()) / Math.cos(angleOfRotation);
-                    newHeight = newWidth * ratio;
-                }
-                else if (altPressed) {
-                    newCenterX = anchor.getX();
-                    newCenterY = anchor.getY();
-
-                    newWidth = 2 * Math.abs(newCenterX - mousePos.getX()) / ((angleOfRotation == 0) ? 1 : Math.cos(angleOfRotation));
-                    newHeight = 2 * Math.abs(newCenterY - mousePos.getY()) / ((angleOfRotation == 0) ? 1 : Math.sin(angleOfRotation));
-                }
-                else if (shiftPressed) {
-                    //TODO: Make this mf work
-                    newCenterX = mousePos.getX() + (anchor.getX() - mousePos.getX()) / 2;
-                    newCenterY = mousePos.getY() + (anchor.getY() - mousePos.getY()) / 2;
-
-                    double ratio = height / width;
-
-                    Point2D centerPoint = new Point2D(newCenterX, newCenterY);
-                    Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, centerPoint, -angleOfRotation);
-                    Point2D unrotatedAnchorPos = rotatePointAroundOtherByAngle(anchor, centerPoint, -angleOfRotation);
-
-                    newWidth = Math.abs(unrotatedAnchorPos.getX() - unrotatedMousePos.getX());
-                    newHeight = newWidth * ratio;
-
-                    double middleX = anchor.getX() + ((anchor.getX() > mousePos.getX()) ? newWidth/2 : -newWidth/2) * Math.cos(angleOfRotation);
-                    double middleY = anchor.getY() + ((anchor.getY() > mousePos.getY()) ? newWidth/2 : -newWidth/2) * Math.sin(angleOfRotation);
-
-                    newCenterX = middleX + ((middleX > mousePos.getX()) ? newHeight/2 : -newHeight/2) * Math.cos(angleOfRotation + Math.PI/2);
-                    newCenterY = middleY + ((middleY > mousePos.getY()) ? newHeight/2 : -newHeight/2) * Math.sin(angleOfRotation + Math.PI/2);
-                }
-                else {
-                    newCenterX = mousePos.getX() + (anchor.getX() - mousePos.getX()) / 2;
-                    newCenterY = mousePos.getY() + (anchor.getY() - mousePos.getY()) / 2;
-
-                    Point2D centerPoint = new Point2D(newCenterX, newCenterY);
-                    Point2D unrotatedMousePos = rotatePointAroundOtherByAngle(mousePos, centerPoint, -angleOfRotation);
-                    Point2D unrotatedAnchorPos = rotatePointAroundOtherByAngle(anchor, centerPoint, -angleOfRotation);
-                    
-                    newWidth = Math.abs(unrotatedAnchorPos.getX() - unrotatedMousePos.getX());
-                    newHeight = Math.abs(unrotatedAnchorPos.getY() - unrotatedMousePos.getY());
-                }
+                newWidth = Math.abs(unrotatedAnchorPos.getX() - unrotatedMousePos.getX());
+                newHeight = Math.abs(unrotatedAnchorPos.getY() - unrotatedMousePos.getY());
 
                 double finalCenterX = newCenterX;
                 double finalCenterY = newCenterY;
@@ -291,7 +276,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
                 double finalHeight = newHeight;
 
                 Platform.runLater(() -> {
-                    resize(finalCenterX, finalCenterY, finalWidth, finalHeight, this.angleOfRotation);
+                    resize(finalCenterX, finalCenterY, finalWidth, finalHeight, this.angleOfRotation, anchor);
                     alignEditPoints();
                 });
 
@@ -323,7 +308,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
                 double finalAngleOfRotation = Math.toRadians(Math.floor(Math.toDegrees(newAngleOfRotation) / snapValue) * snapValue);
 
                 Platform.runLater(() -> {
-                    resize(this.centerX, this.centerY, this.width, this.height, finalAngleOfRotation);
+                    resize(this.centerX, this.centerY, this.width, this.height, finalAngleOfRotation, new Point2D(centerX, centerY));
                     alignEditPoints();
                 });
 
