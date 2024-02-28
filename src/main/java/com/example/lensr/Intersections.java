@@ -40,7 +40,7 @@ public class Intersections {
             rayYIntercept = ray.getStartY() - raySlope * ray.getStartX();
 
             // If the slopes are equal, the ray and the line are parallel and do not intersect
-            if (raySlope == lineSlope) {
+            if (Math.abs(raySlope - lineSlope) < -tolerance) {
                 return null;
             }
 
@@ -65,6 +65,8 @@ public class Intersections {
             return null;
         }
 
+        System.out.println("ray [" + ray.getStartX() + ", " + ray.getStartY() + " " + ray.getEndX() + ", " + ray.getEndY() + "]" + '\n' +
+                        "Intersection: " + intersectionX + ", " + intersectionY);
         return new Point2D(intersectionX, intersectionY);
     }
 

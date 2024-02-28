@@ -5,6 +5,7 @@ import com.example.lensr.objects.Editable;
 import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.lensr.LensrStart.*;
+import static com.example.lensr.LensrStart.lock;
 
 public class FunnyMirror extends Polyline implements Editable, Serializable {
     public transient Group group = new Group();
@@ -26,7 +28,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
     private transient boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
-    private transient LineMirror closestIntersectionSegment;
+    private transient Line closestIntersectionSegment;
 
     public FunnyMirror() {
 
@@ -56,7 +58,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 }
                 if (!objectEditPoints.isEmpty()) {
                     // Update editPoints location
-                    Bounds mirrorBounds = getLayoutBounds();
+                    Bounds mirrorBounds = getFunnyMirrorBounds();
 
                     for (int i = 0; i < objectEditPoints.size(); i++) {
                         double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
@@ -69,10 +71,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 }
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -115,7 +119,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 // Update the editPoints location
                 if (!objectEditPoints.isEmpty()) {
                     Platform.runLater(() -> {
-                        Bounds mirrorBounds = getLayoutBounds();
+                        Bounds mirrorBounds = getFunnyMirrorBounds();
 
                         for (int i = 0; i < objectEditPoints.size(); i++) {
                             double x = (i == 1 || i == 2) ? mirrorBounds.getMaxX() : mirrorBounds.getMinX();
@@ -130,10 +134,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 prevMousePos = new Point2D(mousePos.getX(), mousePos.getY());
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -144,8 +150,8 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
         taskPool.execute(() -> {
             double threshold = 1.0; // We only want to scale the object if the mouse has moved more than 1 pixel
             while (isMousePressed && isEdited) {
-                double originalWidth = getLayoutBounds().getWidth();
-                double originalHeight = getLayoutBounds().getHeight();
+                double originalWidth = getFunnyMirrorBounds().getWidth();
+                double originalHeight = getFunnyMirrorBounds().getHeight();
                 double widthToHeightRatio = originalWidth / originalHeight;
 
                 double deltaX, deltaY;
@@ -176,7 +182,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                     // Update the editPoints location
                     if (!objectEditPoints.isEmpty()) {
                         Platform.runLater(() -> {
-                            Bounds mirrorBounds = getLayoutBounds();
+                            Bounds mirrorBounds = getFunnyMirrorBounds();
 
                             for (int i = 0; i < objectEditPoints.size(); i++) {
                                 if (objectEditPoints.get(i).equals(anchorPoint)) continue;
@@ -192,10 +198,12 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
                 }
 
                 // The higher the value, the faster you can move the mouse without deforming the object, but at the cost of responsiveness
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                synchronized (lock) {
+                    try {
+                        lock.wait(20);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException("A thread was interrupted while waiting.");
+                    }
                 }
             }
             SaveState.autoSave();
@@ -275,7 +283,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
         isEdited = true;
 
         // Place edit points
-        Bounds mirrorBounds = getLayoutBounds();
+        Bounds mirrorBounds = getFunnyMirrorBounds();
         objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
         objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
         objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
@@ -304,17 +312,46 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
         isEdited = false;
         if (objectEditPoints != null && editedShape instanceof Group editedGroup) {
             editedGroup.getChildren().removeAll(objectEditPoints);
+            editPoints.removeAll(objectEditPoints);
             objectEditPoints.clear();
         }
         editedShape = null;
         updateLightSources();
     }
 
-    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
+    public Bounds getFunnyMirrorBounds() {
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE;
+        double maxY = Double.MIN_VALUE;
+
+        for (int i = 0; i < getPoints().size(); i += 2) {
+            double x = getPoints().get(i);
+            double y = getPoints().get(i + 1);
+
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+
+        return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    public Bounds getLineSegmentBounds(Line line) {
+        double minX = Math.min(line.getStartX(), line.getEndX());
+        double minY = Math.min(line.getStartY(), line.getEndY());
+        double maxX = Math.max(line.getStartX(), line.getEndX());
+        double maxY = Math.max(line.getStartY(), line.getEndY());
+
+        return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    public void setClosestIntersectionSegment(Line closestIntersectionSegment) {
         this.closestIntersectionSegment = closestIntersectionSegment;
     }
 
-    public LineMirror getClosestIntersectionSegment() {
+    public Line getClosestIntersectionSegment() {
         return closestIntersectionSegment;
     }
 

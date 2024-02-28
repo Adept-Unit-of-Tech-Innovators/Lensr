@@ -139,6 +139,9 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
                     lightSensor.getDetectedRays().remove(originRay);
                 }
             });
+            // Reset the end point of the ray to ensure deterministic behavior
+            originRay.setEndX(originRay.getStartX() + Math.cos(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
+            originRay.setEndY(originRay.getStartY() + Math.sin(Math.toRadians(rotate.getAngle())) * 4 * SIZE);
             originRay.simulate();
         }
     }
