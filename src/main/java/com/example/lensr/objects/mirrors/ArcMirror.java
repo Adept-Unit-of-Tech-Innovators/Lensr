@@ -42,22 +42,20 @@ public class ArcMirror extends Arc implements Editable, Serializable {
         // Place edit points
 
         // Start and end points
-        objectEditPoints.add(new EditPoint(startPoint.getX(), startPoint.getY()));
-        objectEditPoints.add(new EditPoint(endPoint.getX(), endPoint.getY()));
+        objectEditPoints.add(new EditPoint(startPoint.getX(), startPoint.getY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(endPoint.getX(), endPoint.getY(), EditPoint.Style.Primary));
 
         // Define what happens when an edit point is clicked
         objectEditPoints.get(0).setOnClickEvent(event -> scale(objectEditPoints.get(1).getCenter(), objectEditPoints.get(1), objectEditPoints.get(0)));
         objectEditPoints.get(1).setOnClickEvent(event -> scale(objectEditPoints.get(0).getCenter(), objectEditPoints.get(0), objectEditPoints.get(1)));
 
         // Curve point
-        objectEditPoints.add(new EditPoint(curvePoint.getX(), curvePoint.getY()));
+        objectEditPoints.add(new EditPoint(curvePoint.getX(), curvePoint.getY(), EditPoint.Style.Quaternary));
         objectEditPoints.get(2).setOnClickEvent(event -> setVertex());
-        objectEditPoints.get(2).setFill(Color.GREEN);
         curvePoint = new Point2D(objectEditPoints.get(2).getCenterX(), objectEditPoints.get(2).getCenterY());
 
         // Center point
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
-        objectEditPoints.get(3).setFill(Color.BLUE);
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary));
         objectEditPoints.get(3).setOnClickEvent(event -> move());
 
         objectEditPoints.forEach(editPoint -> {

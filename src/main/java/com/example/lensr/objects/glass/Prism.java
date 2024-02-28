@@ -44,15 +44,15 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
         setStrokeType(StrokeType.CENTERED);
 
         // Place edit points
-        objectEditPoints.add(new EditPoint(getPoints().get(0), getPoints().get(1)));
-        objectEditPoints.add(new EditPoint(getPoints().get(2), getPoints().get(3)));
-        objectEditPoints.add(new EditPoint(getPoints().get(4), getPoints().get(5)));
+        objectEditPoints.add(new EditPoint(getPoints().get(0), getPoints().get(1), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getPoints().get(2), getPoints().get(3), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getPoints().get(4), getPoints().get(5), EditPoint.Style.Primary));
 
         objectEditPoints.get(0).setOnClickEvent(event -> scale(0, 1));
         objectEditPoints.get(1).setOnClickEvent(event -> scale(2, 3));
         objectEditPoints.get(2).setOnClickEvent(event -> scale(4, 5));
 
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary));
         objectEditPoints.get(3).setOnClickEvent(event -> move());
 
         objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));

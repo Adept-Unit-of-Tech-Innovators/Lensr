@@ -82,8 +82,8 @@ public class PanelSource extends Line implements Editable, Serializable {
         }
 
         // Place edit points
-        objectEditPoints.add(new EditPoint(getStartX(), getStartY()));
-        objectEditPoints.add(new EditPoint(getEndX(), getEndY()));
+        objectEditPoints.add(new EditPoint(getStartX(), getStartY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getEndX(), getEndY(), EditPoint.Style.Primary));
 
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
@@ -93,7 +93,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                 scale(oppositeEditPoint.getCenter());
             });
         }
-        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2, EditPoint.Style.Secondary));
         objectEditPoints.get(2).setOnClickEvent(event -> move());
 
         objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
@@ -141,8 +141,8 @@ public class PanelSource extends Line implements Editable, Serializable {
             newPanelSource.originRays.add(newOriginRay);
         }
 
-        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getStartX(), newPanelSource.getStartY()));
-        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getEndX(), newPanelSource.getEndY()));
+        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getStartX(), newPanelSource.getStartY(), EditPoint.Style.Primary));
+        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getEndX(), newPanelSource.getEndY(), EditPoint.Style.Primary));
         for (EditPoint editPoint : objectEditPoints) {
             editPoint.setOnClickEvent(event -> {
                 // Scale the mirror with the opposite edit point as an anchor
@@ -150,7 +150,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                 scale(oppositeEditPoint.getCenter());
             });
         }
-        newPanelSource.objectEditPoints.add(new EditPoint((newPanelSource.getStartX() + newPanelSource.getEndX()) / 2, (newPanelSource.getStartY() + newPanelSource.getEndY()) / 2));
+        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getStartX() + newPanelSource.getEndX() / 2, newPanelSource.getStartY() + newPanelSource.getEndY() / 2, EditPoint.Style.Secondary));
         newPanelSource.objectEditPoints.get(2).setOnClickEvent(event -> newPanelSource.move());
         newPanelSource.objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
 

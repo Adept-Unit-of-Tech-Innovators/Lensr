@@ -79,10 +79,10 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
 
         // Place edit points
         Bounds mirrorBounds = getLayoutBounds();
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY(), EditPoint.Style.Primary));
 
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
@@ -93,7 +93,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
             });
         }
 
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary));
         objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);

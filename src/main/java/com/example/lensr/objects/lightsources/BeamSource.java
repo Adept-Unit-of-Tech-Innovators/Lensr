@@ -165,10 +165,11 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
         isEdited = true;
 
         // Place edit points
-        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY()));
+        objectEditPoints.add(new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary));
         objectEditPoints.add(new EditPoint(
                 getCenterX() + Math.cos(Math.toRadians(rotate.getAngle())) * 100,
-                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100
+                getCenterY() + Math.sin(Math.toRadians(rotate.getAngle())) * 100,
+                EditPoint.Style.Primary
         ));
 
         // Define what happens when an edit point is clicked

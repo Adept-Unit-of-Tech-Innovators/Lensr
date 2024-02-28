@@ -285,10 +285,10 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
 
         // Place edit points
         Bounds mirrorBounds = getFunnyMirrorBounds();
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY()));
-        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMinY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMinY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMaxX(), mirrorBounds.getMaxY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getMinX(), mirrorBounds.getMaxY(), EditPoint.Style.Primary));
 
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
@@ -299,7 +299,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
             });
         }
 
-        objectEditPoints.add(new EditPoint(mirrorBounds.getCenterX(), mirrorBounds.getCenterY()));
+        objectEditPoints.add(new EditPoint(mirrorBounds.getCenterX(), mirrorBounds.getCenterY(), EditPoint.Style.Secondary));
         objectEditPoints.get(4).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);

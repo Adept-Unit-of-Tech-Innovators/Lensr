@@ -71,12 +71,12 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             element.setStroke(mirrorColor);
             element.setStrokeWidth(globalStrokeWidth);
             if (element instanceof LensLine line) {
-                EditPoint startEditPoint = new EditPoint(line.getStartX(), line.getStartY());
-                EditPoint endEditPoint = new EditPoint(line.getEndX(), line.getEndY());
+                EditPoint startEditPoint = new EditPoint(line.getStartX(), line.getStartY(), EditPoint.Style.Primary);
+                EditPoint endEditPoint = new EditPoint(line.getEndX(), line.getEndY(), EditPoint.Style.Primary);
                 double angleToStartPoint = Math.atan2(line.getStartY() - centerY, line.getStartX() - centerX);
                 double angleToEndPoint = Math.atan2(line.getEndY() - centerY, line.getEndX() - centerX);
-                EditPoint startRotatePoint = new EditPoint(line.getStartX() + 20 * Math.cos(angleToStartPoint), line.getStartY() + 20 * Math.sin(angleToStartPoint));
-                EditPoint endRotatePoint = new EditPoint(line.getEndX() + 20 * Math.cos(angleToEndPoint), line.getEndY() + 20 * Math.sin(angleToEndPoint));
+                EditPoint startRotatePoint = new EditPoint(line.getStartX() + 20 * Math.cos(angleToStartPoint), line.getStartY() + 20 * Math.sin(angleToStartPoint), EditPoint.Style.Tertiary);
+                EditPoint endRotatePoint = new EditPoint(line.getEndX() + 20 * Math.cos(angleToEndPoint), line.getEndY() + 20 * Math.sin(angleToEndPoint), EditPoint.Style.Tertiary);
 
                 // Set the scaling or rotating events for the edit points
                 startEditPoint.setOnClickEvent(event -> scale(getOppositePoint(startEditPoint.getCenter(), getCenter())));
@@ -84,8 +84,6 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
                 startRotatePoint.setOnClickEvent(event -> rotate());
                 endRotatePoint.setOnClickEvent(event -> rotate());
 
-                startRotatePoint.setFill(Color.BISQUE);
-                endRotatePoint.setFill(Color.BISQUE);
                 objectEditPoints.addAll(List.of(startEditPoint, endEditPoint, startRotatePoint, endRotatePoint));
 
                 // Add the edit points to the map
@@ -95,8 +93,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
                 editPointParents.put(endRotatePoint, new Tuple<>(line, "end"));
             }
             if (element instanceof LensArc arc) {
-                EditPoint arcVertex = new EditPoint(arc.getVertex());
-                arcVertex.setFill(Color.HOTPINK);
+                EditPoint arcVertex = new EditPoint(arc.getVertex().getX(), arc.getVertex().getY(), EditPoint.Style.Quaternary);
                 arcVertex.setOnClickEvent(event -> taskPool.execute(() -> {
                     while (isMousePressed) {
                         arc.scale(mousePos);
@@ -119,8 +116,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         }
 
         // Center point
-        EditPoint centerPoint = new EditPoint(getCenterX(), getCenterY());
-        centerPoint.setFill(Color.BLUE);
+        EditPoint centerPoint = new EditPoint(getCenterX(), getCenterY(), EditPoint.Style.Secondary);
         centerPoint.setOnClickEvent(event -> move());
         objectEditPoints.add(centerPoint);
 
@@ -177,8 +173,6 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     public void resize(double newCenterX, double newCenterY, double newWidth, double newHeight, double newAngleOfRotation, Point2D anchor) {
         // Scale appropriately all the elements
         Point2D oldCenter = new Point2D(getCenterX(), getCenterY());
-        double oldWidth = getWidth();
-        double oldHeight = getHeight();
         centerX = newCenterX;
         centerY = newCenterY;
         height = newHeight;
@@ -192,7 +186,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             }
             else if (element instanceof LensArc arc) {
                 if (Math.abs(rotationDelta) == 0) {
-                    // Calculate the new position of the vertex from the change in width, height and center
+                    // Calculate the new position of the vertex from the change in center
                     if (arc.getAnchors().a().equals(anchor) || arc.getAnchors().b().equals(anchor)) {
                         arc.scale(arc.getVertex());
                         if (arc == elements.get(2)) arc1Vertex = new Point2D(arc.getVertex().getX(), arc.getVertex().getY());
@@ -327,7 +321,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         for (EditPoint editPoint : objectEditPoints) {
 
             // Center point
-            if (editPoint.getFill() == Color.BLUE) {
+            if (editPoint.style == EditPoint.Style.Secondary) {
                 editPoint.setCenter(getCenter());
                 continue;
             }
@@ -335,7 +329,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             String type = editPointParents.get(editPoint).b();
 
             // Rotate points
-            if (editPoint.getFill() == Color.BISQUE) {
+            if (editPoint.style == EditPoint.Style.Tertiary) {
                 // Align the rotate points with the corners and then move them outwards
                 Point2D closestPoint = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
                 if (parent instanceof LensLine line) {
@@ -353,7 +347,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             }
 
             // Arc points
-            else if (editPoint.getFill() == Color.HOTPINK) {
+            else if (editPoint.style == EditPoint.Style.Quaternary) {
                 // Align the point to the vertex of the arc
                 if (parent instanceof LensArc arc) {
                     editPoint.setCenter(arc.getVertex());

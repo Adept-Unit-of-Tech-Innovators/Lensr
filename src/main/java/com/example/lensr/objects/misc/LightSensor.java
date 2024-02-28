@@ -91,8 +91,8 @@ public class LightSensor extends Line implements Editable, Serializable {
         isEdited = true;
 
         // Place edit points
-        objectEditPoints.add(new EditPoint(getStartX(), getStartY()));
-        objectEditPoints.add(new EditPoint(getEndX(), getEndY()));
+        objectEditPoints.add(new EditPoint(getStartX(), getStartY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getEndX(), getEndY(), EditPoint.Style.Primary));
 
         // Define what happens when an edit point is clicked
         for (EditPoint editPoint : objectEditPoints) {
@@ -103,7 +103,7 @@ public class LightSensor extends Line implements Editable, Serializable {
             });
         }
 
-        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2));
+        objectEditPoints.add(new EditPoint((getStartX() + getEndX()) / 2, (getStartY() + getEndY()) / 2, EditPoint.Style.Secondary));
         objectEditPoints.get(2).setOnClickEvent(event -> move());
 
         editPoints.addAll(objectEditPoints);

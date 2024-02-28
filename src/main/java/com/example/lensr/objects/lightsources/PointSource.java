@@ -71,8 +71,8 @@ public class PointSource extends Rectangle implements Editable, Serializable {
             originRays.add(originRay);
         }
         
-        objectEditPoints.add(new EditPoint(getCenter()));
-        objectEditPoints.add(new EditPoint(getCenter().getX() + Math.cos(startAngle + fieldOfView/2) * 100, getCenter().getY() + Math.sin(startAngle + fieldOfView/2) * 100));
+        objectEditPoints.add(new EditPoint(getCenter().getX(),getCenter().getY(), EditPoint.Style.Primary));
+        objectEditPoints.add(new EditPoint(getCenter().getX() + Math.cos(startAngle + fieldOfView/2) * 100, getCenter().getY() + Math.sin(startAngle + fieldOfView/2) * 100, EditPoint.Style.Primary));
 
         objectEditPoints.get(0).setOnClickEvent(event -> move());
         objectEditPoints.get(1).setOnClickEvent(event -> rotate());
