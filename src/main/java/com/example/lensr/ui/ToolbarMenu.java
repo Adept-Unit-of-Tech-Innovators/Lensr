@@ -57,6 +57,9 @@ public class ToolbarMenu extends Menu {
                 else if (option.equals("Duplicate (Ctrl+D)")) {
                     UserControls.copyCurrentObject();
                 }
+                else if (option.equals("Unselect (RMB)")) {
+                    keyPressed = Key.None;
+                }
             });
 
         });

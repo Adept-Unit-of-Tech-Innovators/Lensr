@@ -30,6 +30,10 @@ import static com.example.lensr.LensrStart.*;
 public class UserControls {
     public static void setUserControls() {
         scene.setOnMousePressed(mouseEvent -> {
+            if (mouseEvent.isSecondaryButtonDown()) {
+                keyPressed = Key.None;
+                return;
+            }
             if (!isEditMode) return;
 
             isMousePressed = true;

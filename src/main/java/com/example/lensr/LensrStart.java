@@ -8,8 +8,10 @@ import com.example.lensr.ui.*;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -113,6 +115,7 @@ public class LensrStart extends Application {
         menuBar.getMenus().add(file);
 
         List<String> editActions = new ArrayList<>();
+        editActions.add("Unselect (RMB)");
         editActions.add("Delete (Delete)");
         editActions.add("Duplicate (Ctrl+D)");
         ToolbarMenu edit = new ToolbarMenu("Edit", editActions);
