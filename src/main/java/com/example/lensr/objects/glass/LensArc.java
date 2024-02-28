@@ -1,5 +1,6 @@
 package com.example.lensr.objects.glass;
 
+import com.example.lensr.Tuple;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
@@ -80,6 +81,18 @@ public class LensArc extends Arc {
     public void move(double x, double y) {
         setCenterX(getCenterX() + x);
         setCenterY(getCenterY() + y);
+    }
+
+    public Tuple<Point2D, Point2D> getAnchors() {
+        List<Point2D> points = new ArrayList<>();
+        for (LensLine line : borderingLines.keySet()) {
+            if (borderingLines.get(line).equals("start")) {
+                points.add(line.getStart());
+            } else {
+                points.add(line.getEnd());
+            }
+        }
+        return new Tuple<>(points.get(0), points.get(1));
     }
 
     public Circle getCircumcircle(Point2D start, Point2D end, Point2D curvePoint) {
