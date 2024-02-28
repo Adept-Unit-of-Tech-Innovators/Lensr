@@ -49,11 +49,6 @@ public class ParameterSlider extends JFXSlider {
         Quaternary
     }
 
-    enum DisplayedType {
-        Integer,
-        Double
-    }
-
     // Local variables
     SliderStyle sliderStyle;
     ValueToChange valueToChange;
@@ -302,26 +297,18 @@ public class ParameterSlider extends JFXSlider {
             label.setText("Wavelength");
         }
         else if (valueToChange == ValueToChange.Brightness && currentSource instanceof RaySource raySource) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = raySource.getBrightness();
             label.setText("Brightness");
         }
         else if (valueToChange == ValueToChange.Brightness && currentSource instanceof BeamSource beamSource) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = beamSource.getBrightness();
             label.setText("Brightness");
         }
         else if (valueToChange == ValueToChange.Brightness && currentSource instanceof PointSource pointSource) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = pointSource.getBrightness();
             label.setText("Brightness");
         }
         else if (valueToChange == ValueToChange.PeakTransmission && currentSource instanceof GaussianRolloffFilter filter) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = filter.getPeakTransmission();
             label.setText("Peak transmission");
         }
@@ -356,26 +343,18 @@ public class ParameterSlider extends JFXSlider {
             label.setText("End passband");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof LineMirror lineMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = lineMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof ArcMirror arcMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = arcMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof EllipseMirror ellipseMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = ellipseMirror.getReflectivity();
             label.setText("Reflectivity");
         }
         else if (valueToChange == ValueToChange.Reflectivity && currentSource instanceof FunnyMirror funnyMirror) {
-            minVal = 0;
-            maxVal = 1;
             startingVal = funnyMirror.getReflectivity();
             label.setText("Reflectivity");
         }

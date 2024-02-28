@@ -9,7 +9,6 @@ import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Shape;
 
@@ -29,8 +28,6 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
     private transient boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
     public double reflectivity = 1;
-    private transient Line closestIntersectionSegment;
-
     public FunnyMirror() {
 
     }
@@ -234,7 +231,6 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
         objectEditPoints = new ArrayList<>();
         isEdited = false;
         hasBeenClicked = false;
-        closestIntersectionSegment = null;
     }
 
     @Override
@@ -337,23 +333,6 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
         }
 
         return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
-    }
-
-    public Bounds getLineSegmentBounds(Line line) {
-        double minX = Math.min(line.getStartX(), line.getEndX());
-        double minY = Math.min(line.getStartY(), line.getEndY());
-        double maxX = Math.max(line.getStartX(), line.getEndX());
-        double maxY = Math.max(line.getStartY(), line.getEndY());
-
-        return new BoundingBox(minX, minY, maxX - minX, maxY - minY);
-    }
-
-    public void setClosestIntersectionSegment(Line closestIntersectionSegment) {
-        this.closestIntersectionSegment = closestIntersectionSegment;
-    }
-
-    public Line getClosestIntersectionSegment() {
-        return closestIntersectionSegment;
     }
 
     @Override

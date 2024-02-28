@@ -1,6 +1,5 @@
 package com.example.lensr.ui;
 
-import com.example.lensr.LensrStart;
 import com.example.lensr.UserControls;
 import com.example.lensr.saveloadkit.Actions;
 import com.example.lensr.saveloadkit.SaveState;
@@ -9,7 +8,6 @@ import javafx.scene.control.*;
 
 import static com.example.lensr.LensrStart.*;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -29,36 +27,22 @@ public class ToolbarMenu extends Menu {
             MenuItem item = new MenuItem(option);
             getItems().add(item);
             item.setOnAction(event -> {
-                if (option.equals("New (Ctrl+N)")) {
-                    Actions.clear();
-                }
-                else if (option.equals("Undo (Ctrl+Z)")) {
-                    Actions.undo();
-                }
-                else if (option.equals("Redo (Ctrl+Y)")) {
-                    Actions.redo();
-                }
-                else if (option.equals("Save (Ctrl+S)")) {
-                    if (Actions.lastSave == null) {
-                        Actions.exportProject();
-                    } else {
-                        SaveState.saveProject(Actions.lastSave.getAbsolutePath());
+                switch (option) {
+                    case "New (Ctrl+N)" -> Actions.clear();
+                    case "Undo (Ctrl+Z)" -> Actions.undo();
+                    case "Redo (Ctrl+Y)" -> Actions.redo();
+                    case "Save (Ctrl+S)" -> {
+                        if (Actions.lastSave == null) {
+                            Actions.exportProject();
+                        } else {
+                            SaveState.saveProject(Actions.lastSave.getAbsolutePath());
+                        }
                     }
-                }
-                else if (option.equals("Export (Ctrl+E)")) {
-                    Actions.exportProject();
-                }
-                else if (option.equals("Open (Ctrl+O)")) {
-                    Actions.importProject();
-                }
-                else if (option.equals("Delete (Delete)")) {
-                    UserControls.deleteCurrentObject();
-                }
-                else if (option.equals("Duplicate (Ctrl+D)")) {
-                    UserControls.copyCurrentObject();
-                }
-                else if (option.equals("Unselect (RMB)")) {
-                    keyPressed = Key.None;
+                    case "Export (Ctrl+E)" -> Actions.exportProject();
+                    case "Open (Ctrl+O)" -> Actions.importProject();
+                    case "Delete (Delete)" -> UserControls.deleteCurrentObject();
+                    case "Duplicate (Ctrl+D)" -> UserControls.copyCurrentObject();
+                    case "Unselect (RMB)" -> keyPressed = Key.None;
                 }
             });
 

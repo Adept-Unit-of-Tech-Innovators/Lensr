@@ -28,14 +28,12 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     private transient Map<EditPoint, Tuple<Shape, String>> editPointParents = new HashMap<>();
     private transient boolean isEdited, hasBeenClicked;
     private double centerX, centerY, height, width, angleOfRotation;
-    private transient Point2D arc1Vertex = null;
-    private transient Point2D arc2Vertex = null;
+    private transient Point2D arc1Vertex;
+    private transient Point2D arc2Vertex;
     private double transparency = 0.5;
 
     // Optical properties
-    private double coefficientA, coefficientB, focalLength;
-    private transient Point2D focalPoint;
-
+    private double coefficientA, coefficientB;
     public SphericalLens(double middleHeight, double middleWidth, double centerX, double centerY, double coefficientA, double coefficientB, Point2D arc1Vertex, Point2D arc2Vertex) {
         this.height = middleHeight;
         this.width = middleWidth;
@@ -456,8 +454,6 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
         editPointParents = new HashMap<>();
         isEdited = false;
         hasBeenClicked = false;
-        focalLength = calculateFocalLength();
-        focalPoint = calculateFocalPoint();
     }
 
     public Point2D getOppositePoint(Point2D point, Point2D center) {
@@ -487,15 +483,6 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
             }
         }
         return new Polygon(points.stream().mapToDouble(d -> d).toArray());
-    }
-
-    // TODO: Implement visible focal point
-    public static Point2D calculateFocalPoint() {
-        return null;
-    }
-
-    public double calculateFocalLength() {
-        return 0;
     }
 
     public Point2D getCenter() {

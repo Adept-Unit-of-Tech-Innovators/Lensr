@@ -2,7 +2,6 @@ package com.example.lensr.objects.glass;
 
 import com.example.lensr.ui.EditPoint;
 import com.example.lensr.objects.Editable;
-import com.example.lensr.objects.mirrors.LineMirror;
 import com.example.lensr.saveloadkit.SaveState;
 import com.example.lensr.UserControls;
 import javafx.application.Platform;
@@ -27,7 +26,6 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     public boolean isEdited;
     public boolean hasBeenClicked;
-    private transient LineMirror closestIntersectionSegment;
     public double coefficientA;
     public double coefficientB;
     private double transparency = 0.5;
@@ -261,7 +259,6 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
         objectEditPoints = new ArrayList<>();
         isEdited = false;
         hasBeenClicked = false;
-        closestIntersectionSegment = null;
     }
 
 
@@ -284,13 +281,6 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     }
     public void setCoefficientB(double coeficientB) {
         this.coefficientB = coeficientB;
-    }
-    public void setClosestIntersectionSegment(LineMirror closestIntersectionSegment) {
-        this.closestIntersectionSegment = closestIntersectionSegment;
-    }
-
-    public LineMirror getClosestIntersectionSegment() {
-        return closestIntersectionSegment;
     }
 
     @Override

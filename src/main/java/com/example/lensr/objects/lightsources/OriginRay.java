@@ -461,10 +461,6 @@ public class OriginRay extends Ray {
         this.parentSource = parentSource;
     }
 
-    public Object getParentSource() {
-        return parentSource;
-    }
-
     // Get current and new coefficients for the lens and prism interactions
     private Tuple<Double, Double> getCurrentCoefficients() {
         if (intersectors.isEmpty()) return new Tuple<>(1.0, 0.0);
