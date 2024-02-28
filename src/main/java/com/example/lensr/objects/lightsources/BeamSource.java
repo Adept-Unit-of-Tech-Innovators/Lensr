@@ -89,7 +89,10 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     @Override
     public void copy() {
         BeamSource newLightSource = new BeamSource(getCenterX() - getWidth() / 2, getCenterY() - getHeight() / 2);
+        newLightSource.setFill(Color.GRAY);
+        newLightSource.toBack();
         newLightSource.setWavelength(wavelength);
+        newLightSource.setBrightness(brightness);
         newLightSource.rotate.setPivotX(rotate.getPivotX());
         newLightSource.rotate.setPivotY(rotate.getPivotY());
         newLightSource.rotate.setAngle(rotate.getAngle());

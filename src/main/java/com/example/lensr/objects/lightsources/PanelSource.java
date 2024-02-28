@@ -129,6 +129,8 @@ public class PanelSource extends Line implements Editable, Serializable {
         newPanelSource.createRectangleHitbox();
 
         newPanelSource.setWavelength(wavelength);
+        newPanelSource.setRayCount(rayCount);
+        newPanelSource.setBrightness(brightness);
 
         for (OriginRay originRay : originRays) {
             OriginRay newOriginRay = new OriginRay(originRay.getStartX(), originRay.getStartY(), originRay.getEndX(), originRay.getEndY());
@@ -139,7 +141,22 @@ public class PanelSource extends Line implements Editable, Serializable {
             newPanelSource.originRays.add(newOriginRay);
         }
 
+        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getStartX(), newPanelSource.getStartY()));
+        newPanelSource.objectEditPoints.add(new EditPoint(newPanelSource.getEndX(), newPanelSource.getEndY()));
+        for (EditPoint editPoint : objectEditPoints) {
+            editPoint.setOnClickEvent(event -> {
+                // Scale the mirror with the opposite edit point as an anchor
+                EditPoint oppositeEditPoint = objectEditPoints.get(1 - objectEditPoints.indexOf(editPoint));
+                scale(oppositeEditPoint.getCenter());
+            });
+        }
+        newPanelSource.objectEditPoints.add(new EditPoint((newPanelSource.getStartX() + newPanelSource.getEndX()) / 2, (newPanelSource.getStartY() + newPanelSource.getEndY()) / 2));
+        newPanelSource.objectEditPoints.get(2).setOnClickEvent(event -> newPanelSource.move());
+        newPanelSource.objectEditPoints.forEach(editPoint -> editPoint.setVisible(false));
+
+
         lightSources.add(newPanelSource);
+        newPanelSource.group.getChildren().addAll(newPanelSource.objectEditPoints);
         newPanelSource.group.getChildren().add(newPanelSource);
         newPanelSource.originRays.forEach(originRay -> newPanelSource.group.getChildren().add(originRay.group));
         newPanelSource.originRays.forEach(Node::toBack);
