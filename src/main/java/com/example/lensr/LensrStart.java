@@ -41,20 +41,20 @@ public class LensrStart extends Application {
     public static Point2D mousePos;
     public enum Key {
         None,
-        Z,
+        Q,
+        W,
+        E,
+        R,
         A,
+        S,
+        D,
+        F,
+        Z,
         X,
         C,
         V,
-        B,
-        N,
-        M,
-        K,
-        J,
         L,
-        P,
-        H,
-        G
+        P
     }
     public static Key keyPressed = Key.None;
     public static boolean shiftPressed = false;
@@ -114,43 +114,38 @@ public class LensrStart extends Application {
         menuBar.getMenus().add(file);
 
         List<String> editActions = new ArrayList<>();
-        editActions.add("Edit Mode (E)");
         editActions.add("Delete (Delete)");
         editActions.add("Duplicate (Ctrl+D)");
         ToolbarMenu edit = new ToolbarMenu("Edit", editActions);
         menuBar.getMenus().add(edit);
 
-        Menu spacer = new Menu();
-        spacer.setDisable(true); // Disable it so it can't be clicked
-        menuBar.getMenus().add(spacer);
-
-        HashMap<String, Key> lightSourceActions = new HashMap<>();
-        lightSourceActions.put("Beam Source", Key.C);
-        lightSourceActions.put("Panel Source", Key.J);
-        lightSourceActions.put("Full Point Source", Key.H);
-        lightSourceActions.put("Partial Point Source", Key.G);
+        LinkedHashMap<String, Key> lightSourceActions = new LinkedHashMap<>();
+        lightSourceActions.put("Beam Source (Q)", Key.Q);
+        lightSourceActions.put("Panel Source (W)", Key.W);
+        lightSourceActions.put("Full Point Source (E)", Key.E);
+        lightSourceActions.put("Partial Point Source (R)", Key.R);
         ToolbarMenu lightSources = new ToolbarMenu("Light Sources", lightSourceActions);
         menuBar.getMenus().add(lightSources);
 
-        HashMap<String, Key> mirrorActions = new HashMap<>();
-        mirrorActions.put("Line Mirror", Key.Z);
-        mirrorActions.put("Arc Mirror", Key.A);
-        mirrorActions.put("Ellipse Mirror", Key.X);
-        mirrorActions.put("Funny Mirror", Key.V);
+        LinkedHashMap<String, Key> mirrorActions = new LinkedHashMap<>();
+        mirrorActions.put("Line Mirror (A)", Key.A);
+        mirrorActions.put("Ellipse Mirror (S)", Key.S);
+        mirrorActions.put("Arc Mirror (D)", Key.D);
+        mirrorActions.put("Funny Mirror (F)", Key.F);
         ToolbarMenu mirrors = new ToolbarMenu("Mirrors", mirrorActions);
         menuBar.getMenus().add(mirrors);
 
-        HashMap<String, Key> glassActions = new HashMap<>();
-        glassActions.put("Lens", Key.L);
-        glassActions.put("Prism", Key.P);
+        LinkedHashMap<String, Key> glassActions = new LinkedHashMap<>();
+        glassActions.put("Lens (L)", Key.L);
+        glassActions.put("Prism (P)", Key.P);
         ToolbarMenu glass = new ToolbarMenu("Glass", glassActions);
         menuBar.getMenus().add(glass);
 
-        HashMap<String, Key> miscActions = new HashMap<>();
-        miscActions.put("Light Eater", Key.B);
-        miscActions.put("Gaussian Filter", Key.N);
-        miscActions.put("Brickwall Filter", Key.M);
-        miscActions.put("Light Sensor", Key.K);
+        LinkedHashMap<String, Key> miscActions = new LinkedHashMap<>();
+        miscActions.put("Gaussian Filter (Z)", Key.Z);
+        miscActions.put("Brickwall Filter (X)", Key.X);
+        miscActions.put("Light Sensor (C)", Key.C);
+        miscActions.put("Light Eater (V)", Key.V);
         ToolbarMenu misc = new ToolbarMenu("Misc", miscActions);
         menuBar.getMenus().add(misc);
 
