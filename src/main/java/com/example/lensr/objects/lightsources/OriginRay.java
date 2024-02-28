@@ -56,6 +56,7 @@ public class OriginRay extends Ray {
 
                 for (Object mirror : mirrors) {
                     Point2D intersectionPoint = null;
+                    Shape currObject = null;
 
                     // Funny Mirror has to be handled differently because of a javaFX bug
                     if (mirror instanceof FunnyMirror funnyMirror && currentRay.getMinimalDistanceToBounds(funnyMirror.getFunnyMirrorBounds()) < shortestIntersectionDistance) {
@@ -64,16 +65,9 @@ public class OriginRay extends Ray {
 
                         // Iterate through the segments of the funny mirror to find the closest intersection point
                         for (int i = 0; i + 2 < funnyMirror.getPoints().size(); i = i + 2) {
-                            Line segment = new Line(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i + 1), funnyMirror.getPoints().get(i + 2), funnyMirror.getPoints().get(i + 3));
+                            LineMirror segment = new LineMirror(funnyMirror.getPoints().get(i), funnyMirror.getPoints().get(i + 1), funnyMirror.getPoints().get(i + 2), funnyMirror.getPoints().get(i + 3));
                             Point2D segmentIntersectionPoint = null;
-                            Bounds segmentBounds = new BoundingBox(
-                                    Math.min(segment.getStartX(), segment.getEndX()),
-                                    Math.min(segment.getStartY(), segment.getEndY()),
-                                    Math.abs(segment.getEndX() - segment.getStartX()),
-                                    Math.abs(segment.getEndY() - segment.getStartY())
-                            );
-
-                            if (currentRay.getMinimalDistanceToBounds(segmentBounds) < shortestSegmentIntersectionDistance && currentRay.getMinimalDistanceToBounds(segmentBounds) < shortestIntersectionDistance) {
+                            if (currentRay.getMinimalDistanceToBounds(segment.getLayoutBounds()) < shortestSegmentIntersectionDistance && currentRay.getMinimalDistanceToBounds(segment.getLayoutBounds()) < shortestIntersectionDistance) {
                                 segmentIntersectionPoint = getRayLineIntersectionPoint(currentRay, segment);
                             }
 
@@ -82,7 +76,7 @@ public class OriginRay extends Ray {
                             }
 
                             if (segmentIntersectionPoint.distance(currentRay.getStartX(), currentRay.getStartY()) < shortestSegmentIntersectionDistance) {
-                                funnyMirror.setClosestIntersectionSegment(segment);
+                                currObject = segment;
                                 closestSegmentIntersectionPoint = segmentIntersectionPoint;
                                 shortestSegmentIntersectionDistance = segmentIntersectionPoint.distance(currentRay.getStartX(), currentRay.getStartY());
                             }
@@ -115,7 +109,8 @@ public class OriginRay extends Ray {
                     if (intersectionDistance < shortestIntersectionDistance) {
                         closestIntersectionPoint = intersectionPoint;
                         shortestIntersectionDistance = intersectionDistance;
-                        closestIntersectionObject = mirror;
+                        if (currObject != null) closestIntersectionObject = currObject;
+                        else closestIntersectionObject = mirror;
                     }
                 }
 
@@ -256,21 +251,6 @@ public class OriginRay extends Ray {
                     // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
                     nextRay.setStartX(closestIntersectionPoint.getX() - 0.001 * Math.cos(reflectionAngle));
                     nextRay.setStartY(closestIntersectionPoint.getY() - 0.001 * Math.sin(reflectionAngle));
-
-                    nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
-                }
-
-                // FunnyMirror interaction
-                else if (closestIntersectionObject instanceof FunnyMirror mirror) {
-                    double reflectionAngle = getLineReflectionAngle(currentRay, mirror.getClosestIntersectionSegment());
-
-                        // Calculate the reflected ray's endpoint based on the reflection angle
-                        reflectedX = closestIntersectionPoint.getX() + 1000 * WIDTH * Math.cos(reflectionAngle);
-                        reflectedY = closestIntersectionPoint.getY() + 1000 * WIDTH * Math.sin(reflectionAngle);
-
-                    // Set the start point of the reflected ray slightly off the intersection point to prevent intersection with the same object
-                    nextRay.setStartX(closestIntersectionPoint.getX() + 0.001 * Math.cos(reflectionAngle));
-                    nextRay.setStartY(closestIntersectionPoint.getY() + 0.001 * Math.sin(reflectionAngle));
 
                     nextRay.setBrightness(currentRay.getBrightness() * mirror.getReflectivity());
                 }
