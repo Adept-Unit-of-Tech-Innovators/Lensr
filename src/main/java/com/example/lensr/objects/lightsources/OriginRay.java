@@ -76,19 +76,9 @@ public class OriginRay extends Ray {
                             if (currentRay.getMinimalDistanceToBounds(segmentBounds) < shortestSegmentIntersectionDistance && currentRay.getMinimalDistanceToBounds(segmentBounds) < shortestIntersectionDistance) {
                                 segmentIntersectionPoint = getRayLineIntersectionPoint(currentRay, segment);
                             }
-                            else {
-                                Point2D intersectionPoint1 = getRayLineIntersectionPoint(currentRay, segment);
-                                if (intersectionPoint1 != null) {
-                                    System.out.println("point gets skipped when it shouldnt");
-                                }
-                            }
 
                             if (segmentIntersectionPoint == null) {
                                 continue;
-                            }
-
-                            if (closestSegmentIntersectionPoint != null) {
-                                System.out.println("sus");
                             }
 
                             if (segmentIntersectionPoint.distance(currentRay.getStartX(), currentRay.getStartY()) < shortestSegmentIntersectionDistance) {

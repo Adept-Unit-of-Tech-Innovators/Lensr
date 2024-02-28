@@ -271,6 +271,16 @@ public class PointSource extends Rectangle implements Editable, Serializable {
             return;
         }
 
+        // Reset the end point of the ray to ensure deterministic behavior
+        int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < whiteRayCount; i++) {
+            for (int j = 0; j < rayCount; j++) {
+                OriginRay originRay = originRays.get(i * rayCount + j);
+                originRay.setEndX(getCenter().getX() + Math.cos(startAngle + fieldOfView / (rayCount - 1) * j) * WIDTH * 1000);
+                originRay.setEndY(getCenter().getY() + Math.sin(startAngle + fieldOfView / (rayCount - 1) * j) * WIDTH * 1000);
+            }
+        }
+
         for (OriginRay originRay : originRays) {
             group.getChildren().removeAll(originRay.rayReflections);
             mirrors.forEach(mirror -> {
@@ -452,7 +462,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
     public void setWavelength(double wavelength) {
         this.wavelength = wavelength;
         for (OriginRay originRay : originRays) {
-            originRay.setWavelength(wavelength);
+            originRay.setWavelength(wavelength + 10 * originRays.indexOf(originRay));
         }
         setBrightness(brightness);
     }

@@ -168,22 +168,21 @@ public class PanelSource extends Line implements Editable, Serializable {
     }
 
     public void update() {
-        System.out.println("===================================");
         if (isEdited) {
             return;
         }
 
         // Reset the end point of the ray to ensure deterministic behavior
-        double dx = (getEndX() - getStartX()) / (panelRayCount - 1);
-        double dy = (getEndY() - getStartY()) / (panelRayCount - 1);
+        double dx = (getEndX() - getStartX()) / (rayCount - 1);
+        double dy = (getEndY() - getStartY()) / (rayCount - 1);
 
         double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
 
-        int rayCount = whiteLight ? whiteLightRayCount : 1;
-        for (int i = 0; i < rayCount; i++) {
-            for (int j = 0; j < panelRayCount; j++) {
-                originRays.get(i * panelRayCount + j).setEndX(getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * SIZE);
-                originRays.get(i * panelRayCount + j).setEndY(getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * SIZE);
+        int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+        for (int i = 0; i < whiteRayCount; i++) {
+            for (int j = 0; j < rayCount; j++) {
+                originRays.get(i * rayCount + j).setEndX(getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH);
+                originRays.get(i * rayCount + j).setEndY(getStartY() + dy * j + Math.sin(angle + Math.PI / 2) * WIDTH);
             }
         }
 
