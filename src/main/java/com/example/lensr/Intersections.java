@@ -292,7 +292,7 @@ public class Intersections {
     }
 
     public static double getArcRefractionAngle(Ray ray, LensArc arc, double currRefractiveIndex, double newRefractiveIndex) {
-        // 12 fucking hours of sine/cosine fucking javafx radians -pi to pi, and it finally fucking works
+        // 12 f-ing hours of sine/cosine f-ing javafx radians -pi to pi, and it finally f-ing works
         double angleOfIncidence = Math.atan2(ray.getEndY() - ray.getStartY(), ray.getEndX() - ray.getStartX());
 
         double centerX = arc.getCenterX();
