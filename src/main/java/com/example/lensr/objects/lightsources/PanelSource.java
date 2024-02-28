@@ -36,7 +36,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     private transient boolean isEdited;
     private double wavelength = 580;
     private int rayCount = 25;
-    private boolean whiteLight;
+    private boolean isWhiteLight;
     private double brightness = 1.0;
 
     public PanelSource(double startX, double startY, double endX, double endY) {
@@ -62,7 +62,7 @@ public class PanelSource extends Line implements Editable, Serializable {
         rotate.setPivotY((getEndY() + getStartY()) / 2);
         rotate.setAngle(Math.toDegrees(angle));
 
-        int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+        int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
         for (int i = 0; i < whiteRayCount; i++) {
             for (int j = 0; j < rayCount; j++) {
                 OriginRay originRay = new OriginRay(
@@ -74,7 +74,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                 );
                 originRay.setParentSource(this);
                 originRay.setStrokeWidth(globalStrokeWidth);
-                originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
                 originRay.setBrightness(brightness);
 
                 originRays.add(originRay);
@@ -178,7 +178,7 @@ public class PanelSource extends Line implements Editable, Serializable {
 
         double angle = Math.atan2(getEndY() - getStartY(), getEndX() - getStartX());
 
-        int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+        int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
         for (int i = 0; i < whiteRayCount; i++) {
             for (int j = 0; j < rayCount; j++) {
                 originRays.get(i * rayCount + j).setEndX(getStartX() + dx * j + Math.cos(angle + Math.PI / 2) * WIDTH);
@@ -206,6 +206,7 @@ public class PanelSource extends Line implements Editable, Serializable {
         numberOfRaysSlider.setCurrentSource(this);
         numberOfRaysSlider.show();
         whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.setSelected(isWhiteLight);
         whiteLightToggle.show();
 
         // Defocus the text field
@@ -485,7 +486,7 @@ public class PanelSource extends Line implements Editable, Serializable {
     }
 
     public void setWhiteLight(boolean whiteLight) {
-        this.whiteLight = whiteLight;
+        this.isWhiteLight = whiteLight;
         Platform.runLater(() -> {
             group.getChildren().removeAll(originRays);
             originRays.forEach(originRay -> {
@@ -547,7 +548,7 @@ public class PanelSource extends Line implements Editable, Serializable {
             double dy = (getEndY() - getStartY()) / (rayCount - 1);
             double angle = Math.toRadians(rotate.getAngle());
 
-            int whiteRayCount = whiteLight ? whiteLightRayCount : 1;
+            int whiteRayCount = isWhiteLight ? whiteLightRayCount : 1;
             for (int i = 0; i < whiteRayCount; i++) {
                 for (int j = 0; j < rayCount; j++) {
                     OriginRay originRay = new OriginRay(
@@ -558,7 +559,7 @@ public class PanelSource extends Line implements Editable, Serializable {
                     );
                     originRay.setParentSource(this);
                     originRay.setStrokeWidth(globalStrokeWidth);
-                    originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+                    originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
                     originRay.setBrightness(brightness);
 
                     originRays.add(originRay);

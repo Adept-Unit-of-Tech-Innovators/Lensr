@@ -299,6 +299,7 @@ public class PointSource extends Rectangle implements Editable, Serializable {
         wavelengthSlider.setCurrentSource(this);
         wavelengthSlider.show();
         whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.setSelected(isWhiteLight);
         whiteLightToggle.show();
         numberOfRaysSlider.setCurrentSource(this);
         numberOfRaysSlider.show();

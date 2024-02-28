@@ -33,7 +33,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     private transient boolean hasBeenClicked;
     private transient boolean isEdited;
     private double wavelength = 580;
-    private boolean whiteLight;
+    private boolean isWhiteLight;
     private double brightness = 1.0;
 
     public BeamSource(double centerX, double centerY) {
@@ -52,7 +52,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
         rotate.setAngle(Math.toDegrees(rotation));
         getTransforms().add(rotate);
 
-        int rayCount = whiteLight ? whiteLightRayCount : 1;
+        int rayCount = isWhiteLight ? whiteLightRayCount : 1;
         for (int i = 0; i < rayCount; i++) {
             OriginRay originRay = new OriginRay(
                     getCenterX() + Math.cos(rotation) * getWidth() / 2,
@@ -62,7 +62,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
             );
             originRay.setParentSource(this);
             originRay.setStrokeWidth(globalStrokeWidth);
-            originRay.setWavelength(whiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
+            originRay.setWavelength(isWhiteLight ? 380 + (400.0 / whiteLightRayCount * i) : wavelength);
             originRay.setBrightness(brightness);
 
             originRays.add(originRay);
@@ -153,6 +153,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
         brightnessSlider.setCurrentSource(this);
         brightnessSlider.show();
         whiteLightToggle.setCurrentSource(this);
+        whiteLightToggle.setSelected(isWhiteLight);
         whiteLightToggle.show();
 
         // Defocus the text fields
@@ -344,7 +345,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
 
     public void setWavelength(double wavelength) {
         this.wavelength = wavelength;
-        if (!whiteLight) {
+        if (!isWhiteLight) {
             for (OriginRay originRay : originRays) {
                 originRay.setWavelength(wavelength);
             }
@@ -360,7 +361,7 @@ public class BeamSource extends Rectangle implements Editable, Serializable {
     }
 
     public void setWhiteLight(boolean whiteLight) {
-        this.whiteLight = whiteLight;
+        this.isWhiteLight = whiteLight;
         Platform.runLater(() -> {
             group.getChildren().removeAll(originRays);
             originRays.forEach(originRay -> {

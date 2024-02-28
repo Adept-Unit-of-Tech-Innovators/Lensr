@@ -28,8 +28,8 @@ public class LensrStart extends Application {
     public static final Color mirrorColor = Color.WHITE;
     public static final double globalStrokeWidth = 1;
     public static final double editPointSize = 8;
-    public static final int WIDTH = (int) Screen.getPrimary().getBounds().getWidth()*3/4;
-    public static final int HEIGHT = (int) Screen.getPrimary().getBounds().getHeight()*3/4;
+    public static int WIDTH = (int) Screen.getPrimary().getBounds().getWidth()*3/4;
+    public static int HEIGHT = (int) Screen.getPrimary().getBounds().getHeight()*3/4;
     public static int whiteLightRayCount = 50;
     public static Pane root = new Pane();
     public static Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -84,6 +84,17 @@ public class LensrStart extends Application {
     @Override
     public void start(Stage primaryStage) {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/main.css")).toExternalForm());
+
+        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            WIDTH = newVal.intValue();
+            menuBar.setPrefWidth(WIDTH);
+            rayCanvas.setWidth(WIDTH);
+        });
+
+        primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            HEIGHT = newVal.intValue();
+            rayCanvas.setHeight(HEIGHT);
+        });
 
         root.getChildren().add(rayCanvas);
         rayCanvas.toBack();
