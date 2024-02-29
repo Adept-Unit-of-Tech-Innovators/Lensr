@@ -42,6 +42,7 @@ public class OriginRay extends Ray {
     public void simulate() {
         taskPool.execute(() -> {
             rayReflections.clear();
+            intersectors.clear();
 
             Deque<Ray> stack = new ArrayDeque<>();
             stack.push(this);
@@ -469,7 +470,7 @@ public class OriginRay extends Ray {
 
     private Tuple<Double, Double> getNewCoefficients(Glass currentSphericalLens, boolean isInTheLens) {
         if (intersectors.size() == 1 && intersectors.get(0) == currentSphericalLens) return new Tuple<>(1.0, 0.0);
-        if (!isInTheLens || intersectors.size() < 2) return new Tuple<>(currentSphericalLens.getCoefficientA(), currentSphericalLens.getCoefficientB());
+        if (!isInTheLens || intersectors.size() < 3) return new Tuple<>(currentSphericalLens.getCoefficientA(), currentSphericalLens.getCoefficientB());
         return new Tuple<>(intersectors.get(intersectors.size() - 2).getCoefficientA(), intersectors.get(intersectors.size() - 2).getCoefficientB());
     }
 
