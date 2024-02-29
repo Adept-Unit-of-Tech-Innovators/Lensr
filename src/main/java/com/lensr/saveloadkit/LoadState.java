@@ -16,6 +16,7 @@ import java.util.List;
 
 public class LoadState {
     public static void loadProject(String filename) {
+        Actions.clear();
         // Delete all objects
         List<Object> currentObjects = new ArrayList<>();
         currentObjects.addAll(LensrStart.mirrors);
