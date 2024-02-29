@@ -306,8 +306,6 @@ public class PointSource extends Rectangle implements Editable, Serializable {
 
         LensrStart.editPoints.addAll(objectEditPoints);
         LensrStart.editedShape = group;
-
-        LensrStart.updateLightSources();
     }
 
     @Override

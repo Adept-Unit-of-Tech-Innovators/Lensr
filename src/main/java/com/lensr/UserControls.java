@@ -151,6 +151,7 @@ public class UserControls {
             // Control shortcuts
             if (keyEvent.getCode().toString().equals("D") && keyEvent.isControlDown() && LensrStart.isEditMode) {
                 copyCurrentObject();
+                return;
             }
 
             if (keyEvent.getCode().toString().equals("N") && keyEvent.isControlDown() && LensrStart.isEditMode) {
