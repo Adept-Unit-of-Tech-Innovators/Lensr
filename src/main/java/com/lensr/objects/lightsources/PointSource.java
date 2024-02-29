@@ -251,7 +251,6 @@ public class PointSource extends Rectangle implements Editable, Serializable {
             originRays.get(i).setEndX(getCenter().getX() + Math.cos(startAngle + angleBetweenRays * (i % rayCount)) * LensrStart.WIDTH * 1000);
             originRays.get(i).setEndY(getCenter().getY() + Math.sin(startAngle + angleBetweenRays * (i % rayCount)) * LensrStart.WIDTH * 1000);
         }
-        update();
     }
 
     public void update() {

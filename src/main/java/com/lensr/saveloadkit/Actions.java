@@ -13,7 +13,6 @@ public class Actions {
     public static File lastSave = null;
 
     public static void clear() {
-        SaveState.autoSave();
         // Delete all objects
         List<Object> currentObjects = new ArrayList<>();
         currentObjects.addAll(LensrStart.mirrors);
@@ -21,10 +20,11 @@ public class Actions {
         currentObjects.addAll(LensrStart.lenses);
         currentObjects.forEach(object -> {
             if (object instanceof Editable editable) {
-                editable.closeObjectEdit();
                 editable.delete();
             }
         });
+        LensrStart.rayCanvas.clear();
+        SaveState.autoSave();
     }
 
     public static void undo() {

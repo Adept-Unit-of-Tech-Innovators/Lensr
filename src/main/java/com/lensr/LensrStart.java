@@ -100,7 +100,7 @@ public class LensrStart extends Application {
         menuBar.getMenus().add(file);
 
         List<String> editActions = new ArrayList<>();
-        editActions.add("Unselect (RMB)");
+        editActions.add("Deselect (RMB)");
         editActions.add("Delete (Delete)");
         editActions.add("Duplicate (Ctrl+D)");
         ToolbarMenu edit = new ToolbarMenu("Edit", editActions);

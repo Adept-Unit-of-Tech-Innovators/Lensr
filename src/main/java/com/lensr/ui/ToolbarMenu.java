@@ -42,7 +42,7 @@ public class ToolbarMenu extends Menu {
                     case "Open (Ctrl+O)" -> Actions.importProject();
                     case "Delete (Delete)" -> UserControls.deleteCurrentObject();
                     case "Duplicate (Ctrl+D)" -> UserControls.copyCurrentObject();
-                    case "Unselect (RMB)" -> LensrStart.keyPressed = Key.None;
+                    case "Deselect (RMB)" -> LensrStart.keyPressed = Key.None;
                 }
             });
 

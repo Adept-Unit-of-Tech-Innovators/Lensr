@@ -177,6 +177,11 @@ public class UserControls {
                 return;
             }
 
+            if (keyEvent.getCode().toString().equals("E") && keyEvent.isControlDown() && LensrStart.isEditMode) {
+                Actions.exportProject();
+                return;
+            }
+
             if (keyEvent.getCode().toString().equals("O") && keyEvent.isControlDown() && LensrStart.isEditMode) {
                 Actions.importProject();
                 return;
