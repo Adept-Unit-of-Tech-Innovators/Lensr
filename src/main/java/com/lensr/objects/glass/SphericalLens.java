@@ -30,7 +30,7 @@ public class SphericalLens extends Group implements Glass, Editable, Serializabl
     private double centerX, centerY, height, width, angleOfRotation;
     private transient Point2D arc1Vertex;
     private transient Point2D arc2Vertex;
-    private double transparency = 0.5;
+    private double transparency = 0.9;
 
     // Optical properties
     private double coefficientA, coefficientB;

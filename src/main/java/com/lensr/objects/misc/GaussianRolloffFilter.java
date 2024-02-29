@@ -33,7 +33,7 @@ public class GaussianRolloffFilter extends Line implements Editable, Serializabl
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
     double passband = 580;
-    double peakTransmission = 0.8;
+    double peakTransmission = 0.9;
     double FWHM = 20;
 
     public GaussianRolloffFilter(double startX, double startY, double endX, double endY) {

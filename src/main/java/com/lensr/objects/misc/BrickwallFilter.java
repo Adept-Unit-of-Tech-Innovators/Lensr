@@ -34,7 +34,7 @@ public class BrickwallFilter extends Line implements Editable, Serializable {
     private transient boolean hasBeenClicked;
     private double startPassband = 480;
     private double endPassband = 680;
-    private double peakTransmission = 0.8;
+    private double peakTransmission = 0.9;
 
     public BrickwallFilter(double startX, double startY, double endX, double endY) {
         setStartX(startX);

@@ -26,7 +26,7 @@ public class EllipseMirror extends Ellipse implements Editable, Serializable {
     private transient List<EditPoint> objectEditPoints = new ArrayList<>();
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
-    double reflectivity = 1;
+    double reflectivity = 0.9;
 
     public EllipseMirror(double centerX, double centerY, double radiusX, double radiusY) {
         setCenterX(centerX);

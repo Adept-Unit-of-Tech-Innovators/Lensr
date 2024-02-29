@@ -329,14 +329,14 @@ public class UserControls {
                 LensrStart.lightSources.add(beamSource);
                 break;
             case E:
-                PointSource fullPointSource = new PointSource(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), 2 * Math.PI, 0, 6, true);
+                PointSource fullPointSource = new PointSource(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), 2 * Math.PI, 0, 25, true);
                 fullPointSource.create();
                 fullPointSource.openObjectEdit();
                 fullPointSource.rotate();
                 LensrStart.lightSources.add(fullPointSource);
                 break;
             case R:
-                PointSource pointSource = new PointSource(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), Math.PI / 2, 0, 6, false);
+                PointSource pointSource = new PointSource(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), Math.PI / 4, 0, 25, false);
                 pointSource.create();
                 pointSource.openObjectEdit();
                 pointSource.rotate();
@@ -377,7 +377,7 @@ public class UserControls {
                 LensrStart.lenses.add(sphericalLens);
                 break;
             case P:
-                Prism prism = new Prism(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), 1.5, 0.004);
+                Prism prism = new Prism(LensrStart.mousePos.getX(), LensrStart.mousePos.getY(), 1.5, 0.01);
                 prism.create();
                 prism.openObjectEdit();
                 prism.draw();

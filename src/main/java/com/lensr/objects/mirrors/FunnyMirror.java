@@ -25,7 +25,7 @@ public class FunnyMirror extends Polyline implements Editable, Serializable {
     private transient boolean isEdited;
     private transient boolean hasBeenClicked;
     // The percentage of light that is reflected, 0 - no light is reflected, 1 - perfect reflection
-    public double reflectivity = 1;
+    public double reflectivity = 0.9;
 
     public FunnyMirror() {
 

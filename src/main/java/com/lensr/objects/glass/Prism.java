@@ -27,7 +27,7 @@ public class Prism extends Polygon implements Glass, Editable, Serializable {
     public boolean hasBeenClicked;
     public double coefficientA;
     public double coefficientB;
-    private double transparency = 0.5;
+    private double transparency = 0.9;
 
     public Prism(double x, double y, double coefficientA, double coefficientB) {
         super(x, y, x, y, x, y);
