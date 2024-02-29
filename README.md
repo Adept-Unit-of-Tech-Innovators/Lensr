@@ -10,4 +10,4 @@ To run Lensr, download the lensr.jar executable from the latest release on our [
 You can also download the preset (.lensr) files and open them in the app to view some cool setups we've prepared (File -> Open (Ctrl+O))
 
 Disclaimer:
-If you don't have Java Runtime (version 19 or higher) installed (you might already have it if you for example play Minecraft), and thus are unable to run thr .jar file, download it from the official website [here](https://jdk.java.net/java-se-ri/19)
+If you don't have Java Runtime (version 19 or higher) installed (you might already have it if you for example play Minecraft), and thus are unable to run the .jar file, download it from the official website [here](https://jdk.java.net/java-se-ri/19)
