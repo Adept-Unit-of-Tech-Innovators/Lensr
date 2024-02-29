@@ -155,7 +155,7 @@ public class LensrStart extends Application {
 
         UserControls.setUserControls();
 
-        primaryStage.setTitle("rtx 5090ti testing place");
+        primaryStage.setTitle("Lensr: Also try Minecraft!");
         primaryStage.setScene(scene);
 
         primaryStage.show();
