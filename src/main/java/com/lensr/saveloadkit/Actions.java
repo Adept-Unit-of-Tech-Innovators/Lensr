@@ -68,7 +68,7 @@ public class Actions {
     public static void importProject() {
         Window window = LensrStart.scene.getWindow();
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Import Project");
+        fileChooser.setTitle("Open Project");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Lensr Project", "*.lensr"));
 
         try {
