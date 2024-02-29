@@ -93,20 +93,7 @@
     -fx-show-tick-marks: false;
 }
 
-/* Button */
-.button {
-    -fx-padding: 0.7em 0.57em;
-    -fx-font-size: 14px;
-    -jfx-button-type: FLAT;
-    -fx-background-color: #656565;
-    -fx-pref-width: 100;
-    -fx-text-fill: white;
-}
-
-.button-selected {
-    -fx-background-color: rgb(77, 102, 204);
-}
-
+/* Text field */
 .text-field {
     -fx-font-family: "Segoe UI Semibold";
     -fx-background-color: -fx-my-menu-color;
@@ -119,8 +106,7 @@
     -fx-font-size: 15;
 }
 
-/* ComboBox */
-/* VARIABLE DEFINITIONS: Only these 4 variables have to be adjusted, the rest is copy-paste */
+/* Variables */
 * {
     -fx-my-background-color: #292a2d;            /* Change according to your needs */
     -fx-my-menu-color: #313338;                  /* Change according to your needs */
@@ -130,8 +116,7 @@
     -fx-my-border-color: #26282c;                /* Change according to your needs */
 }
 
-/* MENU BAR + Top-level MENU BUTTONS */
-/*** The menu bar itself ***/
+/* Menu bar */
 .menu-bar {
     -fx-background-color: -fx-my-menu-color;
     -fx-padding: 0.5em 0.5em 0.5em 1em;
@@ -140,23 +125,19 @@
     -fx-border-color: -fx-my-border-color;
 }
 
-/*** Top-level menu itself (not selected / hovered) ***/
 .menu-bar > .container > .menu-button {
     -fx-background-color: -fx-my-menu-color;
     -fx-mark-color: -fx-my-menu-font-color;
 }
 
-/*** Top-level menu's label (not selected / hovered) ***/
 .menu-bar > .container > .menu-button > .label {
     -fx-text-fill: -fx-my-menu-font-color;
 }
 
-/*** Top-level menu's label (disabled) ***/
 .menu-bar > .container > .menu-button > .label:disabled {
     -fx-opacity: 1.0;
 }
 
-/*** Top-level menu itself (selected / hovered) ***/
 .menu-bar > .container > .menu-button:hover,
 .menu-bar > .container > .menu-button:focused,
 .menu-bar > .container > .menu-button:showing {
@@ -164,42 +145,34 @@
     -fx-background-radius: 3px;
 }
 
-/*** Top-level menu's label (selected / hovered) ***/
 .menu-bar > .container > .menu-button:hover > .label,
 .menu-bar > .container > .menu-button:focused > .label,
 .menu-bar > .container > .menu-button:showing > .label {
     -fx-text-fill: -fx-my-menu-font-color-highlighted;
 }
 
-/* MENU ITEM (children of a MENU BUTTON) */
-/*** The item itself (not hovered / focused) ***/
 .menu-item {
     -fx-background-color: -fx-my-menu-color;
 }
 
-/*** The item's label (not hovered / focused) ***/
 .menu-item .label {
     -fx-text-fill: -fx-my-menu-font-color;
 }
 
-/*** The item's label (disabled) ***/
 .menu-item .label:disabled {
     -fx-opacity: 1.0;
 }
 
-/*** The item itself (hovered / focused) ***/
 .menu-item:focused, .menu-item:hover {
     -fx-background-color: -fx-my-menu-color-highlighted;
     -fx-background-radius: 3px;
 }
 
-/*** The item's label (hovered / focused) ***/
 .menu-item:focused .label, .menu-item:hover .label {
     -fx-text-fill: -fx-my-menu-font-color-highlighted;
 }
 
 /* CONTEXT MENU */
-/*** The context menu that contains a menu's menu items ***/
 .context-menu {
     -fx-background-color: -fx-my-menu-color;
     -fx-background-radius: 3px;
