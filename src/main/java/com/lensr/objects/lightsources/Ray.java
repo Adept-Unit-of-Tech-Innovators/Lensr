@@ -136,7 +136,7 @@ public class Ray extends Line {
             distanceY = 0; // Start Y is within the bounds
         }
 
-        // Calculate the Euclidean distance from the start position to the bounds
-        return Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+        // Skip Math.sqrt() as this is only used to compare against other distances
+        return distanceX * distanceX + distanceY * distanceY;
     }
 }
