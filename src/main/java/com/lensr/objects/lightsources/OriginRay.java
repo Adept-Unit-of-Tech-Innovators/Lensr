@@ -97,10 +97,8 @@ public class OriginRay extends Ray {
                     if (intersectionPoint == null) continue;
 
                     // If this is the closest intersection point so far, set it as the closest intersection point
-                    double intersectionDistance = Math.sqrt(
-                            Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                    );
+                    double intersectionDistance = Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                            Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2);
 
                     if (intersectionDistance < shortestIntersectionDistance) {
                         closestIntersectionPoint = intersectionPoint;
@@ -129,10 +127,8 @@ public class OriginRay extends Ray {
 
                             if (intersectionPoint == null) continue;
 
-                            double intersectionDistance = Math.sqrt(
-                                    Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                            Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                            );
+                            double intersectionDistance = Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2);
 
                             if (intersectionDistance < shortestIntersectionDistance) {
                                 closestIntersectionPoint = intersectionPoint;
@@ -153,10 +149,8 @@ public class OriginRay extends Ray {
 
                             if (intersectionPoint == null) continue;
 
-                            double intersectionDistance = Math.sqrt(
-                                    Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
-                                            Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2)
-                            );
+                            double intersectionDistance = Math.pow(intersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(intersectionPoint.getY() - currentRay.getStartY(), 2);
 
                             if (intersectionDistance < shortestIntersectionDistance) {
                                 closestIntersectionPoint = intersectionPoint;
@@ -283,7 +277,7 @@ public class OriginRay extends Ray {
                     if (filter.getFWHM() == 0 && filter.getPassband() == nextRay.getWavelength()) {
                         nextRay.setBrightness(currentRay.getBrightness() * filter.getPeakTransmission());
                     } else {
-                        double sigma = filter.getFWHM() / (2 * Math.sqrt(2 * Math.log(2)));
+                        double sigma = filter.getFWHM() / (2 * Math.sqrt(Math.log(4)));
                         double exponent = -0.5 * Math.pow((currentRay.getWavelength() - filter.getPassband()) / sigma, 2);
                         double finalBrightness = currentRay.getBrightness() * filter.getPeakTransmission() * Math.pow(Math.E, exponent);
                         nextRay.setBrightness(finalBrightness);

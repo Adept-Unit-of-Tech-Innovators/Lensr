@@ -101,7 +101,7 @@ public class Graph extends Canvas {
         data.clear();
 
         for (double wavelength = graphStart; wavelength < graphEnd; wavelength += (graphEnd - graphStart) / getWidth()) {
-            double sigma = filter.getFWHM() / (2 * Math.sqrt(2 * Math.log(2)));
+            double sigma = filter.getFWHM() / (2 * Math.sqrt(Math.log(4)));
             double exponent = -0.5 * Math.pow((wavelength - filter.getPassband()) / sigma, 2);
             double transmission = filter.getPeakTransmission() * Math.pow(Math.E, exponent);
             data.add(transmission);
