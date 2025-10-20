@@ -75,8 +75,8 @@ public class OriginRay extends Ray {
                                 continue;
                             }
 
-                            double currentSegmentIntersectionDistance = Math.pow(segmentIntersectionPoint.getX() - raySnapshot.getStartX(), 2) +
-                                    Math.pow(segmentIntersectionPoint.getY() - raySnapshot.getStartY(), 2);
+                            double currentSegmentIntersectionDistance = Math.pow(segmentIntersectionPoint.getX() - currentRay.getStartX(), 2) +
+                                    Math.pow(segmentIntersectionPoint.getY() - currentRay.getStartY(), 2);
 
                             if (currentSegmentIntersectionDistance < shortestSegmentIntersectionDistance) {
                                 currObject = segment;
